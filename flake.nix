@@ -80,11 +80,6 @@
             cmakeFlags = [
               "-DCMAKE_BUILD_TYPE=Release"
             ];
-
-            installPhase = ''
-              mkdir -p $out/bin
-              cp opengl_app $out/bin/
-            '';
           };
         };
       }

@@ -76,6 +76,11 @@ target_link_libraries(opengl_app
         stb_image
 )
 
+install(TARGETS opengl_app
+    RUNTIME DESTINATION bin
+)
+
+
 # ---- Warnings ----
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(opengl_app PRIVATE -Wall -Wextra -Wpedantic)
