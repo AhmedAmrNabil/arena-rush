@@ -57,3 +57,4 @@ CMakeUserPresets.json
 # Extras
 .vscode/
 build/
+imgui.ini
