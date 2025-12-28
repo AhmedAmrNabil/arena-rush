@@ -49,6 +49,44 @@
             xorg.libXinerama
           ];
         };
+
+        packages = {
+          default = self.packages.${system}.opengl_app;
+          opengl_app = pkgs.stdenv.mkDerivation {
+            pname = "opengl_app";
+            version = "1.0.0";
+
+            src = self;
+
+            nativeBuildInputs = with pkgs; [
+              cmake
+              ninja
+              pkg-config
+            ];
+
+            buildInputs = with pkgs; [
+              glfw
+              glm
+              libGL
+              tinyobjloader
+
+              xorg.libX11
+              xorg.libXcursor
+              xorg.libXrandr
+              xorg.libXi
+              xorg.libXinerama
+            ];
+
+            cmakeFlags = [
+              "-DCMAKE_BUILD_TYPE=Release"
+            ];
+
+            installPhase = ''
+              mkdir -p $out/bin
+              cp opengl_app $out/bin/
+            '';
+          };
+        };
       }
     );
 }

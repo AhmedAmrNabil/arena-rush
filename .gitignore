@@ -58,3 +58,5 @@ CMakeUserPresets.json
 .vscode/
 build/
 imgui.ini
+# nix build output folder
+result
