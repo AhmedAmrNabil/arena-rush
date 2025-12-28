@@ -27,6 +27,9 @@
             gcc
             pkg-config
 
+            # helper
+            just
+
             # libraries
             glfw
             glm
