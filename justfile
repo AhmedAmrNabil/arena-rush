@@ -10,5 +10,8 @@ build: configure
 run: build
 	./build/opengl_app
 
+package:
+	nix build ".?submodules=1"
+
 clean:
 	rm -rf build
