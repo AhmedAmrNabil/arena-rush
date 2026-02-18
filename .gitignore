@@ -60,3 +60,4 @@ build/
 imgui.ini
 # nix build output folder
 result
+.direnv
