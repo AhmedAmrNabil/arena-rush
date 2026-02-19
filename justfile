@@ -2,7 +2,7 @@ dev:
 	nix develop
 
 configure:
-	cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+	cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug  -DCMAKE_COLOR_DIAGNOSTICS=ON
 
 build: configure
 	cmake --build build
