@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(opengl_project
-    VERSION 1.0.0
-    LANGUAGES C CXX
-)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+project(opengl_project
+    VERSION 1.0.0
+    LANGUAGES C CXX
+)
 
 # ---- Dependencies ----
 find_package(OpenGL REQUIRED)
@@ -32,6 +32,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
 add_subdirectory(vendor/glfw)
 
 # ---- GLAD (vendored) ----
@@ -76,6 +77,7 @@ target_include_directories(stb_image
 # ---- Executable ----
 add_executable(opengl_app
     src/main.cpp
+    src/Shader/Shader.cpp
 )
 
 target_include_directories(opengl_app
@@ -96,6 +98,16 @@ target_link_libraries(opengl_app
 
 install(TARGETS opengl_app
     RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY assets/
+    DESTINATION bin/assets
+)
+
+add_custom_command(TARGET opengl_app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets
+        ${CMAKE_CURRENT_BINARY_DIR}/assets
 )
 
 

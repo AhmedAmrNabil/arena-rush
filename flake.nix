@@ -20,6 +20,7 @@
         buildInputs = with pkgs; [
           # libraries
           libGL
+          libffi
 
           # Wayland
           wayland
@@ -69,11 +70,12 @@
 
             cmakeFlags = [
               "-DCMAKE_BUILD_TYPE=Release"
+              "-DGLFW_BUILD_WAYLAND=1"
+              "-DGLFW_BUILD_X11=1"
             ];
 
             installPhase = ''
-              mkdir -p $out/bin
-              cp ./opengl_app $out/bin/
+              cmake --install . --prefix $out
               wrapProgram $out/bin/opengl_app \
                 --set LD_LIBRARY_PATH ${pkgs.libGL}/lib:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH
             '';
