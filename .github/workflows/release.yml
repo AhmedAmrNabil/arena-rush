@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Cache APT packages
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ninja-build make gcc g++ cmake libwayland-dev libxkbcommon-dev xorg-dev
+          version: 1.0
+      
+      - name: Configure & Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+          cmake --install build --prefix dist
+
+      - name: Package
+        run: |
+          cd dist
+          zip -r ../opengl_app-linux-${{ github.ref_name }}.zip .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: opengl_app-linux-${{ github.ref_name }}.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure & Build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+          cmake --install build --prefix dist --config Release
+
+      - name: Package
+        run: Compress-Archive -Path dist\* -DestinationPath opengl_app-windows-${{ github.ref_name }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: opengl_app-windows-${{ github.ref_name }}.zip
+
+  release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            linux-build/opengl_app-linux-${{ github.ref_name }}.zip
+            windows-build/opengl_app-windows-${{ github.ref_name }}.zip
