@@ -13,16 +13,27 @@ jobs:
         with:
           submodules: recursive
 
-      # Cache APT packages
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ninja-build make gcc g++ cmake libwayland-dev libxkbcommon-dev xorg-dev
+          packages: ninja-build make gcc g++ cmake ccache libwayland-dev libxkbcommon-dev xorg-dev
           version: 1.0
-      
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-release-${{ hashFiles('**/CMakeLists.txt', 'src/**', 'include/**') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-release-
+            ${{ runner.os }}-ccache-
+
       - name: Configure & Build
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build
           cmake --install build --prefix dist
 
@@ -41,10 +52,26 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runneradmin\AppData\Local\ccache
+          key: ${{ runner.os }}-ccache-release-${{ hashFiles('**/CMakeLists.txt', 'src/**', 'include/**') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-release-
+
+      - name: Install ccache
+        run: choco install ccache
 
       - name: Configure & Build
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build build --config Release
           cmake --install build --prefix dist --config Release
 
