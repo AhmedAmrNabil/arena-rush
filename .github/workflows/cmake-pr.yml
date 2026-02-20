@@ -17,18 +17,10 @@ jobs:
 
       # Cache APT packages
       - name: Cache APT packages
-        uses: actions/cache@v4
+        uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
-      # Update & install dependencies
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build make gcc g++ cmake libwayland-dev libxkbcommon-dev xorg-dev
+          packages: ninja-build make gcc g++ cmake libwayland-dev libxkbcommon-dev xorg-dev
+          version: 1.0
 
       # Cache CMake build directory
       - name: Cache build
@@ -36,7 +28,6 @@ jobs:
         with:
           path: |
             build
-            ~/.cache
           key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-cmake-
