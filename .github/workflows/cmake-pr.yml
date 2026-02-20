@@ -19,23 +19,24 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ninja-build make gcc g++ cmake libwayland-dev libxkbcommon-dev xorg-dev
+          packages: ninja-build make ccache gcc g++ cmake libwayland-dev libxkbcommon-dev xorg-dev
           version: 1.0
 
       # Cache CMake build directory
-      - name: Cache build
+      - name: Cache ccache
         uses: actions/cache@v4
         with:
-          path: |
-            build
-          key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt', 'src/**', 'include/**') }}
           restore-keys: |
-            ${{ runner.os }}-cmake-
+            ${{ runner.os }}-ccache-
 
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         run: |
