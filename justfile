@@ -8,7 +8,7 @@ build: configure
 	cmake --build build
 
 run: build
-	./build/opengl_app
+	cd build && ./opengl_app
 
 package:
 	nix build ".?submodules=1"

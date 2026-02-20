@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include "Shader/Shader.h"
+
 static void glfw_error_callback(int error, const char* description) {
     std::cerr << "GLFW Error " << error << ": " << description << "\n";
 }
@@ -50,6 +52,30 @@ int main() {
     bool show_demo = true;
     float clear_color[4] = {0.1f, 0.1f, 0.15f, 1.0f};
 
+    // --- Set simple triangle ---
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f, 0.5f, 0.0f};
+
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    Shader shader;
+    shader.addShader("assets/shaders/simple.vert", GL_VERTEX_SHADER)
+          .addShader("assets/shaders/simple.frag", GL_FRAGMENT_SHADER)
+          .link();
+
     // --- Main loop ---
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -81,6 +107,11 @@ int main() {
             clear_color[2],
             clear_color[3]);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        shader.use();
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
