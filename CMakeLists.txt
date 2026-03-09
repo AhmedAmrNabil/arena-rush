@@ -68,84 +68,39 @@ target_link_libraries(imgui
 
 
 # ---- Application Sources ----
-set(COMMON_SOURCES
-        source/common/application.hpp
-        source/common/application.cpp
-        source/common/input/keyboard.hpp
-        source/common/input/mouse.hpp
-
-        source/common/asset-loader.cpp
-        source/common/asset-loader.hpp
-        source/common/deserialize-utils.hpp
-
-        source/common/shader/shader.hpp
-        source/common/shader/shader.cpp
-
-        source/common/mesh/vertex.hpp
-        source/common/mesh/mesh.hpp
-        source/common/mesh/mesh-utils.hpp
-        source/common/mesh/mesh-utils.cpp
-
-        source/common/texture/sampler.hpp
-        source/common/texture/sampler.cpp
-        source/common/texture/texture2d.hpp
-        source/common/texture/texture-utils.hpp
-        source/common/texture/texture-utils.cpp
-        source/common/texture/screenshot.hpp
-        source/common/texture/screenshot.cpp
-
-        source/common/material/pipeline-state.hpp
-        source/common/material/pipeline-state.cpp
-        source/common/material/material.hpp
-        source/common/material/material.cpp
-
-        source/common/ecs/component.hpp
-        source/common/ecs/transform.hpp
-        source/common/ecs/transform.cpp
-        source/common/ecs/entity.hpp
-        source/common/ecs/entity.cpp
-        source/common/ecs/world.hpp
-        source/common/ecs/world.cpp
-
-        source/common/components/camera.hpp
-        source/common/components/camera.cpp
-        source/common/components/mesh-renderer.hpp
-        source/common/components/mesh-renderer.cpp
-        source/common/components/free-camera-controller.hpp
-        source/common/components/free-camera-controller.cpp
-        source/common/components/movement.hpp
-        source/common/components/movement.cpp
-        source/common/components/component-deserializer.hpp
-
-        source/common/systems/forward-renderer.hpp
-        source/common/systems/forward-renderer.cpp
-        source/common/systems/free-camera-controller.hpp
-        source/common/systems/movement.hpp
-)
-
-set(STATES_SOURCES
-        source/states/play-state.hpp
-        source/states/menu-state.hpp
-        source/states/shader-test-state.hpp
-        source/states/mesh-test-state.hpp
-        source/states/transform-test-state.hpp
-        source/states/pipeline-test-state.hpp
-        source/states/texture-test-state.hpp
-        source/states/sampler-test-state.hpp
-        source/states/material-test-state.hpp
-        source/states/entity-test-state.hpp
-        source/states/renderer-test-state.hpp
-)
-
 add_executable(GAME_APPLICATION
-    source/main.cpp
-    ${COMMON_SOURCES}
-    ${STATES_SOURCES}
+    src/main.cpp
+    src/common/application.cpp
+
+    src/common/asset-loader.cpp
+
+    src/common/shader/shader.cpp
+
+    src/common/mesh/mesh-utils.cpp
+
+    src/common/texture/sampler.cpp
+    src/common/texture/texture-utils.cpp
+    src/common/texture/screenshot.cpp
+
+    src/common/material/pipeline-state.cpp
+    src/common/material/material.cpp
+
+    src/common/ecs/transform.cpp
+    src/common/ecs/entity.cpp
+    src/common/ecs/world.cpp
+
+    src/common/components/camera.cpp
+    src/common/components/mesh-renderer.cpp
+    src/common/components/free-camera-controller.cpp
+    src/common/components/movement.cpp
+
+    src/common/systems/forward-renderer.cpp
 )
 
 target_include_directories(GAME_APPLICATION
     PRIVATE
-        source/common
+        src/common
+        src/states
 )
 
 target_link_libraries(GAME_APPLICATION
