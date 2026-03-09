@@ -86,3 +86,9 @@ CMakeSettings.json
 
 # Screenshots
 screenshots/
+
+# dont ignore imgcmp
+!scripts/imgcmp-bin/imgcmp-win.exe
+!scripts/imgcmp-bin/imgcmp-linux
+scripts/imgcmp
+scripts/imgcmp.exe
