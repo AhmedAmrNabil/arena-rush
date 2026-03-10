@@ -11,7 +11,7 @@ run config="": build
 	./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
 
 package:
-	nix build ".?submodules=1"
+	nix build
 
 clean:
 	rm -rf build

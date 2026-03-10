@@ -20,6 +20,7 @@
         buildInputs = with pkgs; [
           # libraries
           libGL
+          libffi
 
           # Wayland
           wayland
@@ -53,9 +54,10 @@
             # helper
             just
             powershell
+            glslang
           ];
 
-          shellHook = "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib";
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
         };
 
         packages = {
@@ -70,12 +72,13 @@
 
             cmakeFlags = [
               "-DCMAKE_BUILD_TYPE=Release"
+              "-DGLFW_BUILD_WAYLAND=1"
+              "-DGLFW_BUILD_X11=1"
             ];
 
             installPhase = ''
-              mkdir -p $out/bin
-              cp ./opengl_app $out/bin/
-              wrapProgram $out/bin/opengl_app \
+              cmake --install . --prefix $out
+              wrapProgram $out/bin/GAME_APPLICATION \
                 --set LD_LIBRARY_PATH ${pkgs.libGL}/lib:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH
             '';
           };

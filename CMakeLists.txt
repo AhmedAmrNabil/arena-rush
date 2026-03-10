@@ -117,6 +117,16 @@ set_target_properties(GAME_APPLICATION PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin
 )
 
+install(TARGETS GAME_APPLICATION
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY assets/
+    DESTINATION bin/assets
+)
+
+
+
 if(UNIX AND NOT APPLE)
     target_link_libraries(GAME_APPLICATION
         PRIVATE
