@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 120
+NamespaceIndentation: All
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Empty
