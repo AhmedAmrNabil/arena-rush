@@ -87,6 +87,9 @@ CMakeSettings.json
 # Screenshots
 screenshots/
 
+# errors folder form comparing
+errors/
+
 # dont ignore imgcmp
 !scripts/imgcmp-bin/imgcmp-win.exe
 !scripts/imgcmp-bin/imgcmp-linux

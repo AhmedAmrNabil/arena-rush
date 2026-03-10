@@ -24,9 +24,7 @@ _setup-imgcmp:
 
 [windows]
 _setup-imgcmp:
-	copy scripts\imgcmp-bin\imgcmp-win.exe scripts\imgcmp.exe
-
-# --- Run all tests (or a subset)
+	cp scripts/imgcmp-bin/imgcmp-win.exe scripts/imgcmp.exe
 
 run-tests *TESTS: build _setup-imgcmp
 	pwsh -File scripts/run-all.ps1 {{TESTS}}
