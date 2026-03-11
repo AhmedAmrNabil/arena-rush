@@ -29,6 +29,7 @@
           egl-wayland
           libdecor
           wayland-scanner
+          extra-cmake-modules # for wayland
 
           # X11
           xorg.libX11
