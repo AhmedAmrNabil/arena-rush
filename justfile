@@ -2,7 +2,7 @@ dev:
 	nix develop
 
 configure:
-	cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug  -DCMAKE_COLOR_DIAGNOSTICS=ON
+	cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
 build: configure
 	cmake --build build
@@ -14,7 +14,7 @@ package:
 	nix build
 
 clean:
-	rm -rf build
+	rm -rf build bin
 
 # --- OS-specific imgcmp setup
 [linux]
