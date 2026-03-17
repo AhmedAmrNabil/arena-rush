@@ -82,7 +82,8 @@ CMakeSettings.json
 .idea/
 
 # Visual Studio Code specific files
-.vscode/
+.vscode/*
+!.vscode/c_cpp_properties.json
 
 # Screenshots
 screenshots/
