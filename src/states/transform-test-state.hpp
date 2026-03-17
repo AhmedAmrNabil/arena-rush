@@ -1,24 +1,21 @@
 #pragma once
 
-#include <shader/shader.hpp>
-#include <mesh/mesh.hpp>
-#include <mesh/mesh-utils.hpp>
-#include <ecs/transform.hpp>
 #include <application.hpp>
 #include <deserialize-utils.hpp>
-
+#include <ecs/transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <mesh/mesh-utils.hpp>
+#include <mesh/mesh.hpp>
+#include <shader/shader.hpp>
 #include <vector>
-#include <glm/gtc/matrix_transform.hpp> 
-
 
 // This state test and shows how to use the Transform struct.
-class TransformTestState: public our::State {
-
+class TransformTestState : public our::State {
     our::ShaderProgram* shader;
     our::Mesh* mesh;
     std::vector<our::Transform> transforms;
     glm::mat4 VP;
-    
+
     void onInitialize() override {
         // First of all, we get the scene configuration from the app config
         auto& config = getApp()->getConfig()["scene"];
@@ -32,9 +29,9 @@ class TransformTestState: public our::State {
         // Then we read a list of transform objects from the shader
         // In draw, we will render a mesh for each of the transforms
         transforms.clear();
-        if(config.contains("objects")){
-            if(auto& objects = config["objects"]; objects.is_array()){
-                for(auto& object : objects){
+        if (config.contains("objects")) {
+            if (auto& objects = config["objects"]; objects.is_array()) {
+                for (auto& object : objects) {
                     our::Transform transform;
                     transform.deserialize(object);
                     transforms.push_back(transform);
@@ -42,8 +39,8 @@ class TransformTestState: public our::State {
             }
         }
         // Then we read the camera information to compute the VP matrix
-        if(config.contains("camera")){
-            if(auto& camera = config["camera"]; camera.is_object()){
+        if (config.contains("camera")) {
+            if (auto& camera = config["camera"]; camera.is_object()) {
                 glm::vec3 eye = camera.value("eye", glm::vec3(0, 0, 0));
                 glm::vec3 center = camera.value("center", glm::vec3(0, 0, -1));
                 glm::vec3 up = camera.value("up", glm::vec3(0, 1, 0));
@@ -54,7 +51,7 @@ class TransformTestState: public our::State {
                 float far = camera.value("far", 1000.0f);
 
                 glm::ivec2 size = getApp()->getFrameBufferSize();
-                float aspect = float(size.x)/size.y;
+                float aspect = float(size.x) / size.y;
                 glm::mat4 P = glm::perspective(fov, aspect, near, far);
 
                 VP = P * V;
@@ -65,7 +62,7 @@ class TransformTestState: public our::State {
     void onDraw(double deltaTime) override {
         glClear(GL_COLOR_BUFFER_BIT);
         shader->use();
-        for(auto& transform : transforms){
+        for (auto& transform : transforms) {
             // For each transform, we compute the MVP matrix and send it to the "transform" uniform
             shader->set("transform", VP * transform.toMat4());
             // Then we draw a mesh instance

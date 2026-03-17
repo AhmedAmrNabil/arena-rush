@@ -5,11 +5,10 @@
 #include <tinyobj/tiny_obj_loader.h>
 
 #include <iostream>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
-
     // The data that we will use to initialize our mesh
     std::vector<our::Vertex> vertices;
     std::vector<GLuint> elements;
@@ -34,37 +33,26 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
     }
 
     // An obj file can have multiple shapes where each shape can have its own material
-    // Ideally, we would load each shape into a separate mesh or store the start and end of it in the element buffer to be able to draw each shape separately
-    // But we ignored this fact since we don't plan to use multiple materials in the examples
-    for (const auto &shape : shapes) {
-        for (const auto &index : shape.mesh.indices) {
+    // Ideally, we would load each shape into a separate mesh or store the start and end of it in the element buffer to
+    // be able to draw each shape separately But we ignored this fact since we don't plan to use multiple materials in
+    // the examples
+    for (const auto& shape : shapes) {
+        for (const auto& index : shape.mesh.indices) {
             Vertex vertex = {};
 
             // Read the data for a vertex from the "attrib" object
-            vertex.position = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
-            };
+            vertex.position = {attrib.vertices[3 * index.vertex_index + 0], attrib.vertices[3 * index.vertex_index + 1],
+                               attrib.vertices[3 * index.vertex_index + 2]};
 
-            vertex.normal = {
-                    attrib.normals[3 * index.normal_index + 0],
-                    attrib.normals[3 * index.normal_index + 1],
-                    attrib.normals[3 * index.normal_index + 2]
-            };
+            vertex.normal = {attrib.normals[3 * index.normal_index + 0], attrib.normals[3 * index.normal_index + 1],
+                             attrib.normals[3 * index.normal_index + 2]};
 
-            vertex.tex_coord = {
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    attrib.texcoords[2 * index.texcoord_index + 1]
-            };
+            vertex.tex_coord = {attrib.texcoords[2 * index.texcoord_index + 0],
+                                attrib.texcoords[2 * index.texcoord_index + 1]};
 
-
-            vertex.color = {
-                    attrib.colors[3 * index.vertex_index + 0] * 255,
-                    attrib.colors[3 * index.vertex_index + 1] * 255,
-                    attrib.colors[3 * index.vertex_index + 2] * 255,
-                    255
-            };
+            vertex.color = {attrib.colors[3 * index.vertex_index + 0] * 255,
+                            attrib.colors[3 * index.vertex_index + 1] * 255,
+                            attrib.colors[3 * index.vertex_index + 2] * 255, 255};
 
             // See if we already stored a similar vertex
             auto it = vertex_map.find(vertex);
@@ -86,17 +74,17 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
 
 // Create a sphere (the vertex order in the triangles are CCW from the outside)
 // Segments define the number of divisions on the both the latitude and the longitude
-our::Mesh* our::mesh_utils::sphere(const glm::ivec2& segments){
+our::Mesh* our::mesh_utils::sphere(const glm::ivec2& segments) {
     std::vector<our::Vertex> vertices;
     std::vector<GLuint> elements;
 
     // We populate the sphere vertices by looping over its longitude and latitude
-    for(int lat = 0; lat <= segments.y; lat++){
+    for (int lat = 0; lat <= segments.y; lat++) {
         float v = (float)lat / segments.y;
         float pitch = v * glm::pi<float>() - glm::half_pi<float>();
         float cos = glm::cos(pitch), sin = glm::sin(pitch);
-        for(int lng = 0; lng <= segments.x; lng++){
-            float u = (float)lng/segments.x;
+        for (int lng = 0; lng <= segments.x; lng++) {
+            float u = (float)lng / segments.x;
             float yaw = u * glm::two_pi<float>();
             glm::vec3 normal = {cos * glm::cos(yaw), sin, cos * glm::sin(yaw)};
             glm::vec3 position = normal;
@@ -106,10 +94,10 @@ our::Mesh* our::mesh_utils::sphere(const glm::ivec2& segments){
         }
     }
 
-    for(int lat = 1; lat <= segments.y; lat++){
-        int start = lat*(segments.x+1);
-        for(int lng = 1; lng <= segments.x; lng++){
-            int prev_lng = lng-1;
+    for (int lat = 1; lat <= segments.y; lat++) {
+        int start = lat * (segments.x + 1);
+        for (int lng = 1; lng <= segments.x; lng++) {
+            int prev_lng = lng - 1;
             elements.push_back(lng + start);
             elements.push_back(lng + start - segments.x - 1);
             elements.push_back(prev_lng + start - segments.x - 1);

@@ -1,15 +1,13 @@
 #include "screenshot.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <glad/gl.h>
 #include <stb/stb_image_write.h>
 
-#include <glad/gl.h>
-
-#include <vector>
 #include <filesystem>
+#include <vector>
 
 bool our::screenshot_png(const std::string& filename, bool include_alpha) {
-
     // Read the current viewport parameters
     struct {
         int x = 0, y = 0, w = 0, h = 0;
@@ -30,13 +28,14 @@ bool our::screenshot_png(const std::string& filename, bool include_alpha) {
     // Read Pixels from framebuffer
     glReadPixels(viewport.x, viewport.y, viewport.w, viewport.h, format, GL_UNSIGNED_BYTE, data.data());
 
-    // Since texture row in OpenGL start from bottom and goes up, we need to flip since image formats start from top to bottom.
+    // Since texture row in OpenGL start from bottom and goes up, we need to flip since image formats start from top to
+    // bottom.
     stbi_flip_vertically_on_write(true);
 
     // Make sure the directory in which we want to save screenshot exists. If not, create it.
     std::error_code ec;
     std::filesystem::create_directories(std::filesystem::path(filename).parent_path(), ec);
-    if(ec) return false;
+    if (ec) return false;
 
     // Save image and return whether it succeeded or not
     return stbi_write_png(filename.c_str(), viewport.w, viewport.h, components, data.data(), 0);

@@ -9,4 +9,4 @@ namespace our {
 
 }
 
-#endif //GFX_LAB_SCREENSHOT_H
+#endif  // GFX_LAB_SCREENSHOT_H

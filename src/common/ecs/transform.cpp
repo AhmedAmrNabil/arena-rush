@@ -1,7 +1,7 @@
-#include "entity.hpp"
-#include "../deserialize-utils.hpp"
-
 #include <glm/gtx/euler_angles.hpp>
+
+#include "../deserialize-utils.hpp"
+#include "entity.hpp"
 
 namespace our {
 
@@ -9,15 +9,15 @@ namespace our {
     // Remember that the order of transformations is: Scaling, Rotation then Translation
     // HINT: to convert euler angles to a rotation matrix, you can use glm::yawPitchRoll
     glm::mat4 Transform::toMat4() const {
-        //TODO: (Req 3) Write this function
-        return glm::mat4(1.0f); 
+        // TODO: (Req 3) Write this function
+        return glm::mat4(1.0f);
     }
 
-     // Deserializes the entity data and components from a json object
-    void Transform::deserialize(const nlohmann::json& data){
+    // Deserializes the entity data and components from a json object
+    void Transform::deserialize(const nlohmann::json& data) {
         position = data.value("position", position);
         rotation = glm::radians(data.value("rotation", glm::degrees(rotation)));
-        scale    = data.value("scale", scale);
+        scale = data.value("scale", scale);
     }
 
-}
+}  // namespace our

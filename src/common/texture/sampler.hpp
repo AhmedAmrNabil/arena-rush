@@ -1,46 +1,48 @@
 #pragma once
 
 #include <glad/gl.h>
-#include <json/json.hpp>
+
 #include <glm/vec4.hpp>
+#include <json/json.hpp>
 
 namespace our {
 
     // This class defined an OpenGL sampler
     class Sampler {
-        // The OpenGL object name of this sampler 
+        // The OpenGL object name of this sampler
         GLuint name;
+
     public:
-        // This constructor creates an OpenGL sampler and saves its object name in the member variable "name" 
+        // This constructor creates an OpenGL sampler and saves its object name in the member variable "name"
         Sampler() {
-            //TODO: (Req 6) Complete this function
+            // TODO: (Req 6) Complete this function
         };
 
         // This deconstructor deletes the underlying OpenGL sampler
-        ~Sampler() { 
-            //TODO: (Req 6) Complete this function
-         }
+        ~Sampler() {
+            // TODO: (Req 6) Complete this function
+        }
 
         // This method binds this sampler to the given texture unit
         void bind(GLuint textureUnit) const {
-            //TODO: (Req 6) Complete this function
+            // TODO: (Req 6) Complete this function
         }
 
         // This static method ensures that no sampler is bound to the given texture unit
-        static void unbind(GLuint textureUnit){
-            //TODO: (Req 6) Complete this function
+        static void unbind(GLuint textureUnit) {
+            // TODO: (Req 6) Complete this function
         }
 
         // This function sets a sampler paramter where the value is of type "GLint"
         // This can be used to set the filtering and wrapping parameters
         void set(GLenum parameter, GLint value) const {
-            //TODO: (Req 6) Complete this function
+            // TODO: (Req 6) Complete this function
         }
 
         // This function sets a sampler paramter where the value is of type "GLfloat"
         // This can be used to set the "GL_TEXTURE_MAX_ANISOTROPY_EXT" parameter
         void set(GLenum parameter, GLfloat value) const {
-            //TODO: (Req 6) Complete this function
+            // TODO: (Req 6) Complete this function
         }
 
         // This function sets a sampler paramter where the value is of type "GLfloat[4]"
@@ -56,4 +58,4 @@ namespace our {
         Sampler& operator=(const Sampler&) = delete;
     };
 
-}
+}  // namespace our
