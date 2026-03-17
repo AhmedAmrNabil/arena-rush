@@ -146,6 +146,7 @@ LICENSE
   See end of file for license information.
 
 */
+#pragma GCC system_header
 
 #ifndef INCLUDE_STB_IMAGE_WRITE_H
 #define INCLUDE_STB_IMAGE_WRITE_H

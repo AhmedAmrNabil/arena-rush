@@ -26,6 +26,7 @@ namespace our {
         virtual void setup() const;
         // This function read a material from a json object
         virtual void deserialize(const nlohmann::json& data);
+        virtual ~Material() = default;
     };
 
     // This material adds a uniform for a tint (a color that will be sent to the shader)
@@ -36,6 +37,7 @@ namespace our {
 
         void setup() const override;
         void deserialize(const nlohmann::json& data) override;
+        virtual ~TintedMaterial() = default;
     };
 
     // This material adds two uniforms (besides the tint from Tinted Material)
@@ -51,6 +53,7 @@ namespace our {
 
         void setup() const override;
         void deserialize(const nlohmann::json& data) override;
+        virtual ~TexturedMaterial() = default;
     };
 
     // This function returns a new material instance based on the given type

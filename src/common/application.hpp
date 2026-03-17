@@ -53,6 +53,8 @@ namespace our {
         Application* getApp() {
             return application;
         }
+
+        virtual ~State() = default;
     };
 
     // This class act as base class for all the Applications covered in the examples.
