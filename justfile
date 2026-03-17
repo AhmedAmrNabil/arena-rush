@@ -5,7 +5,7 @@ configure:
 	cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
 build: configure
-	cmake --build build
+	cmake --build build -- -j$(nproc)
 
 run config="": build
 	./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
