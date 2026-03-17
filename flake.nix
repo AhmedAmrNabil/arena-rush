@@ -76,6 +76,7 @@
               "-DCMAKE_BUILD_TYPE=Release"
               "-DGLFW_BUILD_WAYLAND=1"
               "-DGLFW_BUILD_X11=1"
+              "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ];
 
             installPhase = ''
