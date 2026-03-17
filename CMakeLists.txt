@@ -62,7 +62,7 @@ target_include_directories(imgui
 )
 
 target_link_libraries(imgui
-    PUBLIC 
+    PUBLIC
         glfw
         glad
 )
