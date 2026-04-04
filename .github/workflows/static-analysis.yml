@@ -29,19 +29,16 @@ jobs:
           cppcheck \
             --enable=warning,style,performance,portability \
             --suppress=missingIncludeSystem \
+            --suppress=missingInclude \
             --suppress=unmatchedSuppression \
-            --suppress=*:vendor/* \
             --inline-suppr \
             --std=c++17 \
             --language=c++ \
             --error-exitcode=1 \
             --template='{file}:{line}: {severity}: {message} [{id}]' \
+            -j $(nproc) \
             -I src/common \
             -I src/states \
-            -I vendor/glm \
-            -I vendor/glad/include \
-            -I vendor/imgui \
-            -I vendor/utils \
             src/ 2>&1 | tee cppcheck-report.txt
 
       - name: Upload Cppcheck report
