@@ -1,0 +1,66 @@
+name: OpenGL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/shaders/**"
+      - "config/**"
+      - "expected/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/shaders/**"
+      - "config/**"
+      - "expected/**"
+
+concurrency:
+  group: opengl-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shader-validation:
+    name: Shader Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install glslang
+        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+
+      - name: Validate GLSL shaders
+        run: |
+          FAILED=0
+          TOTAL=0
+          PASSED=0
+
+          for shader in $(find assets/shaders -type f \( -name "*.vert" -o -name "*.frag" -o -name "*.geom" -o -name "*.comp" \)); do
+            TOTAL=$((TOTAL + 1))
+
+            OUTPUT=$(glslangValidator --target-env opengl "$shader" 2>&1)
+            STATUS=$?
+
+            if [ $STATUS -ne 0 ]; then
+              echo "::error file=$shader::Shader compilation failed"
+              echo "FAIL: $shader"
+              echo "$OUTPUT" | sed 's/^/   /'
+              echo ""
+              FAILED=$((FAILED + 1))
+            else
+              echo "PASS: $shader"
+              PASSED=$((PASSED + 1))
+            fi
+          done
+
+          echo ""
+          echo "Results: $PASSED/$TOTAL passed, $FAILED failed"
+
+          if [ $FAILED -gt 0 ]; then
+            exit 1
+          fi
