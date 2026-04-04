@@ -26,7 +26,7 @@ struct Button {
     // (and whose top-left corner is at the origin) to be the button.
     glm::mat4 getLocalToWorld() const {
         return glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f)) *
-                glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
+               glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
     }
 };
 

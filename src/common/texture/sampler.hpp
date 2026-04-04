@@ -14,7 +14,7 @@ namespace our {
 
     public:
         // This constructor creates an OpenGL sampler and saves its object name in the member variable "name"
-        Sampler() {
+        Sampler(){
             // TODO: (Req 6) Complete this function
         };
 

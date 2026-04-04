@@ -18,7 +18,7 @@ namespace our {
         // We plan to use this as a key for a map so we need to define the equality operator
         bool operator==(const Vertex& other) const {
             return position == other.position && color == other.color && tex_coord == other.tex_coord &&
-                    normal == other.normal;
+                   normal == other.normal;
         }
     };
 

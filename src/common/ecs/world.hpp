@@ -10,7 +10,7 @@ namespace our {
     class World {
         std::unordered_set<Entity*> entities;          // These are the entities held by this world
         std::unordered_set<Entity*> markedForRemoval;  // These are the entities that are awaiting to be deleted
-                                                        // when deleteMarkedEntities is called
+                                                       // when deleteMarkedEntities is called
     public:
         World() = default;
 

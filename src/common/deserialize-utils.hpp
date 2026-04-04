@@ -40,9 +40,9 @@ namespace our {
         inline EnumMap polygon_modes = {{"GL_POINT", GL_POINT}, {"GL_LINE", GL_LINE}, {"GL_FILL", GL_FILL}};
 
         inline EnumMap comparison_functions = {{"GL_ALWAYS", GL_ALWAYS},   {"GL_NEVER", GL_NEVER},
-                                                {"GL_EQUAL", GL_EQUAL},     {"GL_NOTEQUAL", GL_NOTEQUAL},
-                                                {"GL_LESS", GL_LESS},       {"GL_LEQUAL", GL_LEQUAL},
-                                                {"GL_GREATER", GL_GREATER}, {"GL_GEQUAL", GL_GEQUAL}};
+                                               {"GL_EQUAL", GL_EQUAL},     {"GL_NOTEQUAL", GL_NOTEQUAL},
+                                               {"GL_LESS", GL_LESS},       {"GL_LEQUAL", GL_LEQUAL},
+                                               {"GL_GREATER", GL_GREATER}, {"GL_GEQUAL", GL_GEQUAL}};
 
         inline EnumMap face_windings = {{"GL_CCW", GL_CCW}, {"GL_CW", GL_CW}};
 
@@ -52,38 +52,38 @@ namespace our {
         inline EnumMap texture_magnification_filters = {{"GL_NEAREST", GL_NEAREST}, {"GL_LINEAR", GL_LINEAR}};
 
         inline EnumMap texture_minification_filters = {{"GL_NEAREST", GL_NEAREST},
-                                                        {"GL_LINEAR", GL_LINEAR},
-                                                        {"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST},
-                                                        {"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST},
-                                                        {"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR},
-                                                        {"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR}};
+                                                       {"GL_LINEAR", GL_LINEAR},
+                                                       {"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST},
+                                                       {"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST},
+                                                       {"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR},
+                                                       {"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR}};
 
         inline EnumMap texture_wrapping_modes = {{"GL_CLAMP_TO_EDGE", GL_CLAMP_TO_EDGE},
-                                                {"GL_CLAMP_TO_BORDER", GL_CLAMP_TO_BORDER},
-                                                {"GL_REPEAT", GL_REPEAT},
-                                                {"GL_MIRRORED_REPEAT", GL_MIRRORED_REPEAT},
-                                                {"GL_MIRROR_CLAMP_TO_EDGE", GL_MIRROR_CLAMP_TO_EDGE}};
+                                                 {"GL_CLAMP_TO_BORDER", GL_CLAMP_TO_BORDER},
+                                                 {"GL_REPEAT", GL_REPEAT},
+                                                 {"GL_MIRRORED_REPEAT", GL_MIRRORED_REPEAT},
+                                                 {"GL_MIRROR_CLAMP_TO_EDGE", GL_MIRROR_CLAMP_TO_EDGE}};
 
         inline EnumMap blend_functions = {{"GL_ZERO", GL_ZERO},
-                                        {"GL_ONE", GL_ONE},
-                                        {"GL_SRC_COLOR", GL_SRC_COLOR},
-                                        {"GL_ONE_MINUS_SRC_COLOR", GL_ONE_MINUS_SRC_COLOR},
-                                        {"GL_DST_COLOR", GL_DST_COLOR},
-                                        {"GL_ONE_MINUS_DST_COLOR", GL_ONE_MINUS_DST_COLOR},
-                                        {"GL_SRC_ALPHA", GL_SRC_ALPHA},
-                                        {"GL_ONE_MINUS_SRC_ALPHA", GL_ONE_MINUS_SRC_ALPHA},
-                                        {"GL_DST_ALPHA", GL_DST_ALPHA},
-                                        {"GL_ONE_MINUS_DST_ALPHA", GL_ONE_MINUS_DST_ALPHA},
-                                        {"GL_CONSTANT_COLOR", GL_CONSTANT_COLOR},
-                                        {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
-                                        {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
-                                        {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA}};
+                                          {"GL_ONE", GL_ONE},
+                                          {"GL_SRC_COLOR", GL_SRC_COLOR},
+                                          {"GL_ONE_MINUS_SRC_COLOR", GL_ONE_MINUS_SRC_COLOR},
+                                          {"GL_DST_COLOR", GL_DST_COLOR},
+                                          {"GL_ONE_MINUS_DST_COLOR", GL_ONE_MINUS_DST_COLOR},
+                                          {"GL_SRC_ALPHA", GL_SRC_ALPHA},
+                                          {"GL_ONE_MINUS_SRC_ALPHA", GL_ONE_MINUS_SRC_ALPHA},
+                                          {"GL_DST_ALPHA", GL_DST_ALPHA},
+                                          {"GL_ONE_MINUS_DST_ALPHA", GL_ONE_MINUS_DST_ALPHA},
+                                          {"GL_CONSTANT_COLOR", GL_CONSTANT_COLOR},
+                                          {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
+                                          {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
+                                          {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA}};
 
         inline EnumMap blend_equations = {{"GL_FUNC_ADD", GL_FUNC_ADD},
-                                        {"GL_FUNC_SUBTRACT", GL_FUNC_SUBTRACT},
-                                        {"GL_FUNC_REVERSE_SUBTRACT", GL_FUNC_REVERSE_SUBTRACT},
-                                        {"GL_MIN", GL_MIN},
-                                        {"GL_MAX", GL_MAX}};
+                                          {"GL_FUNC_SUBTRACT", GL_FUNC_SUBTRACT},
+                                          {"GL_FUNC_REVERSE_SUBTRACT", GL_FUNC_REVERSE_SUBTRACT},
+                                          {"GL_MIN", GL_MIN},
+                                          {"GL_MAX", GL_MAX}};
     }  // namespace gl_enum_deserialize
 
 }  // namespace our
