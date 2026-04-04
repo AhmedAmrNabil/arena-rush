@@ -1,0 +1,48 @@
+name: Format Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+
+      - name: Check formatting
+        run: |
+          FAILED=0
+          FILES=$(find src/ -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \))
+
+          for file in $FILES; do
+            # Generate the diff between current and formatted versions
+            DIFF=$(clang-format "$file" | diff -u "$file" - || true)
+            if [ -n "$DIFF" ]; then
+              echo "::error file=$file::File is not formatted according to .clang-format"
+              echo "$DIFF"
+              echo ""
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "Some files are not properly formatted."
+            echo ""
+            echo "Fix locally with:"
+            echo '  find src/ -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) | xargs clang-format -i'
+            exit 1
+          fi
+
+          echo "All files are properly formatted."
