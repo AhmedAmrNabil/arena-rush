@@ -61,3 +61,41 @@ imgui.ini
 # nix build output folder
 result
 .direnv
+
+# build directories
+cmake-build-*/
+build/
+out/
+bin/
+
+# imgui saved state
+imgui.ini
+
+# Since ".obj" are ignored by default, we force them to be added
+!assets/models/**/*.obj
+
+# Visual Studio specific files
+CMakeSettings.json
+.vs/
+
+# Clion specific files
+.idea/
+
+# Visual Studio Code specific files
+.vscode/*
+!.vscode/c_cpp_properties.json
+
+# Screenshots
+screenshots/
+
+# errors folder form comparing
+errors/
+
+# dont ignore imgcmp
+!scripts/imgcmp-bin/imgcmp-win.exe
+!scripts/imgcmp-bin/imgcmp-linux
+scripts/imgcmp
+scripts/imgcmp.exe
+
+# Cache files
+.cache/

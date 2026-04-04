@@ -1,99 +1,63 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <flags/flags.h>
 
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-
+#include <application.hpp>
+#include <fstream>
 #include <iostream>
+#include <json/json.hpp>
 
-static void glfw_error_callback(int error, const char* description) {
-    std::cerr << "GLFW Error " << error << ": " << description << "\n";
-}
+#include "states/entity-test-state.hpp"
+#include "states/material-test-state.hpp"
+#include "states/menu-state.hpp"
+#include "states/mesh-test-state.hpp"
+#include "states/pipeline-test-state.hpp"
+#include "states/play-state.hpp"
+#include "states/renderer-test-state.hpp"
+#include "states/sampler-test-state.hpp"
+#include "states/shader-test-state.hpp"
+#include "states/texture-test-state.hpp"
+#include "states/transform-test-state.hpp"
 
-int main() {
-    glfwSetErrorCallback(glfw_error_callback);
+int main(int argc, char** argv) {
+    flags::args args(argc, argv);  // Parse the command line arguments
+    // config_path is the path to the json file containing the application configuration
+    // Default: "config/app.json"
+    std::string config_path = args.get<std::string>("c", "config/app.jsonc");
+    // run_for_frames is how many frames to run the application before automatically closing
+    // This is useful for testing multiple configurations in a batch
+    // Default: 0 where the application runs indefinitely until manually closed
+    int run_for_frames = args.get<int>("f", 0);
 
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
-        return 1;
+    // Open the config file and exit if failed
+    std::ifstream file_in(config_path);
+    if (!file_in) {
+        std::cerr << "Couldn't open file: " << config_path << std::endl;
+        return -1;
+    }
+    // Read the file into a json object then close the file
+    nlohmann::json app_config = nlohmann::json::parse(file_in, nullptr, true, true);
+    file_in.close();
+
+    // Create the application
+    our::Application app(app_config);
+
+    // Register all the states of the project in the application
+    app.registerState<Menustate>("menu");
+    app.registerState<Playstate>("play");
+    app.registerState<ShaderTestState>("shader-test");
+    app.registerState<MeshTestState>("mesh-test");
+    app.registerState<TransformTestState>("transform-test");
+    app.registerState<PipelineTestState>("pipeline-test");
+    app.registerState<TextureTestState>("texture-test");
+    app.registerState<SamplerTestState>("sampler-test");
+    app.registerState<MaterialTestState>("material-test");
+    app.registerState<EntityTestState>("entity-test");
+    app.registerState<RendererTestState>("renderer-test");
+    // Then choose the state to run based on the option "start-scene" in the config
+    if (app_config.contains(std::string{"start-scene"})) {
+        app.changeState(app_config["start-scene"].get<std::string>());
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "ImGui Test", nullptr, nullptr);
-    if (!window) {
-        glfwTerminate();
-        return 1;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
-        return 1;
-    }
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 460");
-
-    bool show_demo = true;
-    float clear_color[4] = {0.1f, 0.1f, 0.15f, 1.0f};
-
-    // --- Main loop ---
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        // Start ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        // UI
-        ImGui::Begin("Hello, ImGui!");
-        ImGui::Checkbox("Show Demo Window", &show_demo);
-        ImGui::ColorEdit4("Clear Color", clear_color);
-        ImGui::End();
-
-        if (show_demo) {
-            ImGui::ShowDemoWindow(&show_demo);
-        }
-
-        // Rendering
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(
-            clear_color[0],
-            clear_color[1],
-            clear_color[2],
-            clear_color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-    }
-
-    // --- Cleanup ---
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-
-    return 0;
+    // Finally run the application
+    // Here, the application loop will run till the terminatio condition is statisfied
+    return app.run(run_for_frames);
 }

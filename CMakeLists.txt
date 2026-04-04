@@ -1,107 +1,142 @@
-cmake_minimum_required(VERSION 3.21)
-
-project(opengl_project
-    VERSION 1.0.0
+cmake_minimum_required(VERSION 3.21)   # Selects the minimum version of CMake required to run this file
+project(GFX_LAB
+    VERSION 0.1.0
     LANGUAGES C CXX
 )
 
+# ---- C++ Standard ----
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ---- Dependencies ----
-find_package(OpenGL REQUIRED)
+# ---- Linux Dependencies ----
+if(UNIX AND NOT APPLE)
+    find_package(OpenGL REQUIRED)
+endif()
 
-# ---- TinyObjLoader (vendored) ----
-add_library(tinyobjloader INTERFACE)
-target_include_directories(tinyobjloader
-    INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/tinyobjloader
-)
-
-# ---- GLM (vendored) ----
-add_library(glm INTERFACE)
-target_include_directories(glm
-    INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/glm
-)
-
-# ---- GLFW (vendored) ----
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# ---- Vendor Libraries ----
+# ---- GLFW ----
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
+
 add_subdirectory(vendor/glfw)
 
-# ---- GLAD (vendored) ----
+# ---- GLAD ----
 add_library(glad STATIC
-    vendor/glad/src/glad.c
+    vendor/glad/src/gl.c
 )
 target_include_directories(glad
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/glad/include
+    PUBLIC vendor/glad/include
 )
 
-# ---- IMGUI (vendored) ----
+# ---- GLM (Header-only) ----
+add_library(glm INTERFACE)
+target_include_directories(glm
+    INTERFACE vendor/glm
+)
+
+# ---- Utils (Header-only) ----
+add_library(utils INTERFACE)
+target_include_directories(utils
+    INTERFACE vendor/utils
+)
+
+# ---- ImGui ----
 add_library(imgui STATIC
+    vendor/imgui/imgui.cpp
     vendor/imgui/imgui_demo.cpp
     vendor/imgui/imgui_draw.cpp
-    vendor/imgui/backends/imgui_impl_glfw.cpp
-    vendor/imgui/backends/imgui_impl_opengl3.cpp
-    vendor/imgui/imgui_tables.cpp
     vendor/imgui/imgui_widgets.cpp
-    vendor/imgui/imgui.cpp
+    vendor/imgui/imgui_impl/imgui_impl_glfw.cpp
+    vendor/imgui/imgui_impl/imgui_impl_opengl3.cpp
 )
+
 target_include_directories(imgui
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui/backends
+        vendor/imgui
+        vendor/imgui/imgui_impl
 )
+
 target_link_libraries(imgui
-    PRIVATE
-        glfw
-        OpenGL::GL
-)
-
-# ---- STB Image (vendored) ----
-add_library(stb_image STATIC
-    vendor/stb/src/stb_image.cpp
-)
-target_include_directories(stb_image
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb/include
+        glfw
+        glad
 )
 
-# ---- Executable ----
-add_executable(opengl_app
+
+# ---- Application Sources ----
+add_executable(GAME_APPLICATION
     src/main.cpp
+    src/common/application.cpp
+
+    src/common/asset-loader.cpp
+
+    src/common/shader/shader.cpp
+
+    src/common/mesh/mesh-utils.cpp
+
+    src/common/texture/sampler.cpp
+    src/common/texture/texture-utils.cpp
+    src/common/texture/screenshot.cpp
+
+    src/common/material/pipeline-state.cpp
+    src/common/material/material.cpp
+
+    src/common/ecs/transform.cpp
+    src/common/ecs/entity.cpp
+    src/common/ecs/world.cpp
+
+    src/common/components/camera.cpp
+    src/common/components/mesh-renderer.cpp
+    src/common/components/free-camera-controller.cpp
+    src/common/components/movement.cpp
+
+    src/common/systems/forward-renderer.cpp
 )
 
-target_include_directories(opengl_app
+target_include_directories(GAME_APPLICATION
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        src/common
+        src/states
 )
 
-target_link_libraries(opengl_app
+target_link_libraries(GAME_APPLICATION
     PRIVATE
         glad
-        OpenGL::GL
         glfw
         glm
-        tinyobjloader
         imgui
-        stb_image
+        utils
 )
 
-install(TARGETS opengl_app
+set_target_properties(GAME_APPLICATION PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin
+)
+
+install(TARGETS GAME_APPLICATION
     RUNTIME DESTINATION bin
 )
 
+install(DIRECTORY assets/
+    DESTINATION bin/assets
+)
 
-# ---- Warnings ----
+
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(GAME_APPLICATION
+        PRIVATE
+            OpenGL::GL
+    )
+endif()
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(opengl_app PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(GAME_APPLICATION PRIVATE -Wall)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(opengl_app PRIVATE /W4 /permissive-)
+    target_compile_options(GAME_APPLICATION PRIVATE /W4)
 endif()
