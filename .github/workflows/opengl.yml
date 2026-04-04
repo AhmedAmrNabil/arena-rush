@@ -43,18 +43,14 @@ jobs:
           for shader in $(find assets/shaders -type f \( -name "*.vert" -o -name "*.frag" -o -name "*.geom" -o -name "*.comp" \)); do
             TOTAL=$((TOTAL + 1))
 
-            OUTPUT=$(glslangValidator --target-env opengl "$shader" 2>&1)
-            STATUS=$?
-
-            if [ $STATUS -ne 0 ]; then
-              echo "::error file=$shader::Shader compilation failed"
-              echo "FAIL: $shader"
-              echo "$OUTPUT" | sed 's/^/   /'
-              echo ""
-              FAILED=$((FAILED + 1))
-            else
+            if OUTPUT=$(glslangValidator "$shader" 2>&1); then
               echo "PASS: $shader"
               PASSED=$((PASSED + 1))
+            else
+              echo "FAIL: $shader"
+              echo "$OUTPUT"
+              echo ""
+              FAILED=$((FAILED + 1))
             fi
           done
 
