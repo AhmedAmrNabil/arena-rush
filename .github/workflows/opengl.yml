@@ -36,27 +36,6 @@ jobs:
 
       - name: Validate GLSL shaders
         run: |
-          FAILED=0
-          TOTAL=0
-          PASSED=0
-
-          for shader in $(find assets/shaders -type f \( -name "*.vert" -o -name "*.frag" -o -name "*.geom" -o -name "*.comp" \)); do
-            TOTAL=$((TOTAL + 1))
-
-            if OUTPUT=$(glslangValidator "$shader" 2>&1); then
-              echo "PASS: $shader"
-              PASSED=$((PASSED + 1))
-            else
-              echo "FAIL: $shader"
-              echo "$OUTPUT"
-              echo ""
-              FAILED=$((FAILED + 1))
-            fi
-          done
-
-          echo ""
-          echo "Results: $PASSED/$TOTAL passed, $FAILED failed"
-
-          if [ $FAILED -gt 0 ]; then
-            exit 1
-          fi
+          SHADERS=$(find assets/shaders -type f \( -name "*.vert" -o -name "*.frag" -o -name "*.geom" -o -name "*.comp" \))
+          echo "Found $(echo "$SHADERS" | wc -l) shaders"
+          echo "$SHADERS" | xargs glslangValidator
