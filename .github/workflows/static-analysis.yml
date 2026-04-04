@@ -30,6 +30,7 @@ jobs:
             --enable=warning,style,performance,portability \
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
+            --suppress=*:vendor/* \
             --inline-suppr \
             --std=c++17 \
             --language=c++ \
