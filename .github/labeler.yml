@@ -1,6 +1,8 @@
 shader:
   - changed-files:
-      - any-glob-to-any-file: "src/common/shader/**"
+      - any-glob-to-any-file:
+          - "src/common/shader/**"
+          - "assets/shaders/**"
 
 mesh:
   - changed-files:
@@ -8,7 +10,9 @@ mesh:
 
 texture:
   - changed-files:
-      - any-glob-to-any-file: "src/common/texture/**"
+      - any-glob-to-any-file:
+          - "src/common/texture/**"
+          - "assets/textures/**"
 
 material:
   - changed-files:
