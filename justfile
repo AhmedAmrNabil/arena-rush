@@ -10,8 +10,7 @@ configure:
 build: configure
     cmake --build build -- -j$(nproc)
 
-# Run the game/application with optional config
-# Runs the game using the dedicated Nvidia/AMD GPU
+# Runs the game using the dedicated Nvidia/AMD GPU with optional config
 [default]
 run config="": build
     #!/usr/bin/env bash
