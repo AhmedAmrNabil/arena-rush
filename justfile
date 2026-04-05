@@ -51,12 +51,12 @@ _setup-imgcmp:
 # Run tests for specified test cases
 [windows]
 run-tests *TESTS: build _setup-imgcmp
-    powershell -File scripts/run-all.ps1 {{ TESTS }}
+    powershell -ExecutionPolicy Bypass -File scripts/run-all.ps1 {{ TESTS }}
 
 # Compare screenshots for tests
 [windows]
 compare *TESTS: _setup-imgcmp
-    powershell -File scripts/compare-all.ps1 {{ TESTS }}
+    powershell -ExecutionPolicy Bypass -File scripts/compare-all.ps1 {{ TESTS }}
 
 # Full pipeline: run tests then compare
 test *TESTS: (run-tests TESTS) (compare TESTS)
