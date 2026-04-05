@@ -7,14 +7,12 @@ on:
       - "src/**"
       - "assets/shaders/**"
       - "config/**"
-      - "expected/**"
   pull_request:
     branches: [main]
     paths:
       - "src/**"
       - "assets/shaders/**"
       - "config/**"
-      - "expected/**"
 
 concurrency:
   group: opengl-${{ github.ref }}
