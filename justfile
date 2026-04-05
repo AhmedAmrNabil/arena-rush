@@ -14,7 +14,15 @@ build: configure
 # Runs the game using the dedicated Nvidia/AMD GPU
 [default]
 run config="": build
-    DRI_PRIME=1 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia ./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
+    #!/usr/bin/env bash
+    if command -v nvidia-smi > /dev/null 2>&1; then
+        export DRI_PRIME=1
+        export __NV_PRIME_RENDER_OFFLOAD=1
+        export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    elif lsmod | grep -i "amdgpu" > /dev/null 2>&1; then
+        export DRI_PRIME=1
+    fi
+    ./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
 
 # Run the game/application on the integrated GPU for testing/sanity checks
 run-int config="": build
