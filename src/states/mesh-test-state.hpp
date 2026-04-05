@@ -37,7 +37,7 @@ class MeshTestState : public our::State {
                 {{0, 0, -1}, {128, 64, 255, 255}, {1.00, 0.00}, {0, 0, 1}},
             };
             std::vector<unsigned int> elements = {0, 1, 2, 2, 1, 3, 3, 1, 5, 5, 1, 0,
-                                                0, 4, 5, 5, 4, 3, 3, 4, 2, 2, 4, 0};
+                                                  0, 4, 5, 5, 4, 3, 3, 4, 2, 2, 4, 0};
             mesh = new our::Mesh(vertices, elements);
         }
     }

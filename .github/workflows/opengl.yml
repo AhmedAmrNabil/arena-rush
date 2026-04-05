@@ -1,0 +1,39 @@
+name: OpenGL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/shaders/**"
+      - "config/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/shaders/**"
+      - "config/**"
+
+concurrency:
+  group: opengl-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shader-validation:
+    name: Shader Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install glslang
+        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+
+      - name: Validate GLSL shaders
+        run: |
+          SHADERS=$(find assets/shaders -type f \( -name "*.vert" -o -name "*.frag" -o -name "*.geom" -o -name "*.comp" \))
+          echo "Found $(echo "$SHADERS" | wc -l) shaders"
+          echo "$SHADERS" | xargs glslangValidator

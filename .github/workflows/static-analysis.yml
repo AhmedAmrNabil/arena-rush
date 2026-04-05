@@ -1,0 +1,50 @@
+name: Static Analysis
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+
+concurrency:
+  group: analysis-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cppcheck:
+    name: Cppcheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Run Cppcheck
+        run: |
+          cppcheck \
+            --enable=warning,style,performance,portability \
+            --suppress=missingIncludeSystem \
+            --suppress=missingInclude \
+            --suppress=unmatchedSuppression \
+            --inline-suppr \
+            --std=c++17 \
+            --language=c++ \
+            --error-exitcode=1 \
+            --template='{file}:{line}: {severity}: {message} [{id}]' \
+            -j $(nproc) \
+            -I src/common \
+            -I src/states \
+            src/ 2>&1 | tee cppcheck-report.txt
+
+      - name: Upload Cppcheck report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cppcheck-report
+          path: cppcheck-report.txt
+          retention-days: 30

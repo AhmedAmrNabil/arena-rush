@@ -141,11 +141,11 @@ namespace our {
         //  HINT: See how you wrote the CameraComponent::getViewMatrix, it should help you solve this one
         glm::vec3 cameraForward = glm::vec3(0.0, 0.0, -1.0f);
         std::sort(transparentCommands.begin(), transparentCommands.end(),
-                [cameraForward](const RenderCommand& first, const RenderCommand& second) {
-                    // TODO: (Req 9) Finish this function
-                    //  HINT: the following return should return true "first" should be drawn before "second".
-                    return false;
-                });
+                  [cameraForward](const RenderCommand& first, const RenderCommand& second) {
+                      // TODO: (Req 9) Finish this function
+                      //  HINT: the following return should return true "first" should be drawn before "second".
+                      return false;
+                  });
 
         // TODO: (Req 9) Get the camera ViewProjection matrix and store it in VP
 

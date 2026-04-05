@@ -75,14 +75,14 @@ namespace our {
             // We update the camera fov based on the mouse wheel scrolling amount
             float fov = camera->fovY + app->getMouse().getScrollOffset().y * controller->fovSensitivity;
             fov = glm::clamp(fov, glm::pi<float>() * 0.01f,
-                            glm::pi<float>() * 0.99f);  // We keep the fov in the range 0.01*PI to 0.99*PI
+                             glm::pi<float>() * 0.99f);  // We keep the fov in the range 0.01*PI to 0.99*PI
             camera->fovY = fov;
 
             // We get the camera model matrix (relative to its parent) to compute the front, up and right directions
             glm::mat4 matrix = entity->localTransform.toMat4();
 
             glm::vec3 front = glm::vec3(matrix * glm::vec4(0, 0, -1, 0)),
-                    up = glm::vec3(matrix * glm::vec4(0, 1, 0, 0)), right = glm::vec3(matrix * glm::vec4(1, 0, 0, 0));
+                      up = glm::vec3(matrix * glm::vec4(0, 1, 0, 0)), right = glm::vec3(matrix * glm::vec4(1, 0, 0, 0));
 
             glm::vec3 current_sensitivity = controller->positionSensitivity;
             // If the LEFT SHIFT key is pressed, we multiply the position sensitivity by the speed up factor

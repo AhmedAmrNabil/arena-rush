@@ -1,0 +1,74 @@
+shader:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/common/shader/**"
+          - "assets/shaders/**"
+
+mesh:
+  - changed-files:
+      - any-glob-to-any-file: "src/common/mesh/**"
+
+texture:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/common/texture/**"
+          - "assets/textures/**"
+
+material:
+  - changed-files:
+      - any-glob-to-any-file: "src/common/material/**"
+
+ecs:
+  - changed-files:
+      - any-glob-to-any-file: "src/common/ecs/**"
+
+components:
+  - changed-files:
+      - any-glob-to-any-file: "src/common/components/**"
+
+renderer:
+  - changed-files:
+      - any-glob-to-any-file: "src/common/systems/**"
+
+core:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/common/application.*"
+          - "src/common/asset-loader.*"
+          - "src/main.cpp"
+
+config:
+  - changed-files:
+      - any-glob-to-any-file: "config/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/states/*-test-*"
+          - "config/*-test/**"
+          - "expected/**"
+
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "CMakeLists.txt"
+          - "justfile"
+          - "flake.nix"
+          - "flake.lock"
+          - ".github/workflows/**"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+
+assets:
+  - changed-files:
+      - any-glob-to-any-file: "assets/**"
+
+vendor:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "vendor/**"
+          - ".gitmodules"

@@ -123,7 +123,7 @@ void GLAPIENTRY opengl_callback(GLenum source, GLenum type, GLuint id, GLenum se
     }
 
     std::cout << "OpenGL Debug Message " << id << " (type: " << _type << ") of " << _severity << " raised from "
-            << _source << ": " << message << std::endl;
+              << _source << ": " << message << std::endl;
 }
 
 void our::Application::configureOpenGL() {
