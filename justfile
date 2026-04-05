@@ -11,8 +11,13 @@ build: configure
     cmake --build build -- -j$(nproc)
 
 # Run the game/application with optional config
+# Runs the game using the dedicated Nvidia/AMD GPU
 [default]
 run config="": build
+    DRI_PRIME=1 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia ./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
+
+# Run the game/application on the integrated GPU for testing/sanity checks
+run-int config="": build
     ./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
 
 # Package the project using Nix
