@@ -38,9 +38,6 @@ namespace our {
         template <typename T>
         T* addComponent() {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            // TODO: (Req 8) Create an component of type T, set its "owner" to be this entity, then push it into the
-            // component's list
-            //  Don't forget to return a pointer to the new component
             Component* component = new T();
             component->owner = this;
             components.push_back(component);
@@ -51,9 +48,6 @@ namespace our {
         // If no component of type T was found, it returns a nullptr
         template <typename T>
         T* getComponent() {
-            // TODO: (Req 8) Go through the components list and find the first component that can be dynamically cast to
-            // "T*".
-            //  Return the component you found, or return null of nothing was found.
             for (Component* component : components) {
                 T* castedComponent = dynamic_cast<T*>(component);
                 if (castedComponent) {
@@ -76,9 +70,6 @@ namespace our {
         // This template method searhes for a component of type T and deletes it
         template <typename T>
         void deleteComponent() {
-            // TODO: (Req 8) Go through the components list and find the first component that can be dynamically cast to
-            // "T*".
-            //  If found, delete the found component and remove it from the components list
             for (auto it = components.begin(); it != components.end(); ++it) {
                 T* castedComponent = dynamic_cast<T*>(*it);
                 if (castedComponent) {
@@ -102,8 +93,6 @@ namespace our {
         // This template method searhes for the given component and deletes it
         template <typename T>
         void deleteComponent(T const* component) {
-            // TODO: (Req 8) Go through the components list and find the given component "component".
-            //  If found, delete the found component and remove it from the components list
             auto it = std::find(components.begin(), components.end(), component);
             if (it != components.end()) {
                 delete *it;
@@ -113,7 +102,6 @@ namespace our {
 
         // Since the entity owns its components, they should be deleted alongside the entity
         ~Entity() {
-            // TODO: (Req 8) Delete all the components in "components".
             for (Component* component : components) {
                 delete component;
             }

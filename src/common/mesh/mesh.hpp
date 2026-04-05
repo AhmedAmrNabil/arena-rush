@@ -28,10 +28,6 @@ namespace our {
         // an element buffer to store the element data on the VRAM,
         // a vertex array object to define how to read the vertex & element buffer during rendering
         Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
-            // TODO: (Req 2) Write this function
-            //  remember to store the number of elements in "elementCount" since you will need it for drawing
-            //  For the attribute locations, use the constants defined above: ATTRIB_LOC_POSITION, ATTRIB_LOC_COLOR, etc
-
             // Generate VAO
             glGenVertexArrays(1, &VAO);
             glBindVertexArray(VAO);
@@ -74,14 +70,12 @@ namespace our {
 
         // this function should render the mesh
         void draw() {
-            // TODO: (Req 2) Write this function
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, 0);
         }
 
         // this function should delete the vertex & element buffers and the vertex array object
         ~Mesh() {
-            // TODO: (Req 2) Write this function
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
             glDeleteVertexArrays(1, &VAO);

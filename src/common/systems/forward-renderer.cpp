@@ -19,14 +19,11 @@ namespace our {
             skyShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
             skyShader->link();
 
-            // TODO: (Req 10) Pick the correct pipeline state to draw the sky
-            //  Hints: the sky will be draw after the opaque objects so we would need depth testing but which depth
-            //  funtion should we pick? We will draw the sphere from the inside, so what options should we pick for the
-            //  face culling.
             PipelineState skyPipelineState{};
             skyPipelineState.depthTesting.enabled = true;
             skyPipelineState.depthTesting.function = GL_LEQUAL;
             skyPipelineState.faceCulling.enabled = true;
+            // cull front as we are looking at the sphere from the inside
             skyPipelineState.faceCulling.culledFace = GL_FRONT;
             skyPipelineState.faceCulling.frontFace = GL_CCW;
 
@@ -55,12 +52,8 @@ namespace our {
 
         // Then we check if there is a postprocessing shader in the configuration
         if (config.contains("postprocess")) {
-            // TODO: (Req 11) Create a framebuffer
             glGenFramebuffers(1, &postprocessFrameBuffer);
             glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
-            // TODO: (Req 11) Create a color and a depth texture and attach them to the framebuffer
-            //  Hints: The color format can be (Red, Green, Blue and Alpha components with 8 bits for each channel).
-            //  The depth format can be (Depth component with 24 bits).
             colorTarget = new Texture2D();
             colorTarget->bind();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, windowSize.x, windowSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -74,7 +67,6 @@ namespace our {
                          GL_UNSIGNED_INT, nullptr);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTarget->getOpenGLName(), 0);
             depthTarget->unbind();
-            // TODO: (Req 11) Unbind the framebuffer just to be safe
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // Create a vertex array to use for drawing the texture
@@ -154,44 +146,31 @@ namespace our {
         // If there is no camera, we return (we cannot render without a camera)
         if (camera == nullptr) return;
 
-        // TODO: (Req 9) Modify the following line such that "cameraForward" contains a vector pointing the camera
-        // forward direction
-        //  HINT: See how you wrote the CameraComponent::getViewMatrix, it should help you solve this one
         glm::vec3 cameraForward = camera->getViewMatrix() * glm::vec4(0, 0, -1, 0);
         std::sort(transparentCommands.begin(), transparentCommands.end(),
                   [cameraForward](const RenderCommand& first, const RenderCommand& second) {
-                      // TODO: (Req 9) Finish this function
-                      //  HINT: the following return should return true "first" should be drawn before "second".
                       return glm::dot(first.center, cameraForward) > glm::dot(second.center, cameraForward);
                   });
 
-        // TODO: (Req 9) Get the camera ViewProjection matrix and store it in VP
         glm::mat4 VP = camera->getProjectionMatrix(windowSize) * camera->getViewMatrix();
 
-        // TODO: (Req 9) Set the OpenGL viewport using viewportStart and viewportSize
         glViewport(0, 0, windowSize.x, windowSize.y);
 
-        // TODO: (Req 9) Set the clear color to black and the clear depth to 1
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClearDepth(1.0f);
 
-        // TODO: (Req 9) Set the color mask to true and the depth mask to true (to ensure the glClear will affect the
-        // framebuffer)
+        // to ensure framebuffer is cleaned before rendering
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDepthMask(GL_TRUE);
 
         // If there is a postprocess material, bind the framebuffer
         if (postprocessMaterial) {
-            // TODO: (Req 11) bind the framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
         }
 
-        // TODO: (Req 9) Clear the color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // TODO: (Req 9) Draw all the opaque commands
-        //  Don't forget to set the "transform" uniform to be equal the model-view-projection matrix for each render
-        //  command
+        // draw all opaque objects first
         for (const RenderCommand& command : opaqueCommands) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
@@ -201,18 +180,10 @@ namespace our {
 
         // If there is a sky material, draw the sky
         if (this->skyMaterial) {
-            // TODO: (Req 10) setup the sky material
             skyMaterial->setup();
 
-            // TODO: (Req 10) Get the camera position
             glm::vec3 cameraPosition = camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1);
-            // TODO: (Req 10) Create a model matrix for the sy such that it always follows the camera (sky sphere center
-            // = camera position)
             glm::mat4 model = glm::translate(glm::mat4(1.0f), cameraPosition);
-
-            // TODO: (Req 10) We want the sky to be drawn behind everything (in NDC space, z=1)
-            //  We can acheive the is by multiplying by an extra matrix after the projection but what values should we
-            //  put in it?
 
             // clang-format off
             glm::mat4 alwaysBehindTransform = glm::mat4(
@@ -223,14 +194,10 @@ namespace our {
             );
             // clang-format on
 
-            // TODO: (Req 10) set the "transform" uniform
             skyMaterial->shader->set("transform", alwaysBehindTransform * VP * model);
-            // TODO: (Req 10) draw the sky sphere
             skySphere->draw();
         }
-        // TODO: (Req 9) Draw all the transparent commands
-        //  Don't forget to set the "transform" uniform to be equal the model-view-projection matrix for each render
-        //  command
+        // draw all the transparent commands
         for (const RenderCommand& command : transparentCommands) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
@@ -240,10 +207,7 @@ namespace our {
 
         // If there is a postprocess material, apply postprocessing
         if (postprocessMaterial) {
-            // TODO: (Req 11) Return to the default framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-            // TODO: (Req 11) Setup the postprocess material and draw the fullscreen triangle
             postprocessMaterial->setup();
             glBindVertexArray(postProcessVertexArray);
             glDrawArrays(GL_TRIANGLES, 0, 3);
