@@ -23,11 +23,25 @@ package:
 clean:
     rm -rf build bin
 
+# ------ Linux setup and test targets ------
+
 # Setup imgcmp for Linux
 [linux]
 _setup-imgcmp:
     cp scripts/imgcmp-bin/imgcmp-linux scripts/imgcmp
     chmod +x scripts/imgcmp
+
+# Run tests for specified test cases
+[linux]
+run-tests *TESTS: build _setup-imgcmp
+    pwsh -File scripts/run-all.ps1 {{ TESTS }}
+
+# Compare screenshots for tests
+[linux]
+compare *TESTS: _setup-imgcmp
+    pwsh -File scripts/compare-all.ps1 {{ TESTS }}
+
+# ------ Windows setup and test targets ------
 
 # Setup imgcmp for Windows
 [windows]
@@ -35,12 +49,14 @@ _setup-imgcmp:
     cp scripts/imgcmp-bin/imgcmp-win.exe scripts/imgcmp.exe
 
 # Run tests for specified test cases
+[windows]
 run-tests *TESTS: build _setup-imgcmp
-    pwsh -File scripts/run-all.ps1 {{ TESTS }}
+    powershell -ExecutionPolicy Bypass -File scripts/run-all.ps1 {{ TESTS }}
 
 # Compare screenshots for tests
+[windows]
 compare *TESTS: _setup-imgcmp
-    pwsh -File scripts/compare-all.ps1 {{ TESTS }}
+    powershell -ExecutionPolicy Bypass -File scripts/compare-all.ps1 {{ TESTS }}
 
 # Full pipeline: run tests then compare
 test *TESTS: (run-tests TESTS) (compare TESTS)
