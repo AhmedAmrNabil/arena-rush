@@ -34,6 +34,36 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
 
+if(UNIX AND NOT APPLE AND NOT DEFINED GLFW_BUILD_WAYLAND)
+    find_program(GLFW_WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
+    find_package(PkgConfig QUIET)
+
+    if(PkgConfig_FOUND)
+        pkg_check_modules(GLFW_WAYLAND_DEPS QUIET
+            wayland-client
+            wayland-cursor
+            wayland-egl
+            xkbcommon
+        )
+    endif()
+
+    if(GLFW_WAYLAND_SCANNER_EXECUTABLE AND GLFW_WAYLAND_DEPS_FOUND)
+        set(GLFW_BUILD_WAYLAND ON CACHE BOOL "Build support for Wayland")
+    else()
+        set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Build support for Wayland")
+
+        if(NOT GLFW_WAYLAND_SCANNER_EXECUTABLE)
+            set(_glfw_wayland_reason "missing wayland-scanner")
+        elseif(NOT PkgConfig_FOUND)
+            set(_glfw_wayland_reason "pkg-config is unavailable")
+        else()
+            set(_glfw_wayland_reason "missing Wayland development packages")
+        endif()
+
+        message(STATUS "Disabling GLFW Wayland (${_glfw_wayland_reason})")
+    endif()
+endif()
+
 add_subdirectory(vendor/glfw)
 
 # ---- GLAD ----
