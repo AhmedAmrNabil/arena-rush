@@ -44,6 +44,7 @@
           ninja
           pkg-config
           makeWrapper
+          ccache
         ];
       in
       {
