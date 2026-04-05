@@ -2,9 +2,9 @@
 
 #include <glad/gl.h>
 
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/vec4.hpp>
 #include <json/json.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace our {
 

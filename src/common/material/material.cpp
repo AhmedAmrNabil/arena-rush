@@ -38,7 +38,8 @@ namespace our {
 
     // This function should call the setup of its parent and
     // set the "alphaThreshold" uniform to the value in the member variable alphaThreshold
-    // Then it should bind the texture and sampler to a texture unit and send the unit number to the uniform variable "tex"
+    // Then it should bind the texture and sampler to a texture unit and send the unit number to the uniform variable
+    // "tex"
     void TexturedMaterial::setup() const {
         TintedMaterial::setup();
         shader->set("alphaThreshold", alphaThreshold);

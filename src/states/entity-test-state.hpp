@@ -1,10 +1,10 @@
 #pragma once
 
+#include <application.hpp>
 #include <asset-loader.hpp>
-#include <ecs/world.hpp>
 #include <components/camera.hpp>
 #include <components/mesh-renderer.hpp>
-#include <application.hpp>
+#include <ecs/world.hpp>
 
 // This is a helper function that will search for a component and will return the first one found
 template <typename T>
