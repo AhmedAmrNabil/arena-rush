@@ -13,12 +13,17 @@ out vec4 frag_color;
 
 // Chromatic aberration mimics some old cameras where the lens disperses light
 // differently based on its wavelength. In this shader, we will implement a
-// cheap version of that effect 
+// cheap version of that effect
 
 void main(){
     //TODO: Modify this shader to apply chromatic abberation
     // To apply this effect, we only read the green channel from the correct pixel (as defined by tex_coord)
     // To get the red channel, we move by amount STRENGTH to the left then sample another pixel from which we take the red channel
     // To get the blue channel, we move by amount STRENGTH to the right then sample another pixel from which we take the blue channel
-    frag_color = texture(tex, tex_coord);
+    float r = texture(tex, tex_coord - vec2(STRENGTH, 0)).r;
+    float g = texture(tex, tex_coord).g;
+    float b = texture(tex, tex_coord + vec2(STRENGTH, 0)).b;
+    float a = texture(tex, tex_coord).a;
+
+    frag_color = vec4(r, g, b, a);
 }

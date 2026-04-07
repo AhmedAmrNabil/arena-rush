@@ -29,6 +29,7 @@ namespace our {
             skyPipelineState.depthTesting.function = GL_LEQUAL;
             skyPipelineState.faceCulling.enabled = true;
             skyPipelineState.faceCulling.culledFace = GL_FRONT;
+            skyPipelineState.faceCulling.frontFace = GL_CCW;
 
             // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring
             // while rendering the sky)
@@ -211,9 +212,9 @@ namespace our {
             //  We can acheive the is by multiplying by an extra matrix after the projection but what values should we
             //  put in it?
             glm::mat4 alwaysBehindTransform = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                                                        1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+                                                        0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f);
             // TODO: (Req 10) set the "transform" uniform
-            skyMaterial->shader->set("transform", alwaysBehindTransform);
+            skyMaterial->shader->set("transform", alwaysBehindTransform * VP * model);
 
             // TODO: (Req 10) draw the sky sphere
             skySphere->draw();
