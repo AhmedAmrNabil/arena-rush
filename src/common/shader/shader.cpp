@@ -37,6 +37,7 @@ bool our::ShaderProgram::attach(const std::string& filename, GLenum type) const 
 }
 
 bool our::ShaderProgram::link() const {
+    uniformLocations.clear();
     glLinkProgram(program);
     std::string error = checkForLinkingErrors(program);
     if (!error.empty()) {

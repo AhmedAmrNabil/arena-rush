@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
+#include <unordered_map>
 
 namespace our {
 
@@ -13,6 +14,7 @@ namespace our {
     private:
         // Shader Program Handle
         GLuint program;
+        mutable std::unordered_map<std::string, GLint> uniformLocations;
 
     public:
         ShaderProgram() {
@@ -30,8 +32,12 @@ namespace our {
             glUseProgram(program);
         }
 
-        GLuint getUniformLocation(const std::string& name) {
-            return glGetUniformLocation(program, name.c_str());
+        GLint getUniformLocation(const std::string& name) {
+            if (uniformLocations.find(name) != uniformLocations.end()) return uniformLocations[name];
+
+            GLint location = glGetUniformLocation(program, name.c_str());
+            uniformLocations[name] = location;
+            return location;
         }
 
         void set(const std::string& uniform, GLfloat value) {
