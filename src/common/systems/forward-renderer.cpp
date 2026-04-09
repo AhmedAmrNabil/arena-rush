@@ -147,7 +147,8 @@ namespace our {
         // If there is no camera, we return (we cannot render without a camera)
         if (camera == nullptr) return;
 
-        glm::vec3 cameraForward = camera->getViewMatrix() * glm::vec4(0, 0, -1, 0);
+        glm::vec3 cameraForward =
+            glm::normalize(glm::vec3(camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0, 0, -1, 0)));
         std::sort(transparentCommands.begin(), transparentCommands.end(),
                   [cameraForward](const RenderCommand& first, const RenderCommand& second) {
                       return glm::dot(first.center, cameraForward) > glm::dot(second.center, cameraForward);
