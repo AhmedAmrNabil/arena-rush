@@ -58,13 +58,8 @@ namespace our {
             for (Entity* entity : entities) {
                 delete entity;
             }
-            // this should never happen since deleteMarkedEntities should be
-            // called before clear, but just in case, we will delete the marked entities as well
-            for (Entity* entity : markedForRemoval) {
-                delete entity;
-            }
             entities.clear();
-            markedForRemoval.clear();
+            markedForRemoval.clear(); // also clear markedForRemoval to remove dangling pointers
         }
 
         // Since the world owns all of its entities, they should be deleted alongside it.
