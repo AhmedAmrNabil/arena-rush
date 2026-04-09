@@ -12,7 +12,7 @@ namespace our {
     public:
         // This constructor creates an OpenGL texture
         Texture2D() {
-            glGenTextures(1, &name);
+            glCreateTextures(GL_TEXTURE_2D, 1, &name);
         };
 
         // This deconstructor deletes the underlying OpenGL texture
@@ -25,14 +25,15 @@ namespace our {
             return name;
         }
 
-        // This method binds this texture to GL_TEXTURE_2D
-        void bind() const {
-            glBindTexture(GL_TEXTURE_2D, name);
+        // Those bind and unbind are the modern way to do it by explicitly passing a texture unit, instead of relying on
+        // the global active GL_TEXTURE_2D. This is much less error prone.
+        // Also this makes more sense, given how the bind() and unbind() functions of the Sampler work.
+        void bind(GLuint unit = 0) const {
+            glBindTextureUnit(unit, name);
         }
 
-        // This static method ensures that no texture is bound to GL_TEXTURE_2D
-        static void unbind() {
-            glBindTexture(GL_TEXTURE_2D, 0);
+        static void unbind(GLuint unit = 0) {
+            glBindTextureUnit(unit, 0);
         }
 
         Texture2D(const Texture2D&) = delete;
