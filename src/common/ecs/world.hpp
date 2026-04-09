@@ -59,7 +59,7 @@ namespace our {
                 delete entity;
             }
             entities.clear();
-            markedForRemoval.clear(); // also clear markedForRemoval to remove dangling pointers
+            markedForRemoval.clear();  // also clear markedForRemoval to remove dangling pointers
         }
 
         // Since the world owns all of its entities, they should be deleted alongside it.
