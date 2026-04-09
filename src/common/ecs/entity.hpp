@@ -105,6 +105,7 @@ namespace our {
             for (Component* component : components) {
                 delete component;
             }
+            components.clear();
         }
 
         // Entities should not be copyable
