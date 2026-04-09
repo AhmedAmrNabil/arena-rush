@@ -36,14 +36,12 @@ namespace our {
     // Creates and returns the camera projection matrix
     // "viewportSize" is used to compute the aspect ratio
     glm::mat4 CameraComponent::getProjectionMatrix(glm::ivec2 viewportSize) const {
+        float aspectRatio = static_cast<float>(viewportSize.x) / viewportSize.y;
         if (cameraType == CameraType::ORTHOGRAPHIC) {
-            float aspectRatio = static_cast<float>(viewportSize.x) / viewportSize.y;
             float orthoWidth = orthoHeight * aspectRatio;
             return glm::ortho(-orthoWidth / 2, orthoWidth / 2, -orthoHeight / 2, orthoHeight / 2, near, far);
         } else {
-            float aspectRatio = static_cast<float>(viewportSize.x) / viewportSize.y;
             return glm::perspective(fovY, aspectRatio, near, far);
         }
-        return glm::mat4(1.0f);
     }
 }  // namespace our
