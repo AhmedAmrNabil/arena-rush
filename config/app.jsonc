@@ -2,7 +2,7 @@
     "start-scene": "menu",
     "window":
     {
-        "title":"Ahmed Amr",
+        "title":"Default Game Window",
         "size":{
             "width":1280,
             "height":720
@@ -256,7 +256,6 @@
                     }
                 ]
             }
-        ],
-        "clearColor" : [0.5, 0.9375, 0.625, 1]
+        ]
     }
 }
