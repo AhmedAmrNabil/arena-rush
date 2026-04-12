@@ -99,6 +99,9 @@ namespace our {
         // Locks the mouse position and hides it (Usually used for FPS games)
         static void lockMouse(GLFWwindow* window) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetCursor(
+                window,
+                nullptr);  // This is needed to prevent a GLFW bug where the cursor is visible again after locking it.
         }
         // If the mouse was locked, unlock it (make it visible and allow it to move)
         static void unlockMouse(GLFWwindow* window) {
