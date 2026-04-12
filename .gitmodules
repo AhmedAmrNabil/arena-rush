@@ -4,5 +4,5 @@
 	shallow = true
 [submodule "vendor/bullet3"]
 	path = vendor/bullet3
-	url = git@github.com:bulletphysics/bullet3.git
+	url = https://github.com/bulletphysics/bullet3.git
     shallow = true
