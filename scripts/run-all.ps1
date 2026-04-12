@@ -3,7 +3,7 @@ param([string[]] $tests)
 function Invoke-Tests {
     param([string[]] $configs)
     foreach ($config in $configs){
-        ./bin/GAME_APPLICATION -f=2 -c="$config"
+        ./bin/ArenaRush -f=2 -c="$config"
     }
 }
 
