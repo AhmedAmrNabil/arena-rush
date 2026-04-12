@@ -15,7 +15,7 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        packageName = "project-opengl-app";
+        packageName = "ArenaRush";
         pkgs = import nixpkgs { inherit system; };
         buildInputs = with pkgs; [
           # libraries
@@ -82,7 +82,7 @@
 
             installPhase = ''
               cmake --install . --prefix $out
-              wrapProgram $out/bin/GAME_APPLICATION \
+              wrapProgram $out/bin/ArenaRush \
                 --set LD_LIBRARY_PATH ${pkgs.libGL}/lib:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH
             '';
           };
