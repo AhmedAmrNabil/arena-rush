@@ -7,7 +7,9 @@
 
 our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size) {
     our::Texture2D* texture = new our::Texture2D();
-    glTextureStorage2D(texture->getOpenGLName(), 1, format, size.x, size.y);
+    texture->bind();
+    glTexStorage2D(GL_TEXTURE_2D, 1, format, size.x, size.y);
+    texture->unbind();
     return texture;
 }
 
@@ -33,17 +35,14 @@ our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool 
     // Create a texture
     our::Texture2D* texture = new our::Texture2D();
     // Bind the texture such that we upload the image data to its storage
-    // set levels to 1 by default unless we generate mipmaps
-    int mipLevels = 1;
-    if (generate_mipmap) {
-        mipLevels = 1 + floor(log2(std::max(size.x, size.y)));
-    }
-    glTextureStorage2D(texture->getOpenGLName(), mipLevels, GL_RGBA8, size.x, size.y);
-    glTextureSubImage2D(texture->getOpenGLName(), 0, 0, 0, size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    texture->bind();
 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     if (generate_mipmap) {
-        glGenerateTextureMipmap(texture->getOpenGLName());
+        glGenerateMipmap(GL_TEXTURE_2D);
     }
+
+    texture->unbind();
 
     stbi_image_free(pixels);  // Free image data after uploading to GPU
     return texture;
