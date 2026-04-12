@@ -31,6 +31,7 @@ bool our::ShaderProgram::attach(const std::string& filename, GLenum type) const 
         return false;
     }
     glAttachShader(program, shader);
+    glDeleteShader(shader);
 
     return true;
 }
