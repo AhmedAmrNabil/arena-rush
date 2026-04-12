@@ -190,17 +190,41 @@ int our::Application::run(int run_for_frames) {
 
     auto win_config = getWindowConfiguration();  // Returns the WindowConfiguration current struct instance.
 
-    // Create a window with the given "WindowConfiguration" attributes.
-    // If it should be fullscreen, monitor should point to one of the monitors (e.g. primary monitor), otherwise it
-    // should be null
-    GLFWmonitor* monitor = win_config.isFullscreen ? glfwGetPrimaryMonitor() : nullptr;
+    // Create the window. When fullscreen is requested, prefer a borderless fullscreen window
+    // instead of exclusive monitor fullscreen so leaving the game doesn't disturb other desktop windows
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    GLFWmonitor* monitor = nullptr;
+    int windowWidth = win_config.size.x;
+    int windowHeight = win_config.size.y;
+    int windowPosX = GLFW_DONT_CARE;
+    int windowPosY = GLFW_DONT_CARE;
+
+    if (win_config.isFullscreen && primaryMonitor) {
+        if (const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor)) {
+            windowWidth = videoMode->width;
+            windowHeight = videoMode->height;
+        }
+        glfwGetMonitorPos(primaryMonitor, &windowPosX, &windowPosY);
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+        glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+        glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+    }
+
     // The last parameter "share" can be used to share the resources (OpenGL objects) between multiple windows.
-    window = glfwCreateWindow(win_config.size.x, win_config.size.y, win_config.title.c_str(), monitor, nullptr);
+    window = glfwCreateWindow(windowWidth, windowHeight, win_config.title.c_str(), monitor, nullptr);
     if (!window) {
         std::cerr << "Failed to Create Window" << std::endl;
         glfwTerminate();
         return -1;
     }
+
+    if (win_config.isFullscreen && primaryMonitor) {
+        glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+        glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_TRUE);  // so taskbar doesn't cover the window
+        glfwSetWindowPos(window, windowPosX, windowPosY);
+        glfwSetWindowSize(window, windowWidth, windowHeight);
+    }
+
     glfwMakeContextCurrent(
         window);  // Tell GLFW to make the context of our window the main context on the current thread.
 
