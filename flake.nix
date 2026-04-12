@@ -61,6 +61,7 @@
             glslang
             just-lsp
             ccache
+            clang-tools
           ];
         };
 
