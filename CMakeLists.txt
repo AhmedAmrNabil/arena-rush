@@ -174,7 +174,9 @@ install(DIRECTORY assets/
     DESTINATION bin/assets
 )
 
-
+install(FILES config/app.jsonc
+    DESTINATION bin/config
+)
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(${PROJECT_NAME}
