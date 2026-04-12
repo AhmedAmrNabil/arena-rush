@@ -14,6 +14,28 @@ class Playstate : public our::State {
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
 
+    void displayFPS() const {
+        // Pin a transparent overlay window to the top-left corner
+        ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+
+        // Red if below 120 FPS, green otherwise
+        float fps = ImGui::GetIO().Framerate;
+        ImVec4 fpsColor = (fps < 120.0f) ? fpsColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+        ImGuiWindowFlags textWindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                           ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                           ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
+        ImGui::SetNextWindowBgAlpha(0.35f);
+        if (ImGui::Begin("FPS Overlay", nullptr, textWindowFlags)) {
+            ImGui::TextColored(fpsColor, "FPS: %.1f", fps);
+        }
+        ImGui::End();
+    }
+
+    void onImmediateGui() override {
+        displayFPS();
+    }
+
     void onInitialize() override {
         // First of all, we get the scene configuration from the app config
         auto& config = getApp()->getConfig()["scene"];
