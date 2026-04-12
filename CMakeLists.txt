@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)   # Selects the minimum version of CMake required to run this file
-project(GFX_LAB
+project(ArenaRush
     VERSION 0.1.0
     LANGUAGES C CXX
 )
@@ -110,7 +110,7 @@ target_link_libraries(imgui
 
 
 # ---- Application Sources ----
-add_executable(GAME_APPLICATION
+add_executable(${PROJECT_NAME}
     src/main.cpp
     src/common/application.cpp
 
@@ -145,14 +145,14 @@ add_executable(GAME_APPLICATION
     src/common/systems/forward-renderer.cpp
 )
 
-target_include_directories(GAME_APPLICATION
+target_include_directories(${PROJECT_NAME}
     PRIVATE
         src/common
         src/game
         src/states
 )
 
-target_link_libraries(GAME_APPLICATION
+target_link_libraries(${PROJECT_NAME}
     PRIVATE
         glad
         glfw
@@ -161,12 +161,12 @@ target_link_libraries(GAME_APPLICATION
         utils
 )
 
-set_target_properties(GAME_APPLICATION PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin
 )
 
-install(TARGETS GAME_APPLICATION
+install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
 )
 
@@ -177,14 +177,14 @@ install(DIRECTORY assets/
 
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(GAME_APPLICATION
+    target_link_libraries(${PROJECT_NAME}
         PRIVATE
             OpenGL::GL
     )
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(GAME_APPLICATION PRIVATE -Wall)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(GAME_APPLICATION PRIVATE /W4)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 endif()
