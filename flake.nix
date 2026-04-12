@@ -85,8 +85,8 @@
             installPhase = ''
               cmake --install . --prefix $out
               wrapProgram $out/bin/ArenaRush \
-                --chdir $out/bin \
-                --set LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:$LD_LIBRARY_PATH
+                --chdir $out \
+                --suffix LD_LIBRARY_PATH : ${LD_LIBRARY_PATH}
             '';
           };
         };
