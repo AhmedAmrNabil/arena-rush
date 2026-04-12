@@ -43,6 +43,7 @@ namespace our {
     void TexturedMaterial::setup() const {
         TintedMaterial::setup();
         shader->set("alphaThreshold", alphaThreshold);
+        glActiveTexture(GL_TEXTURE0);
         if (texture) {
             texture->bind();
         }
