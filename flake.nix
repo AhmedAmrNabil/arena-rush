@@ -32,11 +32,11 @@
           extra-cmake-modules # for wayland
 
           # X11
-          xorg.libX11
-          xorg.libXcursor
-          xorg.libXrandr
-          xorg.libXi
-          xorg.libXinerama
+          libx11
+          libxcursor
+          libxrandr
+          libxi
+          libxinerama
         ];
 
         nativeBuildInputs = with pkgs; [
