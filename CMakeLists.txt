@@ -171,11 +171,11 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 install(DIRECTORY assets/
-    DESTINATION bin/assets
+    DESTINATION assets/
 )
 
 install(FILES config/app.jsonc
-    DESTINATION bin/config
+    DESTINATION config/
 )
 
 if(UNIX AND NOT APPLE)
