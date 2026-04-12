@@ -105,6 +105,8 @@ namespace our {
             delete skyMaterial->texture;
             delete skyMaterial->sampler;
             delete skyMaterial;
+            skySphere = nullptr;
+            skyMaterial = nullptr;
         }
         // Delete all objects related to post processing
         if (postprocessMaterial) {
@@ -115,6 +117,11 @@ namespace our {
             delete postprocessMaterial->sampler;
             delete postprocessMaterial->shader;
             delete postprocessMaterial;
+            colorTarget = nullptr;
+            depthTarget = nullptr;
+            postprocessMaterial = nullptr;
+            postprocessFrameBuffer = 0;
+            postProcessVertexArray = 0;
         }
     }
 
