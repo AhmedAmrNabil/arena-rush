@@ -54,7 +54,7 @@ namespace our {
                                   (void*)offsetof(Vertex, normal));
             glEnableVertexAttribArray(ATTRIB_LOC_NORMAL);
 
-            // Generate EBO and send indicies of verticies
+            // Generate EBO and send indices of vertices
             glGenBuffers(1, &EBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
