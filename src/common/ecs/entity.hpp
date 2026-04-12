@@ -4,6 +4,7 @@
 #include <iterator>
 #include <list>
 #include <string>
+#include <type_traits>
 
 #include "component.hpp"
 #include "transform.hpp"
@@ -38,10 +39,10 @@ namespace our {
         template <typename T>
         T* addComponent() {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            Component* component = new T();
+            T* component = new T();
             component->owner = this;
             components.push_back(component);
-            return dynamic_cast<T*>(component);
+            return component;
         }
 
         // This template method searhes for a component of type T and returns a pointer to it
