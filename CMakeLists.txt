@@ -159,6 +159,7 @@ target_include_directories(${PROJECT_NAME}
         src/common
         src/game
         src/states
+        vendor/bullet3/src
 )
 
 target_link_libraries(${PROJECT_NAME}
