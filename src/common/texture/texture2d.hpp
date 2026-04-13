@@ -4,6 +4,15 @@
 
 namespace our {
 
+    enum class TextureUnits {
+        ALBEDO = 0,
+        METALLIC = 1,
+        ROUGHNESS = 2,
+        NORMAL = 3,
+        AMBIENT_OCCLUSION = 4,
+        EMISSIVE = 5
+    };
+
     // This class defined an OpenGL texture which will be used as a GL_TEXTURE_2D
     class Texture2D {
         // The OpenGL object name of this texture
