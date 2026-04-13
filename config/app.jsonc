@@ -22,6 +22,10 @@
                 "textured": {
                     "vs": "assets/shaders/textured.vert",
                     "fs": "assets/shaders/textured.frag"
+                },
+                "lit": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
                 }
             },
             "textures": {
@@ -95,8 +99,8 @@
                     "sampler": "default"
                 },
                 "monkey": {
-                    "type": "textured",
-                    "shader": "textured",
+                    "type": "lit",
+                    "shader": "lit",
                     "pipelineState": {
                         "faceCulling": {
                             "enabled": false
@@ -106,8 +110,7 @@
                         }
                     },
                     "tint": [1, 1, 1, 1],
-                    "texture": "monkey",
-                    "sampler": "default"
+                    "textureAlbedo": "monkey"
                 },
                 "moon": {
                     "type": "textured",
@@ -128,7 +131,7 @@
         },
         "world": [
             {
-                "position": [0, 1.7, 0],
+                "position": [2, 1.7, 7],
                 "components": [
                     {
                         "type": "Camera",
@@ -145,6 +148,13 @@
                     },
                     {
                         "type": "Player"
+                    },
+                    {
+                        "type": "light",
+                        "lightType": "spot",
+                        "color": [1, 1, 1],
+                        "attenuation": [1.0, 0.22, 0.2],
+                        "spotAngles": [2, 5]
                     }
                 ],
                 "children": [
@@ -173,6 +183,57 @@
                         "type": "Mesh Renderer",
                         "mesh": "plane",
                         "material": "grass"
+                    }
+                ]
+            },
+
+            // {
+            //     "position": [-2, 0.5, -2],
+            //     "rotation": [-45, 0, 0],
+            //     "components": [
+            //         {
+            //             "type": "light",
+            //             "lightType": "spot",
+            //             "color": [0.5, 0.5, 1],
+            //             "attenuation": [1, 0.09, 0.032],
+            //             "spotAngles": [12.5, 17.5]
+            //         }
+            //     ]
+            // },
+            // {
+            //     "position": [-2, 2, -2],
+            //     "scale": [0.5, 0.5, 0.5],
+            //     "components": [
+            //         {
+            //             "type": "light",
+            //             "lightType": "point",
+            //             "color": [1, 0.5, 0.5]
+            //         },
+            //         {
+            //             "type": "Mesh Renderer",
+            //             "mesh": "sphere",
+            //             "material": "moon"
+            //         }
+            //     ]
+            // },
+            // {
+            //     "position": [-2, 0.5, -2],
+            //     "components": [
+            //         {
+            //             "type": "light",
+            //             "lightType": "directional",
+            //             "color": [0.2, 1, 0.2]
+            //         }
+            //     ]
+            // },
+            {
+                "position": [2, 1, -2],
+                "scale": [5, 5, 5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "monkey",
+                        "material": "monkey"
                     }
                 ]
             }
