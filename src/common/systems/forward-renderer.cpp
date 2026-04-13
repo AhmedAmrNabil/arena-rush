@@ -161,7 +161,7 @@ namespace our {
                 // assume default light direction points to - z direction in local space
                 // so away from the camera if the light is attached to the camera
                 // this could be useful for rifle flashlight for example
-                lightData.direction = glm::normalize(glm::vec3(localToWorld * glm::vec4(0, 0, -1, 0)));
+                lightData.direction = glm::normalize(glm::vec3(localToWorld * glm::vec4(0, 0, 1, 0)));
                 lightData.attenuation = light->attenuation;
                 lightData.spotAngles = light->spotAngles;
                 sceneLights.push_back(lightData);
@@ -206,6 +206,7 @@ namespace our {
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
                 litMaterial->shader->set("cameraPos", cameraPosition);
+                litMaterial->shader->set("model", command.localToWorld);
                 litMaterial->setup(sceneLights);
             }
             command.mesh->draw();
@@ -239,6 +240,7 @@ namespace our {
                 // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setup(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
+                litMaterial->shader->set("model", command.localToWorld);
             }
             command.mesh->draw();
         }
