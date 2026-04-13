@@ -151,12 +151,12 @@ namespace our {
         roughness = data.value("roughness", 0.2f);
         ambientOcclusion = data.value("ambientOcclusion", 1.0f);
         emission = data.value("emission", glm::vec3(0.0f, 0.0f, 0.0f));
-        textureAlbedo = AssetLoader<Texture2D>::get(data.value("textureAlbedo", nullptr));
-        textureMetallic = AssetLoader<Texture2D>::get(data.value("textureMetallic", nullptr));
-        textureRoughness = AssetLoader<Texture2D>::get(data.value("textureRoughness", nullptr));
-        textureNormal = AssetLoader<Texture2D>::get(data.value("textureNormal", nullptr));
-        textureAmbientOcclusion = AssetLoader<Texture2D>::get(data.value("textureAmbientOcclusion", nullptr));
-        textureEmissive = AssetLoader<Texture2D>::get(data.value("textureEmissive", nullptr));
+        textureAlbedo = AssetLoader<Texture2D>::get(data.value("textureAlbedo", ""));
+        textureMetallic = AssetLoader<Texture2D>::get(data.value("textureMetallic", ""));
+        textureRoughness = AssetLoader<Texture2D>::get(data.value("textureRoughness", ""));
+        textureNormal = AssetLoader<Texture2D>::get(data.value("textureNormal", ""));
+        textureAmbientOcclusion = AssetLoader<Texture2D>::get(data.value("textureAmbientOcclusion", ""));
+        textureEmissive = AssetLoader<Texture2D>::get(data.value("textureEmissive", ""));
     }
 
 }  // namespace our
