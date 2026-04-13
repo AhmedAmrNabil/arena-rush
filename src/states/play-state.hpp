@@ -3,6 +3,7 @@
 #include <application.hpp>
 #include <asset-loader.hpp>
 #include <ecs/world.hpp>
+#include <systems/collision-system.hpp>
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
 #include <systems/movement.hpp>
@@ -13,6 +14,7 @@ class Playstate : public our::State {
     our::ForwardRenderer renderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
+    gameplay::CollisionSystem collisionSystem;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -20,7 +22,7 @@ class Playstate : public our::State {
 
         // Red if below 120 FPS, green otherwise
         float fps = ImGui::GetIO().Framerate;
-        ImVec4 fpsColor = (fps < 120.0f) ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+        ImVec4 fpsColor = (fps < 120.0f) ? fpsColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
 
         ImGuiWindowFlags textWindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                                            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
@@ -52,6 +54,7 @@ class Playstate : public our::State {
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+        collisionSystem.initialize();
     }
 
     void onDraw(double deltaTime) override {
@@ -59,6 +62,7 @@ class Playstate : public our::State {
         movementSystem.update(&world, (float)deltaTime);
         cameraController.update(&world, (float)deltaTime);
         // And finally we use the renderer system to draw the scene
+        collisionSystem.update(&world);
         renderer.render(&world);
 
         // Get a reference to the keyboard object
@@ -71,6 +75,8 @@ class Playstate : public our::State {
     }
 
     void onDestroy() override {
+        // destroy the collision system
+        collisionSystem.destroy();
         // Don't forget to destroy the renderer
         renderer.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked

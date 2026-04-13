@@ -11,7 +11,7 @@ namespace gameplay {
         ColliderShape shape = ColliderShape::Sphere;
         std::string layer = "default";
         float radius = 0.5f;
-        float height = 1.0f;
+        float height = 1.0f;  // must be the total height
         bool isTrigger = false;
 
         static std::string getID() {
