@@ -5,6 +5,7 @@
 #include <iostream>
 #include <json/json.hpp>
 
+#include "game/game-registration.hpp"
 #include "states/entity-test-state.hpp"
 #include "states/material-test-state.hpp"
 #include "states/menu-state.hpp"
@@ -39,6 +40,7 @@ int main(int argc, char** argv) {
 
     // Create the application
     our::Application app(app_config);
+    gameplay::registerGameComponents();
 
     // Register all the states of the project in the application
     app.registerState<Menustate>("menu");
