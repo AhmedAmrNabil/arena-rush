@@ -19,6 +19,7 @@ namespace our {
         }
         color = data.value("color", glm::vec3(1.0f, 1.0f, 1.0f));
         attenuation = data.value("attenuation", glm::vec3(1.0f, 0.0f, 0.0f));
-        spotAngles = data.value("spotAngles", glm::vec2(15.0f, 30.0f));
+        glm::vec2 spotAnglesDegrees = data.value("spotAngles", glm::vec2(15.0f, 30.0f));
+        spotAngles = {glm::radians(spotAnglesDegrees.x), glm::radians(spotAnglesDegrees.y)};
     }
 }  // namespace our
