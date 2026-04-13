@@ -62,24 +62,24 @@ namespace our {
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
     }
 
-    void LitMaterial::setLightUniforms(const std::vector<our::LightRenderData*>& lights) const {
+    void LitMaterial::setLightUniforms(const std::vector<our::LightRenderData>& lights) const {
         shader->set("numLights", static_cast<int>(lights.size()));
         for (size_t i = 0; i < lights.size(); i++) {
             const auto& light = lights[i];
             std::string prefix = "lights[" + std::to_string(i) + "]";
-            shader->set(prefix + ".type", static_cast<int>(light->type));
-            shader->set(prefix + ".color", light->color);
-            shader->set(prefix + ".position", light->position);
-            if (light->type == LightType::DIRECTIONAL) {
-                shader->set(prefix + ".direction", light->direction);
+            shader->set(prefix + ".type", static_cast<int>(light.type));
+            shader->set(prefix + ".color", light.color);
+            shader->set(prefix + ".position", light.position);
+            if (light.type == LightType::DIRECTIONAL) {
+                shader->set(prefix + ".direction", light.direction);
             }
-            if (light->type == LightType::POINT) {
-                shader->set(prefix + ".attenuation", light->attenuation);
+            if (light.type == LightType::POINT) {
+                shader->set(prefix + ".attenuation", light.attenuation);
             }
-            if (light->type == LightType::SPOT) {
-                shader->set(prefix + ".attenuation", light->attenuation);
-                shader->set(prefix + ".direction", light->direction);
-                shader->set(prefix + ".spotAngles", light->spotAngles);
+            if (light.type == LightType::SPOT) {
+                shader->set(prefix + ".attenuation", light.attenuation);
+                shader->set(prefix + ".direction", light.direction);
+                shader->set(prefix + ".spotAngles", light.spotAngles);
             }
         }
     }
@@ -137,7 +137,7 @@ namespace our {
         }
     }
 
-    void LitMaterial::setup(std::vector<our::LightRenderData*>& lights) const {
+    void LitMaterial::setup(std::vector<our::LightRenderData>& lights) const {
         setup();
         setLightUniforms(lights);
     }

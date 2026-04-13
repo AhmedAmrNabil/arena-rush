@@ -41,6 +41,7 @@ namespace our {
         GLuint postprocessFrameBuffer, postProcessVertexArray;
         Texture2D *colorTarget, *depthTarget;
         TexturedMaterial* postprocessMaterial;
+        std::vector<LightRenderData> sceneLights;
 
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.
