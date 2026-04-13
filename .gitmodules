@@ -2,11 +2,18 @@
 	path = vendor/glfw
 	url = https://github.com/glfw/glfw.git
 	shallow = true
+
 [submodule "vendor/bullet3"]
 	path = vendor/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
     shallow = true
+
 [submodule "vendor/openal-soft"]
 	path = vendor/openal-soft
 	url = https://github.com/kcat/openal-soft.git
+    shallow = true
+
+[submodule "vendor/assimp"]
+	path = vendor/assimp
+	url = https://github.com/assimp/assimp.git
     shallow = true
