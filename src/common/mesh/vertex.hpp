@@ -14,11 +14,13 @@ namespace our {
         Color color;          // The vertex color
         glm::vec2 tex_coord;  // The texture coordinates (the vertex position in the texture space)
         glm::vec3 normal;     // The surface normal at the vertex (This will be used for lighting in the final phase)
+        glm::vec3
+            tangent;  // The surface tangent at the vertex (This will be used for normal mapping in the final phase)
 
         // We plan to use this as a key for a map so we need to define the equality operator
         bool operator==(const Vertex& other) const {
             return position == other.position && color == other.color && tex_coord == other.tex_coord &&
-                   normal == other.normal;
+                   normal == other.normal && tangent == other.tangent;
         }
     };
 
@@ -39,6 +41,7 @@ namespace std {
             combined = hash_combine(combined, hash<our::Color>()(vertex.color));
             combined = hash_combine(combined, hash<glm::vec2>()(vertex.tex_coord));
             combined = hash_combine(combined, hash<glm::vec3>()(vertex.normal));
+            combined = hash_combine(combined, hash<glm::vec3>()(vertex.tangent));
             return combined;
         }
     };
