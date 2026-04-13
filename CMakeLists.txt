@@ -66,6 +66,14 @@ endif()
 
 add_subdirectory(vendor/glfw)
 
+# ---- Assimp ----
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+add_subdirectory(vendor/assimp)
+
 # ---- GLAD ----
 add_library(glad STATIC
     vendor/glad/src/gl.c
@@ -120,6 +128,8 @@ add_executable(GAME_APPLICATION
 
     src/common/mesh/mesh-utils.cpp
 
+    src/common/model/model-utils.cpp
+
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp
@@ -133,6 +143,7 @@ add_executable(GAME_APPLICATION
 
     src/common/components/camera.cpp
     src/common/components/mesh-renderer.cpp
+    src/common/components/model-renderer.cpp
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
 
@@ -152,6 +163,7 @@ target_link_libraries(GAME_APPLICATION
         glm
         imgui
         utils
+        assimp
 )
 
 set_target_properties(GAME_APPLICATION PROPERTIES

@@ -122,14 +122,14 @@ void GLAPIENTRY opengl_callback(GLenum source, GLenum type, GLuint id, GLenum se
             break;
     }
 
-    std::cout << "OpenGL Debug Message " << id << " (type: " << _type << ") of " << _severity << " raised from "
-              << _source << ": " << message << std::endl;
+    // std::cout << "OpenGL Debug Message " << id << " (type: " << _type << ") of " << _severity << " raised from "
+    //           << _source << ": " << message << std::endl;
 }
 
 void our::Application::configureOpenGL() {
     // Request that OpenGL is 3.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     // Only enable core functionalities (disable features from older OpenGL versions that were removed in 3.3)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     // Enable forward compatibility with newer OpenGL versions by removing deprecated functionalities

@@ -1,9 +1,12 @@
 #include "asset-loader.hpp"
 
+#include <iostream>
+
 #include "deserialize-utils.hpp"
 #include "material/material.hpp"
 #include "mesh/mesh-utils.hpp"
 #include "mesh/mesh.hpp"
+#include "model/model-utils.hpp"
 #include "shader/shader.hpp"
 #include "texture/sampler.hpp"
 #include "texture/texture-utils.hpp"
@@ -18,6 +21,7 @@ namespace our {
     void AssetLoader<ShaderProgram>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                std::cout << "Loading shader: " << name << std::endl;
                 std::string vsPath = desc.value("vs", "");
                 std::string fsPath = desc.value("fs", "");
                 auto shader = new ShaderProgram();
@@ -36,6 +40,7 @@ namespace our {
     void AssetLoader<Texture2D>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                std::cout << "Loading texture: " << name << std::endl;
                 std::string path = desc.get<std::string>();
                 assets[name] = texture_utils::loadImage(path);
             }
@@ -53,6 +58,7 @@ namespace our {
     void AssetLoader<Sampler>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                std::cout << "Loading sampler: " << name << std::endl;
                 auto sampler = new Sampler();
                 sampler->deserialize(desc);
                 assets[name] = sampler;
@@ -67,8 +73,31 @@ namespace our {
     void AssetLoader<Mesh>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                std::cout << "Loading mesh: " << name << std::endl;
                 std::string path = desc.get<std::string>();
                 assets[name] = mesh_utils::loadOBJ(path);
+            }
+        }
+    };
+
+    template <>
+    void AssetLoader<our::Model>::deserialize(const nlohmann::json& data) {
+        if (data.is_object()) {
+            for (auto& [name, desc] : data.items()) {
+                std::cout << "Loading model: " << name << std::endl;
+                std::string path = desc.value("file", "");
+                std::string directory = desc.value("textures-directory", "");
+                if (directory == "") {
+                    // if the textures directory is not specified, we will use the directory of the model file
+                    size_t lastSlashPos = path.find_last_of("/\\");
+                    if (lastSlashPos != std::string::npos) {
+                        directory = path.substr(0, lastSlashPos);
+                    } else {
+                        directory = ".";
+                    }
+                }
+                our::Model* model = our::model_utils::loadModel(path, directory);
+                assets[name] = model;
             }
         }
     };
@@ -106,6 +135,7 @@ namespace our {
         if (assetData.contains("samplers")) AssetLoader<Sampler>::deserialize(assetData["samplers"]);
         if (assetData.contains("meshes")) AssetLoader<Mesh>::deserialize(assetData["meshes"]);
         if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
+        if (assetData.contains("models")) AssetLoader<Model>::deserialize(assetData["models"]);
     }
 
     void clearAllAssets() {
@@ -114,6 +144,7 @@ namespace our {
         AssetLoader<Sampler>::clear();
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
+        AssetLoader<Model>::clear();
     }
 
 }  // namespace our

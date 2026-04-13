@@ -149,6 +149,22 @@ namespace our {
                     opaqueCommands.push_back(command);
                 }
             }
+            // If this entity has a model renderer component
+            if (auto modelRenderer = entity->getComponent<ModelRendererComponent>(); modelRenderer) {
+                // We construct a command from it
+                RenderCommand command;
+                command.localToWorld = modelRenderer->getOwner()->getLocalToWorldMatrix();
+                command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
+                command.model = modelRenderer->model;
+                command.material = modelRenderer->material;
+                // if it is transparent, we add it to the transparent commands list
+                if (command.material->transparent) {
+                    transparentCommands.push_back(command);
+                } else {
+                    // Otherwise, we add it to the opaque command list
+                    opaqueCommands.push_back(command);
+                }
+            }
         }
 
         // If there is no camera, we return (we cannot render without a camera)
@@ -211,7 +227,11 @@ namespace our {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
-            command.mesh->draw();
+            if (command.mesh) {
+                command.mesh->draw();
+            } else if (command.model) {
+                command.model->draw();
+            }
         }
 
         // If there is a postprocess material, apply postprocessing

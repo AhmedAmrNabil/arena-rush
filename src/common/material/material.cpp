@@ -5,6 +5,15 @@
 
 namespace our {
 
+    enum class MATERIAL_TEXTURE_TYPE {
+        ALBEDO = 1 << 0,
+        NORMAL = 1 << 1,
+        METALLIC = 1 << 2,
+        ROUGHNESS = 1 << 3,
+        AO = 1 << 4,
+        EMISSIVE = 1 << 5
+    };
+
     // This function should setup the pipeline state and set the shader to be used
     void Material::setup() const {
         pipelineState.setup();
@@ -18,7 +27,7 @@ namespace our {
         if (data.contains("pipelineState")) {
             pipelineState.deserialize(data["pipelineState"]);
         }
-        shader = AssetLoader<ShaderProgram>::get(data["shader"].get<std::string>());
+        shader = AssetLoader<ShaderProgram>::get(data.at("shader").get<std::string>());
         transparent = data.value("transparent", false);
     }
 
@@ -53,13 +62,29 @@ namespace our {
         shader->set("tex", 0);
     }
 
+    void ModelMaterial::deserialize(const nlohmann::json& data) {
+        TintedMaterial::deserialize(data);
+        if (!data.is_object()) return;
+        sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
+    }
+
     // This function read the material data from a json object
     void TexturedMaterial::deserialize(const nlohmann::json& data) {
-        TintedMaterial::deserialize(data);
+        ModelMaterial::deserialize(data);
         if (!data.is_object()) return;
         alphaThreshold = data.value("alphaThreshold", 0.0f);
         texture = AssetLoader<Texture2D>::get(data.value("texture", ""));
-        sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
+    }
+
+    void ModelMaterial::setup() const {
+        TintedMaterial::setup();
+        // we will bind the textures in the model's submeshes to texture units 0-5
+        // so we just need to bind the sampler to these texture units
+        for (int i = 0; i < 6; i++) {
+            if (sampler) {
+                sampler->bind(i);
+            }
+        }
     }
 
 }  // namespace our

@@ -8,6 +8,7 @@
 #include "../asset-loader.hpp"
 #include "../components/camera.hpp"
 #include "../components/mesh-renderer.hpp"
+#include "../components/model-renderer.hpp"
 #include "../ecs/world.hpp"
 
 namespace our {
@@ -18,8 +19,9 @@ namespace our {
     struct RenderCommand {
         glm::mat4 localToWorld;
         glm::vec3 center;
-        Mesh* mesh;
-        Material* material;
+        Mesh* mesh = nullptr;
+        Model* model = nullptr;
+        Material* material = nullptr;
     };
 
     // A forward renderer is a renderer that draw the object final color directly to the framebuffer

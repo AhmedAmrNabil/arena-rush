@@ -21,6 +21,9 @@
           # libraries
           libGL
           libffi
+          zlib # for assimp
+          zziplib # for assimp
+          minizip # for assimp
 
           # Wayland
           wayland
@@ -58,6 +61,8 @@
             powershell
             glslang
             just-lsp
+            clang-tools
+            gdb
           ];
 
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;

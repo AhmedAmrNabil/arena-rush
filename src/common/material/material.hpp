@@ -40,15 +40,22 @@ namespace our {
         virtual ~TintedMaterial() = default;
     };
 
+    class ModelMaterial : public TintedMaterial {
+    public:
+        Sampler* sampler = nullptr;
+
+        void setup() const override;  // binds each map to its own texture unit (0–5)
+        void deserialize(const nlohmann::json&) override;
+    };
+
     // This material adds two uniforms (besides the tint from Tinted Material)
     // The uniforms are:
     // - "tex" which is a Sampler2D. "texture" and "sampler" will be bound to it.
     // - "alphaThreshold" which defined the alpha limit below which the pixel should be discarded
     // An example where this material can be used is when the object has a texture
-    class TexturedMaterial : public TintedMaterial {
+    class TexturedMaterial : public ModelMaterial {
     public:
         Texture2D* texture;
-        Sampler* sampler;
         float alphaThreshold;
 
         void setup() const override;
@@ -62,6 +69,8 @@ namespace our {
             return new TintedMaterial();
         } else if (type == "textured") {
             return new TexturedMaterial();
+        } else if (type == "model") {
+            return new ModelMaterial();
         } else {
             return new Material();
         }
