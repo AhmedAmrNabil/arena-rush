@@ -8,18 +8,29 @@ namespace our {
 
     enum class LightType { DIRECTIONAL, POINT, SPOT };
 
+    struct LightRenderData {
+        LightType type;
+        glm::vec3 color;
+        glm::vec3 attenuation;  // (constant, linear, quadratic)
+        glm::vec2 spotAngles;   // (inner, outer) in degrees
+
+        // computed at render time in forward renderer
+        glm::vec3 position;   // world space position of the light (for point and spot lights)
+        glm::vec3 direction;  // world space direction of the light (for directional and spot lights)
+    };
+
     class Light : public Component {
     public:
         LightType type;
         glm::vec3 color;
-        glm::vec3 position;
-        glm::vec3 direction;
+        // removed position and direction
+        // as they are controlled by entity's transform component
         glm::vec3 attenuation;  // (constant, linear, quadratic)
         glm::vec2 spotAngles;   // (inner, outer) in degrees
 
         void deserialize(const nlohmann::json& data);
         static std::string getID() {
-            return "Light";
+            return "light";
         }
     };
 }  // namespace our

@@ -17,6 +17,7 @@ namespace our {
         ComponentRegistry::registerType<FreeCameraControllerComponent>();
         ComponentRegistry::registerType<MovementComponent>();
         ComponentRegistry::registerType<MeshRendererComponent>();
+        ComponentRegistry::registerType<Light>();
 
         initialized = true;
     }
