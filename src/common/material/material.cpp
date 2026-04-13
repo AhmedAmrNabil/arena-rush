@@ -64,7 +64,7 @@ namespace our {
         uvScale = data.value("uvScale", uvScale);
     }
 
-    void LitMaterial::setLightUniforms(const std::vector<our::Light*>& lights) const {
+    void LitMaterial::setLightUniforms(const std::vector<our::LightRenderData*>& lights) const {
         shader->set("numLights", static_cast<int>(lights.size()));
         for (size_t i = 0; i < lights.size(); i++) {
             const auto& light = lights[i];
@@ -139,58 +139,9 @@ namespace our {
         }
     }
 
-    void LitMaterial::setup(std::vector<our::Light*>& lights) const {
-        TintedMaterial::setup();
+    void LitMaterial::setup(std::vector<our::LightRenderData*>& lights) const {
+        setup();
         setLightUniforms(lights);
-
-        shader->set("alphaThreshold", alphaThreshold);
-        shader->set("material.albedo", albedo);
-        shader->set("material.metallic", metallic);
-        shader->set("material.roughness", roughness);
-        shader->set("material.ambientOcclusion", ambientOcclusion);
-        shader->set("material.emission", emission);
-
-        shader->set("material.hasTextureAlbedo", textureAlbedo != nullptr);
-        if (textureAlbedo) {
-            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ALBEDO));
-            textureAlbedo->bind();
-            shader->set("material.textureAlbedo", static_cast<int>(TextureUnits::ALBEDO));
-        }
-
-        shader->set("material.hasTextureMetallic", textureMetallic != nullptr);
-        if (textureMetallic) {
-            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::METALLIC));
-            textureMetallic->bind();
-            shader->set("material.textureMetallic", static_cast<int>(TextureUnits::METALLIC));
-        }
-
-        shader->set("material.hasTextureRoughness", textureRoughness != nullptr);
-        if (textureRoughness) {
-            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ROUGHNESS));
-            textureRoughness->bind();
-            shader->set("material.textureRoughness", static_cast<int>(TextureUnits::ROUGHNESS));
-        }
-
-        shader->set("material.hasTextureNormal", textureNormal != nullptr);
-        if (textureNormal) {
-            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::NORMAL));
-            textureNormal->bind();
-            shader->set("material.textureNormal", static_cast<int>(TextureUnits::NORMAL));
-        }
-
-        shader->set("material.hasTextureAmbientOcclusion", textureAmbientOcclusion != nullptr);
-        if (textureAmbientOcclusion) {
-            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
-            textureAmbientOcclusion->bind();
-            shader->set("material.textureAmbientOcclusion", static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
-        }
-
-        shader->set("material.hasTextureEmissive", textureEmissive != nullptr);
-        if (textureEmissive) {
-            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::EMISSIVE));
-            textureEmissive->bind();
-            shader->set("material.textureEmissive", static_cast<int>(TextureUnits::EMISSIVE));
-        }
     }
 
     void LitMaterial::deserialize(const nlohmann::json& data) {
