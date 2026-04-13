@@ -69,6 +69,40 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
         }
     }
 
+    // Compute tangents per triangle then average per vertex
+    for (size_t i = 0; i < elements.size(); i += 3) {
+        Vertex& v0 = vertices[elements[i + 0]];
+        Vertex& v1 = vertices[elements[i + 1]];
+        Vertex& v2 = vertices[elements[i + 2]];
+
+        glm::vec3 edge1 = v1.position - v0.position;
+        glm::vec3 edge2 = v2.position - v0.position;
+        glm::vec2 deltaUV1 = v1.tex_coord - v0.tex_coord;
+        glm::vec2 deltaUV2 = v2.tex_coord - v0.tex_coord;
+
+        float denom = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
+        if (abs(denom) < 1e-6f) continue;  // degenerate UV, skip
+
+        float r = 1.0f / denom;
+        glm::vec3 tangent = r * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+
+        // accumulate — average later
+        v0.tangent += tangent;
+        v1.tangent += tangent;
+        v2.tangent += tangent;
+    }
+
+    // Normalize and orthogonalize against normal (Gram-Schmidt)
+    for (auto& v : vertices) {
+        if (glm::length(v.tangent) < 1e-6f) {
+            // fallback for vertices with no UV contribution
+            v.tangent = glm::vec3(1, 0, 0);
+            continue;
+        }
+        // orthogonalize
+        v.tangent = glm::normalize(v.tangent - glm::dot(v.tangent, v.normal) * v.normal);
+    }
+
     return new our::Mesh(vertices, elements);
 }
 
