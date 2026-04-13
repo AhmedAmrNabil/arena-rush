@@ -59,13 +59,13 @@ namespace our {
 
     class LitMaterial : public TintedMaterial {
     public:
-        Texture2D* textureAlbedo;
-        Texture2D* textureMetallic;
-        Texture2D* textureRoughness;
-        Texture2D* textureNormal;
-        Texture2D* textureAmbientOcclusion;
-        Texture2D* textureEmissive;
-        float alphaThreshold;
+        Texture2D* textureAlbedo = nullptr;
+        Texture2D* textureMetallic = nullptr;
+        Texture2D* textureRoughness = nullptr;
+        Texture2D* textureNormal = nullptr;
+        Texture2D* textureAmbientOcclusion = nullptr;
+        Texture2D* textureEmissive = nullptr;
+        float alphaThreshold = 0.0f;
 
         glm::vec3 albedo = glm::vec3(1.0, 1.0, 1.0);
         float metallic = 0.2f;
