@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 
@@ -14,7 +15,7 @@ namespace our {
             return entity->addComponent<T>();
         }
 
-        static inline std::unordered_map<std::string, Component* (*)(Entity*)> factories = {};
+        static inline std::unordered_map<std::string, std::function<Component*(Entity*)>> factories = {};
 
     public:
         template <typename T>
