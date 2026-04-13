@@ -3,6 +3,7 @@
 #include <glm/vec4.hpp>
 #include <json/json.hpp>
 
+#include "../components/light.hpp"
 #include "../shader/shader.hpp"
 #include "../texture/sampler.hpp"
 #include "../texture/texture2d.hpp"
@@ -56,12 +57,37 @@ namespace our {
         virtual ~TexturedMaterial() = default;
     };
 
+    class LitMaterial : public TintedMaterial {
+    public:
+        Texture2D* textureAlbedo;
+        Texture2D* textureMetallic;
+        Texture2D* textureRoughness;
+        Texture2D* textureNormal;
+        Texture2D* textureAmbientOcclusion;
+        Texture2D* textureEmissive;
+        float alphaThreshold;
+
+        glm::vec3 albedo = glm::vec3(1.0, 1.0, 1.0);
+        float metallic = 0.2f;
+        float roughness = 0.2f;
+        float ambientOcclusion = 1.0f;
+        glm::vec3 emission = glm::vec3(0.0, 0.0, 0.0);
+
+        void setLightUniforms(const std::vector<our::Light*>& lights) const;
+        void setup() const override;
+        void setup(std::vector<our::Light*>& lights) const;
+        void deserialize(const nlohmann::json& data) override;
+        virtual ~LitMaterial() = default;
+    };
+
     // This function returns a new material instance based on the given type
     inline Material* createMaterialFromType(const std::string& type) {
         if (type == "tinted") {
             return new TintedMaterial();
         } else if (type == "textured") {
             return new TexturedMaterial();
+        } else if (type == "lit") {
+            return new LitMaterial();
         } else {
             return new Material();
         }
