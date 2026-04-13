@@ -75,9 +75,9 @@ namespace our {
         float ambientOcclusion = 1.0f;
         glm::vec3 emission = glm::vec3(0.0, 0.0, 0.0);
 
-        void setLightUniforms(const std::vector<our::LightRenderData*>& lights) const;
+        void setLightUniforms(const std::vector<our::LightRenderData>& lights) const;
         void setup() const override;
-        void setup(std::vector<our::LightRenderData*>& lights) const;
+        void setup(std::vector<our::LightRenderData>& lights) const;
         void deserialize(const nlohmann::json& data) override;
         virtual ~LitMaterial() = default;
     };
