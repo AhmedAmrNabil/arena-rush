@@ -74,6 +74,15 @@ target_include_directories(glad
     PUBLIC vendor/glad/include
 )
 
+# ---- BULLET3 ----
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET3 ON CACHE BOOL "" FORCE)
+add_subdirectory(vendor/bullet3)
+
 # ---- GLM (Header-only) ----
 add_library(glm INTERFACE)
 target_include_directories(glm
@@ -150,6 +159,7 @@ target_include_directories(${PROJECT_NAME}
         src/common
         src/game
         src/states
+        vendor/bullet3/src
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -159,6 +169,10 @@ target_link_libraries(${PROJECT_NAME}
         glm
         imgui
         utils
+        BulletDynamics
+        BulletCollision
+        BulletSoftBody
+        LinearMath
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

@@ -2,3 +2,7 @@
 	path = vendor/glfw
 	url = https://github.com/glfw/glfw.git
 	shallow = true
+[submodule "vendor/bullet3"]
+	path = vendor/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
+    shallow = true
