@@ -1,9 +1,10 @@
 {
-  description = "Modern OpenGL (GLAD + GLFW + GLM)";
+  description = "Arena Rush - A simple OpenGL game built with C++ and CMake";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    self.submodules = true;
   };
 
   outputs =
@@ -15,7 +16,7 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        packageName = "project-opengl-app";
+        packageName = "ArenaRush";
         pkgs = import nixpkgs { inherit system; };
         buildInputs = with pkgs; [
           # libraries
@@ -32,11 +33,11 @@
           extra-cmake-modules # for wayland
 
           # X11
-          xorg.libX11
-          xorg.libXcursor
-          xorg.libXrandr
-          xorg.libXi
-          xorg.libXinerama
+          libx11
+          libxcursor
+          libxrandr
+          libxi
+          libxinerama
         ];
 
         nativeBuildInputs = with pkgs; [
@@ -44,13 +45,14 @@
           ninja
           pkg-config
           makeWrapper
-          ccache
         ];
+
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
       in
       {
         devShells.default = pkgs.mkShell {
 
-          inherit buildInputs nativeBuildInputs;
+          inherit buildInputs nativeBuildInputs LD_LIBRARY_PATH;
 
           packages = with pkgs; [
             # helper
@@ -58,16 +60,16 @@
             powershell
             glslang
             just-lsp
+            ccache
+            clang-tools
           ];
-
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
         };
 
         packages = {
           default = self.packages.${system}.opengl_app;
           opengl_app = pkgs.stdenv.mkDerivation {
             pname = packageName;
-            version = "1.0.0";
+            version = "0.1.0";
 
             src = self;
 
@@ -82,8 +84,9 @@
 
             installPhase = ''
               cmake --install . --prefix $out
-              wrapProgram $out/bin/GAME_APPLICATION \
-                --set LD_LIBRARY_PATH ${pkgs.libGL}/lib:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH
+              wrapProgram $out/bin/ArenaRush \
+                --chdir $out \
+                --suffix LD_LIBRARY_PATH : ${LD_LIBRARY_PATH}
             '';
           };
         };

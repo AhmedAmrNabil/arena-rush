@@ -21,15 +21,15 @@ run config="": build
     elif lsmod | grep -i "amdgpu" > /dev/null 2>&1; then
         export DRI_PRIME=1
     fi
-    ./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
+    just run-int {{ config }}
 
 # Run the game/application on the integrated GPU for testing/sanity checks
 run-int config="": build
-    ./bin/GAME_APPLICATION {{ if config != "" { "-c " + config } else { "" } }}
+    ./bin/ArenaRush {{ if config != "" { "-c " + config } else { "" } }}
 
 # Package the project using Nix
 package:
-    nix build ".?submodules=1"
+    nix build .
 
 # Remove build artifacts
 clean:
