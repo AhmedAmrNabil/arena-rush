@@ -178,6 +178,8 @@ namespace our {
                       return glm::dot(first.center, cameraForward) > glm::dot(second.center, cameraForward);
                   });
 
+        glm::vec3 cameraPosition = camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1);
+
         glm::mat4 VP = camera->getProjectionMatrix(windowSize) * camera->getViewMatrix();
 
         glViewport(0, 0, windowSize.x, windowSize.y);
@@ -203,6 +205,7 @@ namespace our {
             command.material->shader->set("transform", MVP);
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
+                litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->setup(sceneLights);
             }
             command.mesh->draw();
@@ -235,6 +238,7 @@ namespace our {
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setup(sceneLights);
+                litMaterial->shader->set("cameraPos", cameraPosition);
             }
             command.mesh->draw();
         }
