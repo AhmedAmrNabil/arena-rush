@@ -11,7 +11,7 @@
 namespace our::model_utils {
     our::Model* loadModel(const std::string& name, const std::string& directory);
     void processNode(aiNode* node, const aiScene* scene, std::vector<our::SubMesh>& submeshes,
-                     const std::string& directory);
+                     const std::string& directory, glm::mat4& parentTransform);
     our::SubMesh processMesh(aiMesh* mesh, const aiScene* scene, const std::string& directory);
     std::vector<our::TextureBinding> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName,
                                                           const std::string& directory);

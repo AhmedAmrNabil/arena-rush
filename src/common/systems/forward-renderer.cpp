@@ -1,5 +1,7 @@
 #include "forward-renderer.hpp"
 
+#include <iostream>
+
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 
@@ -199,8 +201,11 @@ namespace our {
         for (const RenderCommand& command : opaqueCommands) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            command.mesh->draw();
+            if (command.mesh) {
+                command.mesh->draw();
+            } else if (command.model) {
+                command.model->draw(command.material->shader, MVP);
+            }
         }
 
         // If there is a sky material, draw the sky
@@ -226,11 +231,10 @@ namespace our {
         for (const RenderCommand& command : transparentCommands) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
             if (command.mesh) {
                 command.mesh->draw();
             } else if (command.model) {
-                command.model->draw();
+                command.model->draw(command.material->shader, MVP);
             }
         }
 

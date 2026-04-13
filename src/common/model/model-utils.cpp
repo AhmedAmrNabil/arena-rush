@@ -22,22 +22,35 @@ namespace our::model_utils {
         }
 
         our::Model* model = new our::Model();
+        glm::mat4 identity(1.0f);
 
-        processNode(scene->mRootNode, scene, model->submeshes, directory);
+        processNode(scene->mRootNode, scene, model->submeshes, directory, identity);
 
         return model;
     }
 
     void processNode(aiNode* node, const aiScene* scene, std::vector<our::SubMesh>& submeshes,
-                     const std::string& directory) {
+                     const std::string& directory, glm::mat4& parentTransform) {
         // process all the node's meshes (if any)
+        aiMatrix4x4 t = node->mTransformation;
+        // clang-format off
+        glm::mat4 nodeTransform = glm::mat4(
+            t.a1, t.b1, t.c1, t.d1,
+            t.a2, t.b2, t.c2, t.d2,
+            t.a3, t.b3, t.c3, t.d3,
+            t.a4, t.b4, t.c4, t.d4
+        );
+        // clang-format on
+        glm::mat4 globalTransform = parentTransform * nodeTransform;
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            submeshes.push_back(processMesh(mesh, scene, directory));
+            our::SubMesh submesh = processMesh(mesh, scene, directory);
+            submesh.transform = globalTransform;
+            submeshes.push_back(submesh);
         }
         // then do the same for each of its children
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene, submeshes, directory);
+            processNode(node->mChildren[i], scene, submeshes, directory, globalTransform);
         }
     }
 
@@ -54,7 +67,7 @@ namespace our::model_utils {
             } else {
                 vertex.tex_coord = {0.0f, 0.0f};
             }
-            vertex.color = {255, 255, 255, 255};
+            vertex.color = {255, 255, 255, 255};  // default white color
             vertices.push_back(vertex);
         }
 
@@ -65,6 +78,13 @@ namespace our::model_utils {
         }
 
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiColor4D diffuse, specular, ambient, emissive;
+        float shininess;
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+        material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+        material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+        material->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
+        material->Get(AI_MATKEY_SHININESS, shininess);
 
         std::vector<our::TextureBinding> textures;
         // 1. diffuse maps
@@ -84,7 +104,13 @@ namespace our::model_utils {
             loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", directory);
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-        return our::SubMesh(new our::Mesh(vertices, indices), textures);
+        return our::SubMesh(new our::Mesh(vertices, indices), textures,
+                            {{diffuse.r, diffuse.g, diffuse.b, diffuse.a},
+                             {ambient.r, ambient.g, ambient.b, ambient.a},
+                             {specular.r, specular.g, specular.b, specular.a},
+                             {emissive.r, emissive.g, emissive.b, emissive.a},
+                             shininess},
+                            glm::mat4(1.0f));
     }
     std::vector<our::TextureBinding> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName,
                                                           const std::string& directory) {

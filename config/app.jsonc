@@ -23,6 +23,10 @@
                 "textured":{
                     "vs":"assets/shaders/textured.vert",
                     "fs":"assets/shaders/textured.frag"
+                },
+                "model":{
+                    "vs":"assets/shaders/model.vert",
+                    "fs":"assets/shaders/model.frag"
                 }
             },
             "textures":{
@@ -126,10 +130,10 @@
                     "texture": "moon",
                     "sampler": "default"
                 },
-                "zombie":{
+                "map":{
                     "type":"model",
                     "sampler": "default",
-                    "shader":"textured",
+                    "shader":"model",
                     "pipelineState": {
                         "faceCulling":{
                             "enabled": false
@@ -141,10 +145,6 @@
                 }
             },
             "models":{
-                "zombie": {
-                    "file":"assets/models/Zombie_mutant_geo.gltf",
-                    "textures-directory":"assets/textures"
-                },
                 "map":{
                     "file":"assets/models/scene.gltf",
                     "textures-directory":"assets/textures"
@@ -178,27 +178,13 @@
                 ]
             },
             {
-                "rotation": [-45, 0, 0],
-                "components": [
-                    {
-                        "type": "Mesh Renderer",
-                        "mesh": "monkey",
-                        "material": "monkey"
-                    },
-                    {
-                        "type": "Movement",
-                        "linearVelocity": [0, 0.1, 0],
-                        "angularVelocity": [0, 45, 0]
-                    }
-                ]
-            },
-            {
-                "rotation": [-45, 0, 0],
+                "rotation": [0, 0, 0],
+                "scale": [0.01, 0.01, 0.01],
                 "components": [
                     {
                         "type": "Model Renderer",
                         "model": "map",
-                        "material": "zombie"
+                        "material": "map"
                     }
                 ]
             }

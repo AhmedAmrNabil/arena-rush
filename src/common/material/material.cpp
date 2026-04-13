@@ -5,15 +5,6 @@
 
 namespace our {
 
-    enum class MATERIAL_TEXTURE_TYPE {
-        ALBEDO = 1 << 0,
-        NORMAL = 1 << 1,
-        METALLIC = 1 << 2,
-        ROUGHNESS = 1 << 3,
-        AO = 1 << 4,
-        EMISSIVE = 1 << 5
-    };
-
     // This function should setup the pipeline state and set the shader to be used
     void Material::setup() const {
         pipelineState.setup();
