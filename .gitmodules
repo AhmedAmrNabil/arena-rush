@@ -2,3 +2,6 @@
 	path = vendor/glfw
 	url = https://github.com/glfw/glfw.git
 	shallow = true
+[submodule "vendor/assimp"]
+	path = vendor/assimp
+	url = https://github.com/assimp/assimp.git
