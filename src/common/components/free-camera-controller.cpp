@@ -11,5 +11,7 @@ namespace our {
         fovSensitivity = data.value("fovSensitivity", fovSensitivity);
         positionSensitivity = data.value("positionSensitivity", positionSensitivity);
         speedupFactor = data.value("speedupFactor", speedupFactor);
+        groundLevel = data.value("groundLevel", groundLevel);
+        playerHeight = data.value("playerHeight", playerHeight);
     }
 }  // namespace our
