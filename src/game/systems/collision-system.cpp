@@ -37,15 +37,6 @@ static btTransform entityToBtTransform(our::Entity* entity) {
 
 namespace gameplay {
 
-    inline short layerStringToGroup(const std::string& layer) {
-        if (layer == "player") return CollisionLayer::LAYER_PLAYER;
-        if (layer == "enemy") return CollisionLayer::LAYER_ENEMY;
-        if (layer == "environment") return CollisionLayer::LAYER_ENVIRONMENT;
-        if (layer == "projectile") return CollisionLayer::LAYER_PROJECTILE;
-        if (layer == "trigger") return CollisionLayer::LAYER_TRIGGER;
-        return 0;  // default to no layer
-    }
-
     inline short getMaskForLayer(short group) {
         switch (group) {
             case LAYER_PLAYER:
@@ -179,9 +170,9 @@ namespace gameplay {
             if (colliderA->isTrigger || colliderB->isTrigger) continue;
 
             // push back logic (don't push environments)
-            if (colliderA->layer == "environment") {
+            if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
                 event.entityB->localTransform.position -= event.normal * event.penetrationDepth;
-            } else if (colliderB->layer == "environment") {
+            } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
                 event.entityA->localTransform.position += event.normal * event.penetrationDepth;
             } else {  // this may be edited or removed later
                 event.entityA->localTransform.position -= event.normal * (event.penetrationDepth / 2.0f);
@@ -191,7 +182,7 @@ namespace gameplay {
     }
 
     // On-demand function
-    HitInfo CollisionSystem::raycast(const Ray& ray, float maxDistance, const std::string targetLayer) const {
+    HitInfo CollisionSystem::raycast(const Ray& ray, float maxDistance, const short targetLayer) const {
         HitInfo hitInfo;
 
         if (!collisionWorld) return hitInfo;
@@ -199,10 +190,9 @@ namespace gameplay {
         btVector3 to = glmToBtVec3(ray.origin + ray.direction * maxDistance);
 
         btCollisionWorld::ClosestRayResultCallback callback(from, to);
-        if (!targetLayer.empty()) {
-            callback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;    // check against all layers
-            callback.m_collisionFilterMask = layerStringToGroup(targetLayer);  // only collide with the target layer
-        }
+
+        callback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;  // check against all layers
+        callback.m_collisionFilterMask = targetLayer;                    // only collide with the target layer
 
         collisionWorld->rayTest(from, to, callback);
 
@@ -218,21 +208,13 @@ namespace gameplay {
     }
 
     // On-demand function
-    std::vector<our::Entity*> CollisionSystem::overlapSphere(const glm::vec3& center, float radius,
-                                                             std::string targetLayer) {
+    std::vector<our::Entity*> CollisionSystem::overlapSphere(const glm::vec3& center, float radius, short targetLayer) {
         std::vector<our::Entity*> results;
         if (!collisionWorld) return results;
 
-        short targetMask = 0;
-        if (!targetLayer.empty()) {
-            targetMask = layerStringToGroup(targetLayer);
-        }
-
         for (const auto& [entity, obj] : entityToBullet) {
-            if (targetMask != 0) {
-                short objGroup = obj->getBroadphaseHandle()->m_collisionFilterGroup;
-                if ((objGroup & targetMask) == 0) continue;
-            }
+            short objGroup = obj->getBroadphaseHandle()->m_collisionFilterGroup;
+            if ((objGroup & targetLayer) == 0) continue;
 
             glm::vec3 entityPos = btToGlmVec3(obj->getWorldTransform().getOrigin());
 
@@ -276,12 +258,12 @@ namespace gameplay {
         obj->setUserPointer(entity);  // so we can go back to the entity
 
         // Mark non-environment objects as KINEMATIC.
-        if (collider->layer != "environment") {
+        if (collider->layer != CollisionLayer::LAYER_ENVIRONMENT) {
             obj->setCollisionFlags(obj->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         }
 
         // Add to Bullet world with layer filtering
-        short group = layerStringToGroup(collider->layer);
+        short group = collider->layer;
         short mask = getMaskForLayer(group);
         collisionWorld->addCollisionObject(obj, group, mask);
         entityToBullet[entity] = obj;

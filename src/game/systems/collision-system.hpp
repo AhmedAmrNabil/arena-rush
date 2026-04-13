@@ -39,15 +39,6 @@ namespace gameplay {
         float penetrationDepth = 0.0f;  // how much the two colliders are penetrating each other
     };
 
-    enum CollisionLayer : short {
-        LAYER_PLAYER = 1 << 0,       // bit 0:  0000 0001
-        LAYER_ENEMY = 1 << 1,        // bit 1:  0000 0010
-        LAYER_ENVIRONMENT = 1 << 2,  // bit 2:  0000 0100
-        LAYER_PROJECTILE = 1 << 3,   // bit 3:  0000 1000
-        LAYER_TRIGGER = 1 << 4,      // bit 4:  0001 0000
-    };
-
-    short layerStringToGroup(const std::string& layer);
     short getMaskForLayer(short group);
 
     class CollisionSystem {
@@ -77,10 +68,11 @@ namespace gameplay {
         void update(our::World* world);
 
         // On-demand raycast function that can be used outside of the update loop to query the world for collisions.
-        HitInfo raycast(const Ray& ray, float maxDistance, const std::string targetLayer = "") const;
+        HitInfo raycast(const Ray& ray, float maxDistance,
+                        const short targetLayer = CollisionLayer::LAYER_ENVIRONMENT) const;
 
         // On-demand overlap sphere function that can be used outside of the update loop
-        std::vector<our::Entity*> overlapSphere(const glm::vec3& center, float radius, std::string targetLayer = "");
+        std::vector<our::Entity*> overlapSphere(const glm::vec3& center, float radius, short targetLayer);
 
         const std::vector<CollisionEvent>& getCollisions() const;
     };
