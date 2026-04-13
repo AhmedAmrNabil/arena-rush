@@ -136,12 +136,19 @@ add_executable(GAME_APPLICATION
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
 
+    src/game/components/collider.cpp
+    src/game/components/enemy.cpp
+    src/game/components/health.cpp
+    src/game/components/player.cpp
+    src/game/game-registration.cpp
+
     src/common/systems/forward-renderer.cpp
 )
 
 target_include_directories(GAME_APPLICATION
     PRIVATE
         src/common
+        src/game
         src/states
 )
 
