@@ -62,6 +62,7 @@
             just-lsp
             ccache
             clang-tools
+            gdb
           ];
         };
 
