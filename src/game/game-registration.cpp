@@ -5,6 +5,7 @@
 #include "components/collider.hpp"
 #include "components/enemy.hpp"
 #include "components/health.hpp"
+#include "components/player-movement.hpp"
 #include "components/player.hpp"
 
 namespace gameplay {
@@ -17,6 +18,7 @@ namespace gameplay {
         our::ComponentRegistry::registerType<EnemyComponent>();
         our::ComponentRegistry::registerType<HealthComponent>();
         our::ComponentRegistry::registerType<PlayerComponent>();
+        our::ComponentRegistry::registerType<PlayerMovementComponent>();
 
         initialized = true;
     }
