@@ -290,11 +290,19 @@
                     },
                     {
                         "type": "Free Camera Controller",
-                        "positionSensitivity": [8.0, 0.0, 8.0],
-                        "rotationSensitivity": 0.008,
-                        "speedupFactor": 2.5,
+                        "rotationSensitivity": 0.01,
+                        "fovSensitivity": 0.3
+                    },
+                    {
+                        "type": "PlayerMovement",
+                        "walkSpeed": 5.0,
+                        "sprintMultiplier": 2.0,
+                        "slideSpeed": 10.0,
+                        "slideDuration": 0.6,
+                        "dashDistance": 5.0,
+                        "dashCooldown": 1.5,
                         "groundLevel": 0.0,
-                        "playerHeight": 1.8
+                        "playerHeight": 2
                     },
                     {
                         "type": "Player"

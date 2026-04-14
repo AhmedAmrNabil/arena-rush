@@ -13,6 +13,7 @@
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
 #include <systems/movement.hpp>
+#include <systems/player-movement-system.hpp>
 #include <systems/ui-renderer.hpp>
 
 // This state shows how to use the ECS framework and deserialization.
@@ -29,6 +30,7 @@ class Playstate : public our::State {
     gameplay::EnemyAISystem enemyAI;
     gameplay::EnemySpawner enemySpawner;
     gameplay::EnemyHealthBarSystem enemyHealthBars;
+    gameplay::PlayerMovementSystem playerMovement;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -102,6 +104,10 @@ class Playstate : public our::State {
     void onDraw(double deltaTime) override {
         float dt = static_cast<float>(deltaTime);
 
+        movementSystem.update(&world, dt);
+        cameraController.update(&world, dt);
+        // Here, we just run a bunch of systems to control the world logic
+        playerMovement.update(&world, dt, getApp());
         movementSystem.update(&world, dt);
         cameraController.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
