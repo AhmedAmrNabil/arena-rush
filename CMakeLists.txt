@@ -168,6 +168,7 @@ add_executable(${PROJECT_NAME}
 
     src/common/components/camera.cpp
     src/common/components/mesh-renderer.cpp
+    src/common/components/model-renderer.cpp
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
     src/common/components/light.cpp
