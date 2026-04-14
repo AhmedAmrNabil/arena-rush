@@ -37,6 +37,9 @@ struct Material {
 
     sampler2D textureEmissive;
     bool hasTextureEmissive;
+
+    sampler2D textureMetalnessRoughness;
+    bool hasMetalnessRoughness;
 };
 uniform Material material;
 uniform float alphaThreshold;
@@ -69,11 +72,19 @@ vec3 sampleAlbedo(vec2 uv) {
 }
 
 float sampleMetallic(vec2 uv) {
-    return material.hasTextureMetallic ? texture(material.textureMetallic, uv).r * material.metallic : material.metallic;
+    if(material.hasMetalnessRoughness)
+        return texture(material.textureMetalnessRoughness, uv).b * material.metallic; // B channel
+    if(material.hasTextureMetallic)
+        return texture(material.textureMetallic, uv).r * material.metallic;
+    return material.metallic;
 }
 
 float sampleRoughness(vec2 uv) {
-    return material.hasTextureRoughness ? texture(material.textureRoughness, uv).r * material.roughness : material.roughness;
+    if(material.hasMetalnessRoughness)
+        return texture(material.textureMetalnessRoughness, uv).g * material.roughness; // G channel
+    if(material.hasTextureRoughness)
+        return texture(material.textureRoughness, uv).r * material.roughness;
+    return material.roughness;
 }
 
 float sampleAO(vec2 uv) {
@@ -81,7 +92,9 @@ float sampleAO(vec2 uv) {
 }
 
 vec3 sampleEmission(vec2 uv) {
-    return material.hasTextureEmissive ? texture(material.textureEmissive, uv).rgb * material.emission : material.emission;
+    if(material.hasTextureEmissive)
+        return texture(material.textureEmissive, uv).rgb; // texture owns the color
+    return material.emission; // factor only when no texture
 }
 
 vec3 sampleNormal(vec2 uv) {
