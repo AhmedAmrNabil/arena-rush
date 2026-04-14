@@ -1,5 +1,7 @@
 #include "material.hpp"
 
+#include <iostream>
+
 #include "../asset-loader.hpp"
 #include "deserialize-utils.hpp"
 
@@ -8,7 +10,10 @@ namespace our {
     // This function should setup the pipeline state and set the shader to be used
     void Material::setup() const {
         pipelineState.setup();
-        shader->use();
+        if (shader)
+            shader->use();
+        else
+            std::cerr << "Warning: trying to use a material with no shader!" << std::endl;
     }
 
     // This function read the material data from a json object
@@ -94,50 +99,56 @@ namespace our {
         shader->set("material.ambientOcclusion", ambientOcclusion);
         shader->set("material.emission", emission);
 
-        shader->set("material.hasTextureAlbedo", textureAlbedo != nullptr);
-        if (textureAlbedo) {
+        shader->set("material.hasTextureAlbedo", mask.hasAlbedo);
+        if (mask.hasAlbedo) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ALBEDO));
             textureAlbedo->bind();
             shader->set("material.textureAlbedo", static_cast<int>(TextureUnits::ALBEDO));
         }
 
-        shader->set("material.hasTextureMetallic", textureMetallic != nullptr);
-        if (textureMetallic) {
+        shader->set("material.hasTextureMetallic", mask.hasMetallic);
+        if (mask.hasMetallic) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::METALLIC));
             textureMetallic->bind();
             shader->set("material.textureMetallic", static_cast<int>(TextureUnits::METALLIC));
         }
 
-        shader->set("material.hasTextureRoughness", textureRoughness != nullptr);
-        if (textureRoughness) {
+        shader->set("material.hasTextureRoughness", mask.hasRoughness);
+        if (mask.hasRoughness) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ROUGHNESS));
             textureRoughness->bind();
             shader->set("material.textureRoughness", static_cast<int>(TextureUnits::ROUGHNESS));
         }
 
-        shader->set("material.hasTextureNormal", textureNormal != nullptr);
-        if (textureNormal) {
+        shader->set("material.hasTextureNormal", mask.hasNormal);
+        if (mask.hasNormal) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::NORMAL));
             textureNormal->bind();
             shader->set("material.textureNormal", static_cast<int>(TextureUnits::NORMAL));
         }
 
-        shader->set("material.hasTextureAmbientOcclusion", textureAmbientOcclusion != nullptr);
-        if (textureAmbientOcclusion) {
+        shader->set("material.hasTextureAmbientOcclusion", mask.hasAmbientOcclusion);
+        if (mask.hasAmbientOcclusion) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
             textureAmbientOcclusion->bind();
             shader->set("material.textureAmbientOcclusion", static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
         }
 
-        shader->set("material.hasTextureEmissive", textureEmissive != nullptr);
-        if (textureEmissive) {
+        shader->set("material.hasTextureEmissive", mask.hasEmissive);
+        if (mask.hasEmissive) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::EMISSIVE));
             textureEmissive->bind();
             shader->set("material.textureEmissive", static_cast<int>(TextureUnits::EMISSIVE));
         }
+        shader->set("material.hasTextureMetalnessRoughness", mask.hasMetalnessRoughness);
+        if (mask.hasMetalnessRoughness) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::METALLIC_ROUGHNESS));
+            textureMetalnessRoughness->bind();
+            shader->set("material.textureMetalnessRoughness", static_cast<int>(TextureUnits::METALLIC_ROUGHNESS));
+        }
     }
 
-    void LitMaterial::setup(std::vector<our::LightRenderData>& lights) const {
+    void LitMaterial::setup(const std::vector<our::LightRenderData>& lights) const {
         setup();
         setLightUniforms(lights);
     }
@@ -151,12 +162,27 @@ namespace our {
         roughness = data.value("roughness", 0.2f);
         ambientOcclusion = data.value("ambientOcclusion", 1.0f);
         emission = data.value("emission", glm::vec3(0.0f, 0.0f, 0.0f));
+
         textureAlbedo = AssetLoader<Texture2D>::get(data.value("textureAlbedo", ""));
+        mask.hasAlbedo = textureAlbedo != nullptr;
+
         textureMetallic = AssetLoader<Texture2D>::get(data.value("textureMetallic", ""));
+        mask.hasMetallic = textureMetallic != nullptr;
+
         textureRoughness = AssetLoader<Texture2D>::get(data.value("textureRoughness", ""));
+        mask.hasRoughness = textureRoughness != nullptr;
+
         textureNormal = AssetLoader<Texture2D>::get(data.value("textureNormal", ""));
+        mask.hasNormal = textureNormal != nullptr;
+
         textureAmbientOcclusion = AssetLoader<Texture2D>::get(data.value("textureAmbientOcclusion", ""));
+        mask.hasAmbientOcclusion = textureAmbientOcclusion != nullptr;
+
         textureEmissive = AssetLoader<Texture2D>::get(data.value("textureEmissive", ""));
+        mask.hasEmissive = textureEmissive != nullptr;
+
+        textureMetalnessRoughness = AssetLoader<Texture2D>::get(data.value("textureMetalnessRoughness", ""));
+        mask.hasMetalnessRoughness = textureMetalnessRoughness != nullptr;
     }
 
 }  // namespace our

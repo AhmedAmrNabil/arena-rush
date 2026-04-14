@@ -10,7 +10,8 @@ namespace our {
         ROUGHNESS = 2,
         NORMAL = 3,
         AMBIENT_OCCLUSION = 4,
-        EMISSIVE = 5
+        EMISSIVE = 5,
+        METALLIC_ROUGHNESS = 6
     };
 
     // This class defined an OpenGL texture which will be used as a GL_TEXTURE_2D
