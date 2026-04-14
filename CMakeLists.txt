@@ -160,6 +160,16 @@ if(USE_VENDOR_OPENAL)
     add_subdirectory(vendor/openal-soft)
 endif()
 
+# ---- Assimp ----
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+add_subdirectory(vendor/assimp)
+
 # ---- GLAD ----
 add_library(glad STATIC
     vendor/glad/src/gl.c
@@ -213,6 +223,8 @@ add_executable(${PROJECT_NAME}
 
     src/common/mesh/mesh-utils.cpp
 
+    src/common/model/model.cpp
+
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp
@@ -264,6 +276,7 @@ target_link_libraries(${PROJECT_NAME}
         BulletCollision
         BulletSoftBody
         LinearMath
+        assimp::assimp
 )
 
 if(USE_SYSTEM_OPENAL AND OpenAL_FOUND)
