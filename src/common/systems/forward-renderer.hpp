@@ -8,6 +8,7 @@
 #include "../asset-loader.hpp"
 #include "../components/camera.hpp"
 #include "../components/mesh-renderer.hpp"
+#include "../components/model-renderer.hpp"
 #include "../ecs/world.hpp"
 
 namespace our {
@@ -20,6 +21,7 @@ namespace our {
         glm::vec3 center;
         Mesh* mesh;
         Material* material;
+        Model* model;
     };
 
     // A forward renderer is a renderer that draw the object final color directly to the framebuffer
@@ -34,6 +36,7 @@ namespace our {
         // reallocating them every frame
         std::vector<RenderCommand> opaqueCommands;
         std::vector<RenderCommand> transparentCommands;
+        std::vector<RenderCommand> modelCommands;
         // Objects used for rendering a skybox
         Mesh* skySphere;
         TexturedMaterial* skyMaterial;
