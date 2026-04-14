@@ -5,6 +5,7 @@
 #include "camera.hpp"
 #include "free-camera-controller.hpp"
 #include "mesh-renderer.hpp"
+#include "model-renderer.hpp"
 #include "movement.hpp"
 
 namespace our {
@@ -18,6 +19,7 @@ namespace our {
         ComponentRegistry::registerType<MovementComponent>();
         ComponentRegistry::registerType<MeshRendererComponent>();
         ComponentRegistry::registerType<Light>();
+        ComponentRegistry::registerType<ModelRendererComponent>();
 
         initialized = true;
     }
