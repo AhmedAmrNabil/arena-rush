@@ -166,6 +166,9 @@ add_executable(${PROJECT_NAME}
     src/game/game-registration.cpp
 
     src/common/systems/forward-renderer.cpp
+
+    src/common/audio/audio-utils.cpp
+    src/common/components/audio-source.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
