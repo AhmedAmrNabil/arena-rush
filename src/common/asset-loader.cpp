@@ -4,6 +4,7 @@
 #include "material/material.hpp"
 #include "mesh/mesh-utils.hpp"
 #include "mesh/mesh.hpp"
+#include "model/model.hpp"
 #include "shader/shader.hpp"
 #include "texture/sampler.hpp"
 #include "texture/texture-utils.hpp"
@@ -99,6 +100,17 @@ namespace our {
         }
     };
 
+    template <>
+    void AssetLoader<our::Model>::deserialize(const nlohmann::json& data) {
+        if (data.is_object()) {
+            for (auto& [name, desc] : data.items()) {
+                auto model = new our::Model();
+                model->loadFromFile(desc.get<std::string>());
+                assets[name] = model;
+            }
+        }
+    };
+
     void deserializeAllAssets(const nlohmann::json& assetData) {
         if (!assetData.is_object()) return;
         if (assetData.contains("shaders")) AssetLoader<ShaderProgram>::deserialize(assetData["shaders"]);
@@ -106,6 +118,7 @@ namespace our {
         if (assetData.contains("samplers")) AssetLoader<Sampler>::deserialize(assetData["samplers"]);
         if (assetData.contains("meshes")) AssetLoader<Mesh>::deserialize(assetData["meshes"]);
         if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
+        if (assetData.contains("models")) AssetLoader<our::Model>::deserialize(assetData["models"]);
     }
 
     void clearAllAssets() {
@@ -114,7 +127,7 @@ namespace our {
         AssetLoader<Sampler>::clear();
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
-        AssetLoader<our::Light>::clear();
+        AssetLoader<our::Model>::clear();
     }
 
 }  // namespace our
