@@ -84,6 +84,18 @@ set(BUILD_BULLET3 ON CACHE BOOL "" FORCE)
 add_subdirectory(vendor/bullet3)
 
 # --- OpenAL-Soft ----
+set(ALSOFT_ENABLE_MODULES OFF CACHE BOOL "" FORCE)
+set(LIBTYPE STATIC CACHE STRING "" FORCE)
+set(ALSOFT_EMBED_HRTF_DATA ON CACHE BOOL "" FORCE)
+set(ALSOFT_EAX ON CACHE BOOL "" FORCE)
+set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
+set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
+set(ALSOFT_INSTALL_CONFIG OFF CACHE BOOL "" FORCE)
+set(ALSOFT_INSTALL OFF CACHE BOOL "" FORCE)
+set(ALSOFT_BACKEND_WASAPI ON CACHE BOOL "" FORCE)
+set(ALSOFT_BACKEND_DSOUND OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(vendor/openal-soft)
 
 # ---- GLM (Header-only) ----
@@ -119,7 +131,6 @@ target_link_libraries(imgui
         glfw
         glad
 )
-
 
 # ---- Application Sources ----
 add_executable(${PROJECT_NAME}
@@ -176,6 +187,7 @@ target_link_libraries(${PROJECT_NAME}
         BulletCollision
         BulletSoftBody
         LinearMath
+        OpenAL
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
