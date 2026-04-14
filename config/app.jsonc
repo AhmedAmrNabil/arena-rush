@@ -127,6 +127,9 @@
                     "texture": "moon",
                     "sampler": "default"
                 }
+            },
+            "models": {
+                "drone": "assets/gltf/mech_drone/scene.gltf"
             }
         },
         "world": [
@@ -154,7 +157,7 @@
                         "lightType": "spot",
                         "color": [1, 1, 1],
                         "attenuation": [1.0, 0.22, 0.2],
-                        "spotAngles": [2, 5]
+                        "spotAngles": [10, 20]
                     }
                 ],
                 "children": [
@@ -200,22 +203,22 @@
             //         }
             //     ]
             // },
-            // {
-            //     "position": [-2, 2, -2],
-            //     "scale": [0.5, 0.5, 0.5],
-            //     "components": [
-            //         {
-            //             "type": "light",
-            //             "lightType": "point",
-            //             "color": [1, 0.5, 0.5]
-            //         },
-            //         {
-            //             "type": "Mesh Renderer",
-            //             "mesh": "sphere",
-            //             "material": "moon"
-            //         }
-            //     ]
-            // },
+            {
+                "position": [-2, 2, -2],
+                "scale": [0.5, 0.5, 0.5],
+                "components": [
+                    {
+                        "type": "light",
+                        "lightType": "point",
+                        "color": [1, 1, 1]
+                    },
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "moon"
+                    }
+                ]
+            },
             // {
             //     "position": [-2, 0.5, -2],
             //     "components": [
@@ -227,13 +230,12 @@
             //     ]
             // },
             {
-                "position": [2, 1, -2],
-                "scale": [5, 5, 5],
+                "position": [2, 1.5, -2],
+                "scale": [3, 3, 3],
                 "components": [
                     {
-                        "type": "Mesh Renderer",
-                        "mesh": "monkey",
-                        "material": "monkey"
+                        "type": "Model Renderer",
+                        "model": "drone"
                     }
                 ]
             }
