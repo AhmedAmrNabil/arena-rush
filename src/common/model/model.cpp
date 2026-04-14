@@ -278,7 +278,6 @@ namespace our {
             material->pipelineState.depthTesting.function = GL_LEQUAL;
             material->pipelineState.blending.enabled = false;
         }
-        material->print();
         return material;
     }
 
@@ -289,7 +288,6 @@ namespace our {
 
         std::string filePath = path.C_Str();
         Texture2D* texture = texture_utils::loadImage(modelDirectory + "/" + filePath, type);
-        std::cout << "Loaded texture: " << filePath << std::endl;
         return texture;
     }
 
