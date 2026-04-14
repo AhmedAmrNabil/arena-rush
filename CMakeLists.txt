@@ -83,6 +83,9 @@ set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_BULLET3 ON CACHE BOOL "" FORCE)
 add_subdirectory(vendor/bullet3)
 
+# --- OpenAL-Soft ----
+add_subdirectory(vendor/openal-soft)
+
 # ---- GLM (Header-only) ----
 add_library(glm INTERFACE)
 target_include_directories(glm
