@@ -98,6 +98,16 @@ set(ALSOFT_BACKEND_DSOUND OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(vendor/openal-soft)
 
+# ---- Assimp ----
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+add_subdirectory(vendor/assimp)
+
 # ---- GLM (Header-only) ----
 add_library(glm INTERFACE)
 target_include_directories(glm
@@ -142,6 +152,8 @@ add_executable(${PROJECT_NAME}
     src/common/shader/shader.cpp
 
     src/common/mesh/mesh-utils.cpp
+
+    src/common/model/model.cpp
 
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
@@ -195,6 +207,7 @@ target_link_libraries(${PROJECT_NAME}
         BulletSoftBody
         LinearMath
         OpenAL
+        assimp::assimp
 )
 
 target_compile_definitions(${PROJECT_NAME}
