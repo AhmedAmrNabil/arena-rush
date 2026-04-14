@@ -5,6 +5,8 @@ layout(location = 1) in vec4 color;
 layout(location = 2) in vec2 tex_coord;
 layout(location = 3) in vec3 normal;
 layout(location = 4) in vec3 tangent;
+layout(location = 5) in ivec4 bone_ids;
+layout(location = 6) in vec4 weights;
 
 out Varyings {
     vec4 color;
