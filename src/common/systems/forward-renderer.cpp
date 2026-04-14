@@ -131,6 +131,7 @@ namespace our {
         opaqueCommands.clear();
         transparentCommands.clear();
         sceneLights.clear();
+        modelCommands.clear();
         for (auto entity : world->getEntities()) {
             // If we hadn't found a camera yet, we look for a camera in this entity
             if (!camera) camera = entity->getComponent<CameraComponent>();
@@ -165,6 +166,14 @@ namespace our {
                 lightData.attenuation = light->attenuation;
                 lightData.spotAngles = light->spotAngles;
                 sceneLights.push_back(lightData);
+            }
+
+            if (auto modelRenderer = entity->getComponent<ModelRendererComponent>(); modelRenderer) {
+                RenderCommand command;
+                command.localToWorld = modelRenderer->getOwner()->getLocalToWorldMatrix();
+                command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
+                command.model = modelRenderer->model;
+                modelCommands.push_back(command);
             }
         }
 
@@ -231,6 +240,11 @@ namespace our {
             skyMaterial->shader->set("transform", alwaysBehindTransform * VP * model);
             skySphere->draw();
         }
+
+        for (const RenderCommand& command : modelCommands) {
+            command.model->draw(VP, command.localToWorld, sceneLights, cameraPosition);
+        }
+
         // draw all the transparent commands
         for (const RenderCommand& command : transparentCommands) {
             command.material->setup();
