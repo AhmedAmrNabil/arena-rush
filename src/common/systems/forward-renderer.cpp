@@ -161,7 +161,7 @@ namespace our {
                 // assume default light direction points to - z direction in local space
                 // so away from the camera if the light is attached to the camera
                 // this could be useful for rifle flashlight for example
-                lightData.direction = glm::normalize(glm::vec3(localToWorld * glm::vec4(0, 0, 1, 0)));
+                lightData.direction = glm::normalize(glm::vec3(localToWorld * glm::vec4(0, 0, -1, 0)));
                 lightData.attenuation = light->attenuation;
                 lightData.spotAngles = light->spotAngles;
                 sceneLights.push_back(lightData);

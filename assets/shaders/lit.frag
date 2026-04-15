@@ -117,8 +117,8 @@ vec3 calcLight(
 
         if(light.type == LIGHT_SPOT) {
             float theta = dot(L, normalize(-light.direction));
-            float innerCos = light.spotAngles.x;
-            float outerCos = light.spotAngles.y;
+            float innerCos = cos(light.spotAngles.x);
+            float outerCos = cos(light.spotAngles.y);
             float epsilon = innerCos - outerCos;
             float spot = clamp((theta - outerCos) / epsilon, 0.0, 1.0);
             attenuation *= spot;
