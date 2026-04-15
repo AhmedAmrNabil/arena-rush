@@ -255,8 +255,12 @@ namespace gameplay {
 
         // Create or reuse collision shape based on colldier data
         btCollisionShape* shape = nullptr;
-        std::string shapeKey = std::to_string(static_cast<int>(collider->shape)) + "_" +
-                               std::to_string(collider->radius) + "_" + std::to_string(collider->height);
+
+        // Shape_r_h_Scale_x_y_z
+        std::string shapeKey =
+            std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) + "_" +
+            std::to_string(collider->height) + "_Scale_" + std::to_string(entity->localTransform.scale.x) + "_" +
+            std::to_string(entity->localTransform.scale.y) + "_" + std::to_string(entity->localTransform.scale.z);
         if (shapesCache.find(shapeKey) != shapesCache.end()) {
             ownedShapes[shapesCache[shapeKey]]++;
             shape = shapesCache[shapeKey];
@@ -273,6 +277,7 @@ namespace gameplay {
                     break;
                 }
             }
+            shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
             shapesCache[shapeKey] = shape;
             ownedShapes[shape] = 1;
         }
