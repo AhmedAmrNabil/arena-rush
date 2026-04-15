@@ -199,6 +199,7 @@ namespace our {
 
     void AudioSystem::stopSound(ALuint source) {
         alSourceStop(source);
+        alSourcei(source, AL_BUFFER, AL_NONE);  // detach buffer so it can be safely deleted
         checkALError("Stopping sound");
     }
 

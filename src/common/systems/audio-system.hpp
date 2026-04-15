@@ -20,8 +20,6 @@ namespace our {
         void update(World* world);
         void destroy();
 
-        std::vector<ALuint> sources;  // List of all AL sources used by this system
-
         // On-demand function to play a sound at a 3D world position (fire-and-forget)
         // Play a sound at a 3D world position (fire-and-forget)
         // - buffer: the AudioBuffer containing the sound data to play
