@@ -10,6 +10,7 @@
 
 #include "GLFW/glfw3.h"
 #include "components/player-movement.hpp"
+#include "components/post-process-effects.hpp"
 #include "glm/fwd.hpp"
 #include "input/keyboard.hpp"
 
@@ -18,6 +19,8 @@ namespace gameplay {
     // Handles all player movement (walking, sprinting, sliding, dashing)
     // operates on the entity with player movement and camera components
     class PlayerMovementSystem {
+        float dashEffectTimer = 0.0f;
+        static constexpr float DASH_EFFECT_DURATION = 0.3f;
     public:
         void update(our::World* world, float deltaTime, our::Application* app) {
             PlayerMovementComponent* movement = nullptr;
@@ -101,10 +104,17 @@ namespace gameplay {
             if (keyboard.justPressed(GLFW_KEY_Q) && movement->dashCooldownTimer <= 0) {
                 glm::vec3 dashDirection = glm::normalize(frontXZ);
                 if (glm::length(movement->velocity) > 0.001f) {
+                    // dash along moving direction if not stationary
                     dashDirection = glm::normalize(movement->velocity);
                 }
                 playerPosition += dashDirection * movement->dashDistance;
                 movement->dashCooldownTimer = movement->dashCooldown;
+                dashEffectTimer = DASH_EFFECT_DURATION;
+            }
+
+            if (dashEffectTimer > 0) dashEffectTimer -= deltaTime;
+            if (auto* effects = playerEntity->getComponent<PostProcessEffectsComponent>()) {
+                effects->uniforms["intensity"] = glm::max(0.0f, dashEffectTimer / DASH_EFFECT_DURATION);
             }
             if (keyboard.justPressed(GLFW_KEY_SPACE) && movement->isGrounded) {
                 if (movement->isSliding) {

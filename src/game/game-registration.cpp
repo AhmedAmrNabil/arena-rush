@@ -7,6 +7,7 @@
 #include "components/health.hpp"
 #include "components/player-movement.hpp"
 #include "components/player.hpp"
+#include "components/post-process-effects.hpp"
 
 namespace gameplay {
 
@@ -19,6 +20,7 @@ namespace gameplay {
         our::ComponentRegistry::registerType<HealthComponent>();
         our::ComponentRegistry::registerType<PlayerComponent>();
         our::ComponentRegistry::registerType<PlayerMovementComponent>();
+        our::ComponentRegistry::registerType<PostProcessEffectsComponent>();
 
         initialized = true;
     }

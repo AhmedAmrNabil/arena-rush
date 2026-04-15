@@ -11,7 +11,7 @@
     "scene": {
         "renderer": {
             "sky": "assets/textures/sky.jpg",
-            "postprocess": "assets/shaders/postprocess/vignette.frag"
+            "postprocess": "assets/shaders/postprocess/dash-distortion.frag"
         },
         "assets": {
             "shaders": {
@@ -303,7 +303,7 @@
                         "slideDuration": 0.8,
                         "slideCooldown": 0.5,
                         "dashDistance": 5.0,
-                        "dashCooldown": 1.5,
+                        "dashCooldown": 1.0,
                         "groundLevel": 0.0,
                         "playerHeight": 2,
                         "jumpForce": 9.0
@@ -311,6 +311,11 @@
                     {
                         "type": "Player"
                     },
+                    {
+                        "type": "Post Process Effects Component"
+                    }
+                ],
+                "children": [
                     {
                         "type": "Health",
                         "maxHealth": 100.0

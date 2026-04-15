@@ -1,6 +1,8 @@
 #include "forward-renderer.hpp"
 
 #include "../components/model-renderer.hpp"
+#include "../../game/components/post-process-effects.hpp"
+
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 
@@ -280,6 +282,16 @@ namespace our {
         if (postprocessMaterial) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             postprocessMaterial->setup();
+
+            for (auto entity : world->getEntities()) {
+                if (auto* effects = entity->getComponent<gameplay::PostProcessEffectsComponent>()) {
+                    for (auto& [name, value] : effects->uniforms) {
+                        postprocessMaterial->shader->set(name, value);
+                    }
+                    break;  // only one PostProcessEffectsComponent expected for one shader for now
+                }
+            }
+
             glBindVertexArray(postProcessVertexArray);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
