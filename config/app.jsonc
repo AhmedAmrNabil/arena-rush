@@ -129,7 +129,7 @@
                 }
             },
             "models": {
-                "drone": "assets/gltf/mech_drone/scene.gltf"
+                "drone": "assets/gltf/fiat.glb"
             }
         },
         "world": [
@@ -230,8 +230,8 @@
             //     ]
             // },
             {
-                "position": [2, 1.5, -2],
-                "scale": [3, 3, 3],
+                "position": [2, 0, -2],
+                "scale": [5, 5, 5],
                 "components": [
                     {
                         "type": "Model Renderer",
