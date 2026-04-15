@@ -6,3 +6,7 @@
 	path = vendor/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
     shallow = true
+[submodule "vendor/openal-soft"]
+	path = vendor/openal-soft
+	url = https://github.com/kcat/openal-soft.git
+    shallow = true
