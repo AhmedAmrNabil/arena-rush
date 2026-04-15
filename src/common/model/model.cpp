@@ -11,6 +11,8 @@
 #include "texture/texture-utils.hpp"
 
 namespace our {
+    int Model::ID_COUNTER = 0;
+
     void Model::draw(const glm::mat4& VP, const glm::mat4& modelMatrix, const std::vector<our::LightRenderData>& lights,
                      const glm::vec3& cameraPosition) const {
         glm::mat4 MVP = VP * modelMatrix;
@@ -65,7 +67,6 @@ namespace our {
         this->modelDirectory = path.substr(0, path.find_last_of('/'));
 
         loadMaterialsFromScene(scene);
-        std::cout << "loaded " << materials.size() << " materials" << std::endl;
         glm::mat4 identity(1.0f);
         processNode(scene->mRootNode, scene, identity);
     }
@@ -125,11 +126,13 @@ namespace our {
 
         our::Mesh* ourMesh = new our::Mesh(vertices, indices);
 
-        Material* material = nullptr;
-        if (mesh->mMaterialIndex >= 0 && static_cast<size_t>(mesh->mMaterialIndex) < materials.size()) {
-            material = materials[mesh->mMaterialIndex];
-        } else {
-            std::cerr << "Warning: mesh has invalid material index " << mesh->mMaterialIndex << std::endl;
+        aiMaterial* aiMaterial = scene->mMaterials[mesh->mMaterialIndex];
+        std::string matName = aiMaterial->GetName().C_Str();
+        Material* material = AssetLoader<Material>::get(matName + std::to_string(id));
+        if (!material) {
+            std::cerr << "\033[31mFailed to load material " << matName << " for mesh " << mesh->mName.C_Str()
+                      << "\033[0m" << std::endl;
+            material = new Material();  // fallback to default material
         }
 
         MeshRendererComponent* meshComponent = new MeshRendererComponent();
@@ -139,11 +142,14 @@ namespace our {
     }
 
     void Model::loadMaterialsFromScene(const aiScene* scene) {
-        materials.clear();
-        materials.reserve(scene->mNumMaterials);
         for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
             aiMaterial* mat = scene->mMaterials[i];
-            materials.push_back(loadMaterial(scene, mat));
+            Material* material = loadMaterial(scene, mat);
+            if (material) {
+                aiString matName;
+                mat->Get(AI_MATKEY_NAME, matName);
+                AssetLoader<Material>::add(matName.C_Str() + std::to_string(id), material);
+            }
         }
     }
 
@@ -321,6 +327,8 @@ namespace our {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         texture->unbind();
+
+        AssetLoader<Texture2D>::add(path.C_Str(), texture);
         return texture;
     }
 
@@ -363,12 +371,6 @@ namespace our {
         for (auto& submesh : submeshes) {
             delete submesh->mesh;
             delete submesh;
-        }
-        for (auto& material : materials) {
-            delete material;
-        }
-        for (auto& pair : loadedTextures) {
-            delete pair.second;
         }
     }
 
