@@ -152,7 +152,6 @@ namespace our {
         AssetLoader<Sampler>::clear();
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
-        AssetLoader<our::Light>::clear();
         AssetLoader<AudioBuffer>::clear();
     }
 
