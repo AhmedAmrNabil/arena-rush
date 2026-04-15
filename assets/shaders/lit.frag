@@ -124,6 +124,9 @@ vec3 calcLight(
         vec3 toLight = light.position - fs_in.worldPos;
         float dist = length(toLight);
         L = normalize(toLight);
+        if(dot(toLight, N) <= 0.0) {
+            return vec3(0.0);
+        }
 
         // quadratic attenuation: 1 / (c + l*d + q*d^2)
         attenuation = 1.0 / (light.attenuation.x + light.attenuation.y * dist + light.attenuation.z * dist * dist);
