@@ -51,7 +51,8 @@ namespace gameplay {
 
         // Entity-Bullet mappings
         std::unordered_map<our::Entity*, btCollisionObject*> entityToBullet;
-        std::vector<btCollisionShape*> ownedShapes;
+        std::unordered_map<btCollisionShape*, std::uint16_t> ownedShapes;
+        std::unordered_map<std::string, btCollisionShape*> shapesCache;
 
         // Frame results
         std::vector<CollisionEvent> frameCollisions;

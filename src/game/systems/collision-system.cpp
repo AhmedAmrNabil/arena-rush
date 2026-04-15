@@ -6,6 +6,7 @@
 #include <ecs/entity.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <iostream>
 
 // Helper functions for GLM-Bullet conversions
 inline btVector3 glmToBtVec3(const glm::vec3& v) {
@@ -76,10 +77,11 @@ namespace gameplay {
         entityToBullet.clear();
 
         // remove shapes
-        for (auto shape : ownedShapes) {
+        for (auto [shape, value] : ownedShapes) {
             delete shape;
         }
         ownedShapes.clear();
+        shapesCache.clear();
 
         // delete bullet internals
         delete collisionWorld;
@@ -105,6 +107,7 @@ namespace gameplay {
             if (!collider) continue;
 
             if (entityToBullet.find(entity) == entityToBullet.end()) {
+                std::cout << "Adding entity to collision world: " << entity->name << std::endl;
                 addEntity(entity);
             } else {
                 syncTransform(entity);
@@ -178,8 +181,8 @@ namespace gameplay {
             } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
                 event.entityA->localTransform.position += event.normal * event.penetrationDepth;
             } else {  // this may be edited or removed later
-                event.entityA->localTransform.position -= event.normal * (event.penetrationDepth / 2.0f);
-                event.entityB->localTransform.position += event.normal * (event.penetrationDepth / 2.0f);
+                event.entityA->localTransform.position += event.normal * (event.penetrationDepth / 2.0f);
+                event.entityB->localTransform.position -= event.normal * (event.penetrationDepth / 2.0f);
             }
         }
     }
@@ -238,21 +241,31 @@ namespace gameplay {
         auto* collider = entity->getComponent<ColliderComponent>();
         if (!collider) return;
 
-        // Create the collision shape based on component data
+        // Create or reuse collision shape based on colldier data
         btCollisionShape* shape = nullptr;
-        switch (collider->shape) {
-            case ColliderShape::Sphere:
-                shape = new btSphereShape(collider->radius);
-                break;
-            case ColliderShape::Capsule: {
-                // convert from total height to spine
-                float spine = collider->height - 2.0f * collider->radius;
-                if (spine < 0.0f) spine = 0.0f;
-                shape = new btCapsuleShape(collider->radius, spine);
-                break;
+        std::string shapeKey = std::to_string(static_cast<int>(collider->shape)) + "_" +
+                               std::to_string(collider->radius) + "_" + std::to_string(collider->height);
+        if (shapesCache.find(shapeKey) != shapesCache.end()) {
+            ownedShapes[shapesCache[shapeKey]]++;
+            shape = shapesCache[shapeKey];
+            std::cout << "Cache hit for entity: " << entity->name << std::endl;
+        } else {
+            std::cout << "Creating new collision shape for entity: " << entity->name << std::endl;
+            // Create new shape and cache it
+            switch (collider->shape) {
+                case ColliderShape::Sphere:
+                    shape = new btSphereShape(collider->radius);
+                    break;
+                case ColliderShape::Capsule: {
+                    float spine = collider->height - 2.0f * collider->radius;
+                    if (spine < 0.0f) spine = 0.0f;
+                    shape = new btCapsuleShape(collider->radius, spine);
+                    break;
+                }
             }
+            shapesCache[shapeKey] = shape;
+            ownedShapes[shape] = 1;
         }
-        ownedShapes.push_back(shape);
 
         // Create the collision object
         btCollisionObject* obj = new btCollisionObject();
@@ -260,9 +273,15 @@ namespace gameplay {
         obj->setWorldTransform(entityToBtTransform(entity));
         obj->setUserPointer(entity);  // so we can go back to the entity
 
-        // Mark non-environment objects as KINEMATIC.
-        if (collider->layer != CollisionLayer::LAYER_ENVIRONMENT) {
-            obj->setCollisionFlags(obj->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        if (collider->layer == CollisionLayer::LAYER_ENVIRONMENT) {
+            // Walls and floors remain strictly static
+            obj->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+        } else {
+            // Players, Moons, and moving hazards are "Dynamic" (Flags = 0)
+            obj->setCollisionFlags(0);
+
+            // Prevent the object from going to sleep!
+            obj->setActivationState(DISABLE_DEACTIVATION);
         }
 
         // Add to Bullet world with layer filtering
@@ -276,6 +295,25 @@ namespace gameplay {
         if (entityToBullet.find(entity) == entityToBullet.end()) return;
 
         btCollisionObject* obj = entityToBullet[entity];
+        btCollisionShape* shape = obj->getCollisionShape();
+
+        if (shape) {
+            ownedShapes[shape]--;
+            if (ownedShapes[shape] == 0) {
+                ownedShapes.erase(shape);
+
+                // Erase it form the cache
+                for (auto it = shapesCache.begin(); it != shapesCache.end(); ++it) {
+                    if (it->second == shape) {
+                        shapesCache.erase(it);
+                        break;
+                    }
+                }
+
+                delete shape;
+            }
+        }
+
         collisionWorld->removeCollisionObject(obj);
         delete obj;
         entityToBullet.erase(entity);
