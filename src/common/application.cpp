@@ -230,6 +230,8 @@ int our::Application::run(int run_for_frames) {
 
     gladLoadGL(glfwGetProcAddress);  // Load the OpenGL functions from the driver
 
+    glfwSwapInterval(0);  // Disable V-Sync
+
     // Print information about the OpenGL context
     std::cout << "VENDOR          : " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "RENDERER        : " << glGetString(GL_RENDERER) << std::endl;
@@ -245,6 +247,9 @@ int our::Application::run(int run_for_frames) {
     // This will make sure that OpenGL and the main thread are synchronized such that message callback is called as soon
     // as the command causing it is called. This is useful for debugging but slows down the code execution.
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+    // Disable ALL messages with severity of "notification"
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 #endif
 
     setupCallbacks();
