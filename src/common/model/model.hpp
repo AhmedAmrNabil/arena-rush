@@ -16,6 +16,8 @@
 namespace our {
 
     class Model {
+        static int ID_COUNTER;  // this is used to give each model a unique ID for caching purposes
+        int id;                 // the unique ID of this model
         std::string modelDirectory;
         std::vector<MeshRendererComponent*> submeshes;
 
@@ -26,13 +28,10 @@ namespace our {
         LitMaterial* loadMaterial(const aiScene* scene, const aiMaterial* mat);
         Texture2D* loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type);
 
-        // note that we can replace this with our asset loader
-        // instead of storing the textures and materials inside the model itself
-        std::vector<Material*> materials;
-        std::map<std::string, Texture2D*> loadedTextures;
-
     public:
-        Model() = default;
+        Model() {
+            id = ID_COUNTER++;
+        };
         void draw(const glm::mat4& VP, const glm::mat4& modelMatrix, const std::vector<our::LightRenderData>& lights,
                   const glm::vec3& cameraPosition) const;
         ~Model();
