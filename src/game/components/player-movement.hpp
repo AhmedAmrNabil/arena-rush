@@ -14,8 +14,11 @@ namespace gameplay {
 
         float sprintMultiplier = 2.0f;
 
-        float slideSpeed = 10.0f;
-        float slideDuration = 0.6f;
+        float crouchSpeed = 3.0f;
+        float crouchHeight = 1.0f;
+
+        float slideSpeedMultiplier = 1.5f;
+        float slideDuration = 1.0f;
         float slideCooldown = 0.3f;
 
         float dashDistance = 5.0f;
@@ -26,6 +29,7 @@ namespace gameplay {
 
         glm::vec3 velocity = {0, 0, 0};
         bool isSprinting = false;
+        bool isCrouching = false;
         bool isSliding = false;
         float slideTimer = 0.0f;
         float slideCooldownTimer = 0.0f;

@@ -11,7 +11,10 @@ namespace gameplay {
 
         sprintMultiplier = data.value("sprintMultiplier", sprintMultiplier);
 
-        slideSpeed = data.value("slideSpeed", slideSpeed);
+        crouchSpeed = data.value("crouchSpeed", crouchSpeed);
+        crouchHeight = data.value("crouchHeight", crouchHeight);
+
+        slideSpeedMultiplier = data.value("slideSpeedMultiplier", slideSpeedMultiplier);
         slideDuration = data.value("slideDuration", slideDuration);
         slideCooldown = data.value("slideCooldown", slideCooldown);
 
