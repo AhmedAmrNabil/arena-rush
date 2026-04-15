@@ -260,6 +260,9 @@
                         ]
                     }
                 ]
+            },
+            "models": {
+                "drone": "assets/gltf/fiat.glb"
             }
         },
         "world": [

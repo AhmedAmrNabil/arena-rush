@@ -143,11 +143,11 @@ namespace our {
         materials.reserve(scene->mNumMaterials);
         for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
             aiMaterial* mat = scene->mMaterials[i];
-            materials.push_back(loadMaterial(mat));
+            materials.push_back(loadMaterial(scene, mat));
         }
     }
 
-    LitMaterial* Model::loadMaterial(const aiMaterial* mat) {
+    LitMaterial* Model::loadMaterial(const aiScene* scene, const aiMaterial* mat) {
         LitMaterial* material = new LitMaterial();
         material->transparent = false;
         material->metallic = 0.95f;
@@ -201,41 +201,41 @@ namespace our {
 
         // set textures
         // set base color texture, if not found try diffuse texture
-        material->textureAlbedo = loadTextureFromMaterial(mat, aiTextureType_BASE_COLOR);
+        material->textureAlbedo = loadTextureFromMaterial(scene, mat, aiTextureType_BASE_COLOR);
         if (!material->textureAlbedo) {
-            material->textureAlbedo = loadTextureFromMaterial(mat, aiTextureType_DIFFUSE);
+            material->textureAlbedo = loadTextureFromMaterial(scene, mat, aiTextureType_DIFFUSE);
         }
         material->mask.hasAlbedo = material->textureAlbedo != nullptr;
 
         // set normal texture, if not found try height texture
-        material->textureNormal = loadTextureFromMaterial(mat, aiTextureType_NORMALS);
+        material->textureNormal = loadTextureFromMaterial(scene, mat, aiTextureType_NORMALS);
         if (!material->textureNormal) {
-            material->textureNormal = loadTextureFromMaterial(mat, aiTextureType_HEIGHT);
+            material->textureNormal = loadTextureFromMaterial(scene, mat, aiTextureType_HEIGHT);
         }
         material->mask.hasNormal = material->textureNormal != nullptr;
 
         // set metallic and roughness textures, some models pack them in the same texture so we check for that first
-        Texture2D* metallicRoughness = loadTextureFromMaterial(mat, aiTextureType_GLTF_METALLIC_ROUGHNESS);
+        Texture2D* metallicRoughness = loadTextureFromMaterial(scene, mat, aiTextureType_GLTF_METALLIC_ROUGHNESS);
         if (metallicRoughness) {
             material->textureMetalnessRoughness = metallicRoughness;
             material->mask.hasMetalnessRoughness = true;
         } else {
-            material->textureMetallic = loadTextureFromMaterial(mat, aiTextureType_METALNESS);
+            material->textureMetallic = loadTextureFromMaterial(scene, mat, aiTextureType_METALNESS);
             material->mask.hasMetallic = material->textureMetallic != nullptr;
 
-            material->textureRoughness = loadTextureFromMaterial(mat, aiTextureType_DIFFUSE_ROUGHNESS);
+            material->textureRoughness = loadTextureFromMaterial(scene, mat, aiTextureType_DIFFUSE_ROUGHNESS);
             material->mask.hasRoughness = material->textureRoughness != nullptr;
         }
 
         // set ambient occlusion texture, if not found try lightmap texture
-        material->textureAmbientOcclusion = loadTextureFromMaterial(mat, aiTextureType_AMBIENT_OCCLUSION);
+        material->textureAmbientOcclusion = loadTextureFromMaterial(scene, mat, aiTextureType_AMBIENT_OCCLUSION);
         if (!material->textureAmbientOcclusion) {
-            material->textureAmbientOcclusion = loadTextureFromMaterial(mat, aiTextureType_LIGHTMAP);
+            material->textureAmbientOcclusion = loadTextureFromMaterial(scene, mat, aiTextureType_LIGHTMAP);
         }
         material->mask.hasAmbientOcclusion = material->textureAmbientOcclusion != nullptr;
 
         // set emissive texture
-        material->textureEmissive = loadTextureFromMaterial(mat, aiTextureType_EMISSIVE);
+        material->textureEmissive = loadTextureFromMaterial(scene, mat, aiTextureType_EMISSIVE);
         material->mask.hasEmissive = material->textureEmissive != nullptr;
 
         // setting pipeline state
@@ -281,13 +281,40 @@ namespace our {
         return material;
     }
 
-    Texture2D* Model::loadTextureFromMaterial(const aiMaterial* mat, aiTextureType type) {
+    Texture2D* Model::loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type) {
         aiString path;
         if (mat->GetTextureCount(type) == 0) return nullptr;
         if (mat->GetTexture(type, 0, &path) != AI_SUCCESS) return nullptr;
 
-        std::string filePath = path.C_Str();
-        Texture2D* texture = texture_utils::loadImage(modelDirectory + "/" + filePath, true);
+        Texture2D* texture = nullptr;
+        if (path.length > 0 && path.data[0] == '*') {
+            // this is an embedded texture, we can load it directly from memory
+            const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(path.C_Str());
+            if (!embeddedTexture) {
+                std::cerr << "Failed to find embedded texture: " << path.C_Str() << std::endl;
+                return nullptr;
+            }
+
+            if (embeddedTexture->mHeight == 0) {
+                texture = texture_utils::loadImageFromMemory(
+                    reinterpret_cast<const unsigned char*>(embeddedTexture->pcData), embeddedTexture->mWidth, true);
+            } else {
+                // note that this is not handled properly as it assumes the embedded texture is in RGBA format which
+                // might not always be the case
+                texture = new Texture2D();
+                texture->bind();
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, embeddedTexture->mWidth, embeddedTexture->mHeight, 0, GL_RGBA,
+                             GL_UNSIGNED_BYTE, embeddedTexture->pcData);
+                glGenerateMipmap(GL_TEXTURE_2D);
+                texture->unbind();
+            }
+        } else {
+            std::string filePath = path.C_Str();
+            texture = texture_utils::loadImage(modelDirectory + "/" + filePath, true);
+        }
+
+        if (!texture) return nullptr;
+
         texture->bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
