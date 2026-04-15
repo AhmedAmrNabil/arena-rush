@@ -1,12 +1,11 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
-#include <glm/trigonometric.hpp>
-
 #include <application.hpp>
 #include <components/camera.hpp>
 #include <ecs/world.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/trigonometric.hpp>
 
 #include "GLFW/glfw3.h"
 #include "components/player-movement.hpp"
@@ -21,6 +20,7 @@ namespace gameplay {
     class PlayerMovementSystem {
         float dashEffectTimer = 0.0f;
         static constexpr float DASH_EFFECT_DURATION = 0.3f;
+
     public:
         void update(our::World* world, float deltaTime, our::Application* app) {
             PlayerMovementComponent* movement = nullptr;
@@ -75,7 +75,8 @@ namespace gameplay {
                 if (movement->isSprinting && glm::length(moveDir) > 0.001f && movement->slideCooldownTimer <= 0) {
                     movement->isSliding = true;
                     movement->slideTimer = movement->slideDuration;
-                    movement->velocity = moveDir * slideStartSpeed; // preserves momentum when sliding and keys are released
+                    movement->velocity =
+                        moveDir * slideStartSpeed;  // preserves momentum when sliding and keys are released
                     movement->isCrouching = false;
                 } else {
                     movement->isCrouching = !movement->isCrouching;
@@ -94,8 +95,7 @@ namespace gameplay {
                 } else {
                     // acts like friction so stopping after key release is not so stiff
                     movement->velocity *= glm::max(0.0f, 1.0f - 10.0f * deltaTime);
-                    if (glm::length(movement->velocity) < 0.1f)
-                        movement->velocity = glm::vec3(0);
+                    if (glm::length(movement->velocity) < 0.1f) movement->velocity = glm::vec3(0);
                 }
             }
 
@@ -131,7 +131,8 @@ namespace gameplay {
                 playerPosition.y += movement->verticalVelocity * deltaTime;
 
                 // jumping always goes back to standing height
-                float minY = movement->verticalVelocity < 0 ? movement->groundLevel + movement->playerHeight : movement->groundLevel + movement->crouchHeight;
+                float minY = movement->verticalVelocity < 0 ? movement->groundLevel + movement->playerHeight
+                                                            : movement->groundLevel + movement->crouchHeight;
                 if (playerPosition.y <= minY) {
                     playerPosition.y = minY;
                     movement->verticalVelocity = 0.0f;
@@ -140,9 +141,8 @@ namespace gameplay {
             }
 
             if (movement->isGrounded) {
-                float targetHeight = (movement->isCrouching || movement->isSliding)
-                                     ? movement->crouchHeight
-                                     : movement->playerHeight;
+                float targetHeight =
+                    (movement->isCrouching || movement->isSliding) ? movement->crouchHeight : movement->playerHeight;
                 float currentHeight = playerPosition.y - movement->groundLevel;
                 float lerpedHeight = currentHeight + (targetHeight - currentHeight) * glm::min(1.0f, 10.0f * deltaTime);
                 playerPosition.y = movement->groundLevel + lerpedHeight;

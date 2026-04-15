@@ -1,9 +1,8 @@
 #pragma once
 
+#include <ecs/component.hpp>
 #include <string>
 #include <unordered_map>
-
-#include <ecs/component.hpp>
 
 namespace gameplay {
 

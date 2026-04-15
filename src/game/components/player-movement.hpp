@@ -1,8 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include <ecs/component.hpp>
+#include <glm/glm.hpp>
 
 namespace gameplay {
 
@@ -25,7 +24,7 @@ namespace gameplay {
         float dashCooldown = 1.5f;
 
         float jumpForce = 8.0f;
-        float gravity = 20.0f; // decrease for floatiness, can be a powerup easily
+        float gravity = 20.0f;  // decrease for floatiness, can be a powerup easily
 
         glm::vec3 velocity = {0, 0, 0};
         bool isSprinting = false;

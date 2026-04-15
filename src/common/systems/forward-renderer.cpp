@@ -2,7 +2,6 @@
 
 #include "../components/model-renderer.hpp"
 #include "../../game/components/post-process-effects.hpp"
-
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 
