@@ -126,10 +126,7 @@
                 }
             },
             "sounds": {
-                "gunshot": "assets/sounds/gun_reload.wav",
-                "reload": "assets/sounds/gun_reload.wav",
-                "menu-music": "assets/sounds/menu-music.wav",
-                "menu-select": "assets/sounds/menu-select.wav"
+                "portal": "assets/sounds/portal.wav"
             }
         },
         "world": [
@@ -182,7 +179,7 @@
                     },
                     {
                         "type": "AudioSource",
-                        "soundName": "gunshot",
+                        "soundName": "portal",
                         "gain": 1.0,
                         "pitch": 1.0,
                         "loop": true,

@@ -35,6 +35,9 @@ namespace our {
         // Best used for UI, menu, or music sounds
         ALuint playSound2D(AudioBuffer* buffer, float gain, float pitch, bool loop);
 
+        // On-demand function to check if a sound source is currently playing
+        bool isPlaying(ALuint source);
+
         // On-demand function to set the master (listener) volume for all sounds
         void setMasterVolume(float volume);
 

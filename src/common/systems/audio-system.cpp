@@ -187,6 +187,14 @@ namespace our {
         return source;
     }
 
+    bool AudioSystem::isPlaying(ALuint source) {
+        if (source == 0) return false;
+
+        ALint state;
+        alGetSourcei(source, AL_SOURCE_STATE, &state);
+        return state == AL_PLAYING;
+    }
+
     void AudioSystem::stopSound(ALuint source) {
         alSourceStop(source);
         checkALError("Stopping sound");

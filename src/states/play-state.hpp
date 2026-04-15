@@ -14,6 +14,7 @@ class Playstate : public our::State {
     our::ForwardRenderer renderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
+    ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -71,6 +72,14 @@ class Playstate : public our::State {
             // If the escape  key is pressed in this frame, go to the play state
             getApp()->changeState("menu");
         }
+        // clang-format off
+        if (keyboard.justPressed(GLFW_KEY_R)) {
+            if (!getApp()->getAudioSystem().isPlaying(reloadSource)) { // TODO: remove when implementing a proper weapon/player system
+                reloadSource = getApp()->getAudioSystem().playSound2D(
+                    our::audio_utils::loadWAV("assets/sounds/gun_reload.wav"), 1.0f, 1.0f, false);
+            }
+        }
+        // clang-format on
     }
 
     void onDestroy() override {
