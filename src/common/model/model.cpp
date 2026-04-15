@@ -125,13 +125,11 @@ namespace our {
         }
 
         our::Mesh* ourMesh = new our::Mesh(vertices, indices);
+        std::string name = std::to_string(id) + "_" + std::to_string(mesh->mMaterialIndex);
 
-        aiMaterial* aiMaterial = scene->mMaterials[mesh->mMaterialIndex];
-        std::string matName = aiMaterial->GetName().C_Str();
-        Material* material = AssetLoader<Material>::get(matName + std::to_string(id));
+        Material* material = AssetLoader<Material>::get(name);
         if (!material) {
-            std::cerr << "\033[31mFailed to load material " << matName << " for mesh " << mesh->mName.C_Str()
-                      << "\033[0m" << std::endl;
+            std::cerr << "\033[31mFailed to load material for mesh " << mesh->mName.C_Str() << "\033[0m" << std::endl;
             material = new Material();  // fallback to default material
         }
 
@@ -144,11 +142,10 @@ namespace our {
     void Model::loadMaterialsFromScene(const aiScene* scene) {
         for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
             aiMaterial* mat = scene->mMaterials[i];
-            Material* material = loadMaterial(scene, mat);
+            LitMaterial* material = loadMaterial(scene, mat);
+            std::string name = std::to_string(id) + "_" + std::to_string(i);
             if (material) {
-                aiString matName;
-                mat->Get(AI_MATKEY_NAME, matName);
-                AssetLoader<Material>::add(matName.C_Str() + std::to_string(id), material);
+                AssetLoader<Material>::add(name, material);
             }
         }
     }
