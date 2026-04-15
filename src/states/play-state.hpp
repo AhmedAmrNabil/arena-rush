@@ -8,6 +8,7 @@
 #include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
 #include <systems/enemy-ai.hpp>
+#include <systems/enemy-health-bar.hpp>
 #include <systems/enemy-spawner.hpp>
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
@@ -24,6 +25,7 @@ class Playstate : public our::State {
     our::Entity* playerEntity = nullptr;
     gameplay::EnemyAISystem enemyAI;
     gameplay::EnemySpawner enemySpawner;
+    gameplay::EnemyHealthBarSystem enemyHealthBars;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -90,6 +92,8 @@ class Playstate : public our::State {
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
+        enemyHealthBars.configure(config);
+        enemyHealthBars.initialize();
     }
 
     void onDraw(double deltaTime) override {
@@ -102,6 +106,7 @@ class Playstate : public our::State {
         // And finally we use the renderer system to draw the scene
         collisionSystem.update(&world);
         renderer.render(&world);
+        enemyHealthBars.render(&world, getApp());
 
 #ifdef COLLISION_DEBUG_DRAW
         // Toggle debug draw with F3
@@ -146,6 +151,7 @@ class Playstate : public our::State {
     void onDestroy() override {
         collisionSystem.destroy();
         renderer.destroy();
+        enemyHealthBars.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         // Stop all audio and release resources

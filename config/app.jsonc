@@ -180,6 +180,11 @@
             }
         },
         "game": {
+            "enemyHealthBars": {
+                "enabled": true,
+                "showWhenDamagedOnly": false,
+                "maxDistance": 22.0
+            },
             "enemySpawner": {
                 "spawnPoints": [
                     [30.0, 0.0, 30.0],
