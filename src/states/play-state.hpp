@@ -112,7 +112,7 @@ class Playstate : public our::State {
         collisionSystem.update(&world);
 
         // Rendering
-        renderer.render(&world);
+        renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera);
 
 #ifdef COLLISION_DEBUG_DRAW
