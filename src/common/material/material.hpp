@@ -75,6 +75,8 @@ namespace our {
         float ambientOcclusion = 1.0f;
         glm::vec3 emission = glm::vec3(0.0, 0.0, 0.0);
 
+        Sampler* sampler;
+
         void setLightUniforms(const std::vector<our::LightRenderData>& lights) const;
         void setup() const override;
         void setup(const std::vector<our::LightRenderData>& lights) const;

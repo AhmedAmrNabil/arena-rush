@@ -101,6 +101,9 @@ namespace our {
         if (textureAlbedo) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ALBEDO));
             textureAlbedo->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::ALBEDO));
+            }
             shader->set("material.textureAlbedo", static_cast<int>(TextureUnits::ALBEDO));
         }
 
@@ -108,6 +111,9 @@ namespace our {
         if (textureMetallic) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::METALLIC));
             textureMetallic->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::METALLIC));
+            }
             shader->set("material.textureMetallic", static_cast<int>(TextureUnits::METALLIC));
         }
 
@@ -115,6 +121,9 @@ namespace our {
         if (textureRoughness) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ROUGHNESS));
             textureRoughness->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::ROUGHNESS));
+            }
             shader->set("material.textureRoughness", static_cast<int>(TextureUnits::ROUGHNESS));
         }
 
@@ -122,6 +131,9 @@ namespace our {
         if (textureNormal) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::NORMAL));
             textureNormal->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::NORMAL));
+            }
             shader->set("material.textureNormal", static_cast<int>(TextureUnits::NORMAL));
         }
 
@@ -129,6 +141,9 @@ namespace our {
         if (textureAmbientOcclusion) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
             textureAmbientOcclusion->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
+            }
             shader->set("material.textureAmbientOcclusion", static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
         }
 
@@ -136,6 +151,9 @@ namespace our {
         if (textureEmissive) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::EMISSIVE));
             textureEmissive->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::EMISSIVE));
+            }
             shader->set("material.textureEmissive", static_cast<int>(TextureUnits::EMISSIVE));
         }
     }
@@ -148,6 +166,10 @@ namespace our {
     void LitMaterial::deserialize(const nlohmann::json& data) {
         TintedMaterial::deserialize(data);
         if (!data.is_object()) return;
+        sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
+        if (!sampler) {
+            sampler = AssetLoader<Sampler>::get("defaultSampler");
+        }
         alphaThreshold = data.value("alphaThreshold", 0.0f);
         albedo = data.value("albedo", glm::vec3(1.0f, 1.0f, 1.0f));
         metallic = data.value("metallic", 0.2f);
