@@ -115,8 +115,11 @@ namespace gameplay {
         std::vector<our::Entity*> toRemove;
         for (const auto& [entity, obj] : entityToBullet) {
             if (world->getEntities().find(entity) == world->getEntities().end()) {
-                removeEntity(entity);
+                toRemove.push_back(entity);
             }
+        }
+        for (our::Entity* entity : toRemove) {
+            removeEntity(entity);
         }
 
         // Run collision detection
