@@ -84,10 +84,11 @@ namespace gameplay {
             }
             if (!movement->isSliding && movement->isGrounded) {
                 float currentSpeed = movement->walkSpeed;
-                if (movement->isCrouching) {
-                    currentSpeed = movement->crouchSpeed;
-                } else if (movement->isSprinting) {
+                if (movement->isSprinting) {
+                    movement->isCrouching = false;
                     currentSpeed *= movement->sprintMultiplier;
+                } else if (movement->isCrouching) {
+                    currentSpeed = movement->crouchSpeed;
                 }
 
                 if (glm::length(moveDir) > 0.001f) {
