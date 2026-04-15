@@ -287,7 +287,13 @@ namespace our {
         if (mat->GetTexture(type, 0, &path) != AI_SUCCESS) return nullptr;
 
         std::string filePath = path.C_Str();
-        Texture2D* texture = texture_utils::loadImage(modelDirectory + "/" + filePath, type);
+        Texture2D* texture = texture_utils::loadImage(modelDirectory + "/" + filePath, true);
+        texture->bind();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        texture->unbind();
         return texture;
     }
 
