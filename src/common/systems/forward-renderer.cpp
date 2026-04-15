@@ -205,9 +205,9 @@ namespace our {
             command.material->shader->set("transform", MVP);
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
+                litMaterial->setLightUniforms(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->shader->set("model", command.localToWorld);
-                litMaterial->setup(sceneLights);
             }
             command.mesh->draw();
         }
@@ -238,7 +238,7 @@ namespace our {
             command.material->shader->set("transform", MVP);
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setup(sceneLights);
+                litMaterial->setLightUniforms(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->shader->set("model", command.localToWorld);
             }
