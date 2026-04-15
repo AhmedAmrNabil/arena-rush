@@ -85,9 +85,21 @@ namespace gameplay {
                 movement->dashCooldownTimer = movement->dashCooldown;
             }
 
-            // clamp to ground
+            // we can jump regardless of sliding/dashing/walking
+            if (keyboard.justPressed(GLFW_KEY_SPACE) && movement->isGrounded) {
+                movement->verticalVelocity = movement->jumpForce;
+                movement->isGrounded = false;
+            }
+
+            movement->verticalVelocity -= movement->gravity * deltaTime;
+            playerPosition.y += movement->verticalVelocity * deltaTime;
+
             float minY = movement->groundLevel + movement->playerHeight;
-            if (playerPosition.y < minY) playerPosition.y = minY;
+            if (playerPosition.y <= minY) {
+                playerPosition.y = minY;
+                movement->verticalVelocity = 0.0f;
+                movement->isGrounded = true;
+            }
         }
     };
 

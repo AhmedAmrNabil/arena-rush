@@ -21,12 +21,17 @@ namespace gameplay {
         float dashDistance = 5.0f;
         float dashCooldown = 1.5f;
 
+        float jumpForce = 8.0f;
+        float gravity = 20.0f; // decrease for floatiness, can be a powerup easily
+
         glm::vec3 velocity = {0, 0, 0};
         bool isSprinting = false;
         bool isSliding = false;
         float slideTimer = 0.0f;
         float slideCooldownTimer = 0.0f;
         float dashCooldownTimer = 0.0f;
+        float verticalVelocity = 0.0f;
+        bool isGrounded = true;
 
         static std::string getID() {
             return "PlayerMovement";

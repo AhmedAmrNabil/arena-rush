@@ -295,14 +295,15 @@
                     },
                     {
                         "type": "PlayerMovement",
-                        "walkSpeed": 5.0,
+                        "walkSpeed": 8.0,
                         "sprintMultiplier": 2.0,
                         "slideSpeed": 10.0,
                         "slideDuration": 0.6,
                         "dashDistance": 5.0,
                         "dashCooldown": 1.5,
                         "groundLevel": 0.0,
-                        "playerHeight": 2
+                        "playerHeight": 2,
+                        "jumpForce": 9.0
                     },
                     {
                         "type": "Player"

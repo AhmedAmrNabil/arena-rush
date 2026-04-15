@@ -17,6 +17,9 @@ namespace gameplay {
 
         dashDistance = data.value("dashDistance", dashDistance);
         dashCooldown = data.value("dashCooldown", dashCooldown);
+
+        jumpForce = data.value("jumpForce", jumpForce);
+        gravity = data.value("gravity", gravity);
     }
 
 }  // namespace gameplay
