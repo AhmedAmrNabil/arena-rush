@@ -77,7 +77,7 @@ namespace our {
 
         void setLightUniforms(const std::vector<our::LightRenderData>& lights) const;
         void setup() const override;
-        void setup(std::vector<our::LightRenderData>& lights) const;
+        void setup(const std::vector<our::LightRenderData>& lights) const;
         void deserialize(const nlohmann::json& data) override;
         virtual ~LitMaterial() = default;
     };

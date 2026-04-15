@@ -65,8 +65,9 @@ namespace our {
     }
 
     void LitMaterial::setLightUniforms(const std::vector<our::LightRenderData>& lights) const {
-        shader->set("numLights", static_cast<int>(lights.size()));
-        for (size_t i = 0; i < lights.size(); i++) {
+        int lightCount = std::min(static_cast<int>(lights.size()), MAX_LIGHTS);
+        shader->set("numLights", lightCount);
+        for (size_t i = 0; i < lightCount; i++) {
             const auto& light = lights[i];
             std::string prefix = "lights[" + std::to_string(i) + "]";
             shader->set(prefix + ".type", static_cast<int>(light.type));
@@ -139,7 +140,7 @@ namespace our {
         }
     }
 
-    void LitMaterial::setup(std::vector<our::LightRenderData>& lights) const {
+    void LitMaterial::setup(const std::vector<our::LightRenderData>& lights) const {
         setup();
         setLightUniforms(lights);
     }
