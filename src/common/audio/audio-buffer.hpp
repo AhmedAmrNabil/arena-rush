@@ -1,10 +1,6 @@
 #pragma once
 
 #include <AL/al.h>
-#include <dr_wav/dr_wav.h>
-
-#include <stdexcept>
-#include <string>
 
 namespace our {
     class AudioBuffer {

@@ -7,7 +7,6 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <string>
 
 our::AudioBuffer* our::audio_utils::loadWAV(const std::string& filename) {
     unsigned int channels = 0;

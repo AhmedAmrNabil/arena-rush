@@ -1,7 +1,8 @@
 #pragma once
 
-#include "audio-buffer.hpp"
+#include <string>
 
+#include "audio-buffer.hpp"
 namespace our::audio_utils {
     AudioBuffer* loadWAV(const std::string& filename);
 

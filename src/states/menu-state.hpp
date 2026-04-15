@@ -2,16 +2,15 @@
 
 #include <application.hpp>
 #include <array>
+#include <asset-loader.hpp>
+#include <audio/audio-buffer.hpp>
+#include <audio/audio-utils.hpp>
 #include <functional>
 #include <material/material.hpp>
 #include <mesh/mesh.hpp>
 #include <shader/shader.hpp>
 #include <texture/texture-utils.hpp>
 #include <texture/texture2d.hpp>
-
-#include "../common/asset-loader.hpp"
-#include "../common/audio/audio-buffer.hpp"
-#include "../common/audio/audio-utils.hpp"
 
 // This struct is used to store the location and size of a button and the code it should execute when clicked
 struct Button {
