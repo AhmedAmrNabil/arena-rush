@@ -46,6 +46,8 @@ class Menustate : public our::State {
     float time;
     // An array of the button that we can interact with
     std::array<Button, 2> buttons;
+    // Index of the currently hovered button (-1 = none). Used to detect hover-enter transitions.
+    int hoveredButton = -1;
 
     void onInitialize() override {
         // First, we create a material for the menu's background
@@ -115,7 +117,7 @@ class Menustate : public our::State {
         buttons[1].size = {400.0f, 33.0f};
         buttons[1].action = [this]() { this->getApp()->close(); };
 
-        getApp()->getAudioSystem().playSound2D(our::audio_utils::loadWAV("assets/sounds/menu-music.wav"), 1.0, 1.0,
+        getApp()->getAudioSystem().playSound2D(our::audio_utils::loadWAV("assets/sounds/menu-music.wav"), 0.5f, 1.0f,
                                                true);
     }
 
@@ -168,14 +170,27 @@ class Menustate : public our::State {
         menuMaterial->shader->set("transform", VP * M);
         rectangle->draw();
 
-        // For every button, check if the mouse is inside it. If the mouse is inside, we draw the highlight rectangle
-        // over it.
-        for (auto& button : buttons) {
-            if (button.isInside(mousePosition)) {
-                highlightMaterial->setup();
-                highlightMaterial->shader->set("transform", VP * button.getLocalToWorld());
-                rectangle->draw();
+        // Determine which button (if any) the mouse is currently over
+        int currentlyHovered = -1;
+        for (int i = 0; i < (int)buttons.size(); i++) {
+            if (buttons[i].isInside(mousePosition)) {
+                currentlyHovered = i;
+                break;
             }
+        }
+
+        // Play hover sound only on the frame the mouse first enters a button (edge detection)
+        if (currentlyHovered != -1 && currentlyHovered != hoveredButton) {
+            getApp()->getAudioSystem().playSound2D(
+                our::audio_utils::loadWAV("assets/sounds/menu-select.wav"), 1.0, 1.0, false);
+        }
+        hoveredButton = currentlyHovered;
+
+        // Draw the highlight rectangle over the hovered button
+        if (currentlyHovered != -1) {
+            highlightMaterial->setup();
+            highlightMaterial->shader->set("transform", VP * buttons[currentlyHovered].getLocalToWorld());
+            rectangle->draw();
         }
     }
 

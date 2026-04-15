@@ -150,6 +150,7 @@ namespace our {
         alSourcef(source, AL_GAIN, gain);
         alSourcef(source, AL_PITCH, pitch);
         alSourcei(source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+        alSourcei(source, AL_SOURCE_RELATIVE, AL_FALSE);  // world-space positioning (not relative to listener)
         alSource3f(source, AL_POSITION, position.x, position.y, position.z);
 
         // Set attenuation defaults
@@ -194,6 +195,7 @@ namespace our {
     void AudioSystem::stopAll() {
         for (ALuint source : sourcePool) {
             alSourceStop(source);
+            alSourcei(source, AL_BUFFER, AL_NONE);  // detach buffer so it can be safely deleted
         }
         checkALError("Stopping all sounds");
     }
