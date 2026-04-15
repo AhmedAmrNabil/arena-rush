@@ -126,6 +126,7 @@
                 }
             },
             "sounds": {
+                "gun-reload": "assets/sounds/gun_reload.wav",
                 "portal": "assets/sounds/portal.wav"
             }
         },

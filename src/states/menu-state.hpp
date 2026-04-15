@@ -46,6 +46,10 @@ class Menustate : public our::State {
     float time;
     // An array of the button that we can interact with
     std::array<Button, 2> buttons;
+
+    our::AudioBuffer* menuMusic = nullptr;
+    our::AudioBuffer* menuSelectSound = nullptr;
+
     // Index of the currently hovered button (-1 = none). Used to detect hover-enter transitions.
     int hoveredButton = -1;
 
@@ -117,8 +121,10 @@ class Menustate : public our::State {
         buttons[1].size = {400.0f, 33.0f};
         buttons[1].action = [this]() { this->getApp()->close(); };
 
-        getApp()->getAudioSystem().playSound2D(our::audio_utils::loadWAV("assets/sounds/menu-music.wav"), 0.5f, 1.0f,
-                                               true);
+        // TODO: Maybe load them in application.cpp or serialize them from the config json
+        menuMusic = our::audio_utils::loadWAV("assets/sounds/menu-music.wav");
+        menuSelectSound = our::audio_utils::loadWAV("assets/sounds/menu-select.wav");
+        getApp()->getAudioSystem().playSound2D(menuMusic, 0.5f, 1.0f, true);
     }
 
     void onDraw(double deltaTime) override {
@@ -181,8 +187,7 @@ class Menustate : public our::State {
 
         // Play hover sound only on the frame the mouse first enters a button (edge detection)
         if (currentlyHovered != -1 && currentlyHovered != hoveredButton) {
-            getApp()->getAudioSystem().playSound2D(
-                our::audio_utils::loadWAV("assets/sounds/menu-select.wav"), 1.0, 1.0, false);
+            getApp()->getAudioSystem().playSound2D(menuSelectSound, 1.0, 1.0, false);
         }
         hoveredButton = currentlyHovered;
 

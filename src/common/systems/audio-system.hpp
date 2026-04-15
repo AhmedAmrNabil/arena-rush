@@ -29,7 +29,8 @@ namespace our {
         // - gain: volume multiplier
         // - pitch: speed multiplier
         // - loop: whether to keep looping the sound
-        ALuint playSound(AudioBuffer* buffer, const glm::vec3& position, float gain, float pitch, bool loop);
+        ALuint playSound(AudioBuffer* buffer, const glm::vec3& position, float gain, float pitch, bool loop,
+                         float refDistance, float maxDistance);
 
         // On-demand function to play a non-spatial sound (fire-and-forget)
         // Best used for UI, menu, or music sounds

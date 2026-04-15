@@ -128,7 +128,8 @@ namespace our {
             // Set initial position
             glm::mat4 M = entity->getLocalToWorldMatrix();
             glm::vec3 sourcePos = M[3];
-            source = playSound(buffer, sourcePos, audioSource->gain, audioSource->pitch, audioSource->loop);
+            source = playSound(buffer, sourcePos, audioSource->gain, audioSource->pitch, audioSource->loop,
+                               audioSource->refDistance, audioSource->maxDistance);
         } else {
             source = playSound2D(buffer, audioSource->gain, audioSource->pitch, audioSource->loop);
         }
@@ -136,7 +137,8 @@ namespace our {
         audioSource->alSource = source;
     }
 
-    ALuint AudioSystem::playSound(AudioBuffer* buffer, const glm::vec3& position, float gain, float pitch, bool loop) {
+    ALuint AudioSystem::playSound(AudioBuffer* buffer, const glm::vec3& position, float gain, float pitch, bool loop,
+                                  float refDistance, float maxDistance) {
         if (!buffer) return 0;
 
         ALuint source = findAvailableSource();
@@ -154,9 +156,9 @@ namespace our {
         alSource3f(source, AL_POSITION, position.x, position.y, position.z);
 
         // Set attenuation defaults
-        alSourcef(source, AL_REFERENCE_DISTANCE, 5.0f);  // full volume within this distance
-        alSourcef(source, AL_MAX_DISTANCE, 100.0f);      // Attentuation limit
-        alSourcef(source, AL_ROLLOFF_FACTOR, 1.0f);      // how quickly the sound attenuates with distance
+        alSourcef(source, AL_REFERENCE_DISTANCE, refDistance);  // full volume within this distance
+        alSourcef(source, AL_MAX_DISTANCE, maxDistance);        // Attentuation limit
+        alSourcef(source, AL_ROLLOFF_FACTOR, 1.0f);             // how quickly the sound attenuates with distance
 
         alSourcePlay(source);
         checkALError("Playing sound");

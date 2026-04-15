@@ -76,7 +76,7 @@ class Playstate : public our::State {
         if (keyboard.justPressed(GLFW_KEY_R)) {
             if (!getApp()->getAudioSystem().isPlaying(reloadSource)) { // TODO: remove when implementing a proper weapon/player system
                 reloadSource = getApp()->getAudioSystem().playSound2D(
-                    our::audio_utils::loadWAV("assets/sounds/gun_reload.wav"), 1.0f, 1.0f, false);
+                    our::AssetLoader<our::AudioBuffer>::get("gun-reload"), 1.0f, 1.0f, false);
             }
         }
         // clang-format on
