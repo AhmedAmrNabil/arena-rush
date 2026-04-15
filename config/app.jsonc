@@ -262,7 +262,7 @@
                 ]
             },
             "models": {
-                "drone": "assets/gltf/fiat.glb"
+                "drone": "assets/gltf/mech_drone/mech_drone.glb"
             }
         },
         "world": [
