@@ -9,12 +9,23 @@
 #include <iostream>
 
 // Helper functions for GLM-Bullet conversions
-inline btVector3 glmToBtVec3(const glm::vec3& v) {
+static inline btVector3 glmToBtVec3(const glm::vec3& v) {
     return btVector3(v.x, v.y, v.z);
 }
-inline glm::vec3 btToGlmVec3(const btVector3& v) {
+static inline glm::vec3 btToGlmVec3(const btVector3& v) {
     return glm::vec3(v.getX(), v.getY(), v.getZ());
 }
+static inline glm::vec3 worldToLocal(const our::Entity* entity, glm::vec3 worldVector) {
+    if (entity->parent) {
+        glm::mat4 parentWorld = entity->parent->getLocalToWorldMatrix();
+        glm::mat3 rotationMatrix = glm::mat3(parentWorld);  // extract the 3x3 rotation part
+        glm::mat3 inverseRotation = glm::transpose(rotationMatrix);
+        return inverseRotation * worldVector;  // apply inverse rotation to get local vector
+    }
+
+    return worldVector;  // if no parent then local and world are the same
+}
+
 static btTransform entityToBtTransform(our::Entity* entity) {
     glm::mat4 m = entity->getLocalToWorldMatrix();
 
@@ -107,7 +118,6 @@ namespace gameplay {
             if (!collider) continue;
 
             if (entityToBullet.find(entity) == entityToBullet.end()) {
-                std::cout << "Adding entity to collision world: " << entity->name << std::endl;
                 addEntity(entity);
             } else {
                 syncTransform(entity);
@@ -175,15 +185,17 @@ namespace gameplay {
             if (!colliderA || !colliderB) continue;
             if (colliderA->isTrigger || colliderB->isTrigger) continue;
 
+            // clang-format off
             // push back logic (don't push environments)
             if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityB->localTransform.position -= event.normal * event.penetrationDepth;
+                event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * event.penetrationDepth);
             } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityA->localTransform.position += event.normal * event.penetrationDepth;
+                event.entityA->localTransform.position += worldToLocal(event.entityB, event.normal * event.penetrationDepth);
             } else {  // this may be edited or removed later
-                event.entityA->localTransform.position += event.normal * (event.penetrationDepth / 2.0f);
-                event.entityB->localTransform.position -= event.normal * (event.penetrationDepth / 2.0f);
+                event.entityA->localTransform.position += worldToLocal(event.entityB, event.normal * (event.penetrationDepth / 2.0f));
+                event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * (event.penetrationDepth / 2.0f));
             }
+            // clang-format on
         }
     }
 
@@ -248,9 +260,7 @@ namespace gameplay {
         if (shapesCache.find(shapeKey) != shapesCache.end()) {
             ownedShapes[shapesCache[shapeKey]]++;
             shape = shapesCache[shapeKey];
-            std::cout << "Cache hit for entity: " << entity->name << std::endl;
         } else {
-            std::cout << "Creating new collision shape for entity: " << entity->name << std::endl;
             // Create new shape and cache it
             switch (collider->shape) {
                 case ColliderShape::Sphere:
