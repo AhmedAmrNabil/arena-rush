@@ -2,7 +2,32 @@
     "configurations": [
         {
             "name": "Default",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
+            "intelliSenseMode": "windows-gcc-x64",
+            "cppStandard": "c++17",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/common",
+                "${workspaceFolder}/src/game",
+                "${workspaceFolder}/src/states",
+                "${workspaceFolder}/vendor/glad/include",
+                "${workspaceFolder}/vendor/glfw/include",
+                "${workspaceFolder}/vendor/openal-soft/include",
+                "${workspaceFolder}/vendor/glm",
+                "${workspaceFolder}/vendor/imgui",
+                "${workspaceFolder}/vendor/imgui/imgui_impl",
+                "${workspaceFolder}/vendor/utils",
+                "${workspaceFolder}/vendor/bullet3/src",
+                "${workspaceFolder}/build"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/vendor",
+                    "${workspaceFolder}/build"
+                ]
+            }
         }
     ],
     "version": 4

@@ -9,6 +9,10 @@
 #include <texture/texture-utils.hpp>
 #include <texture/texture2d.hpp>
 
+#include "../common/asset-loader.hpp"
+#include "../common/audio/audio-buffer.hpp"
+#include "../common/audio/audio-utils.hpp"
+
 // This struct is used to store the location and size of a button and the code it should execute when clicked
 struct Button {
     // The position (of the top-left corner) of the button and its size in pixels
@@ -110,6 +114,9 @@ class Menustate : public our::State {
         buttons[1].position = {830.0f, 644.0f};
         buttons[1].size = {400.0f, 33.0f};
         buttons[1].action = [this]() { this->getApp()->close(); };
+
+        getApp()->getAudioSystem().playSound2D(our::audio_utils::loadWAV("assets/sounds/menu-music.wav"), 1.0, 1.0,
+                                               true);
     }
 
     void onDraw(double deltaTime) override {
@@ -180,5 +187,6 @@ class Menustate : public our::State {
         delete menuMaterial;
         delete highlightMaterial->shader;
         delete highlightMaterial;
+        getApp()->getAudioSystem().stopAll();
     }
 };

@@ -52,8 +52,5 @@ our::AudioBuffer* our::audio_utils::loadWAV(const std::string& filename) {
         return nullptr;
     }
 
-    // TODO: Remove this logging
-    std::cout << "[Audio] Loaded WAV file: " << filename << ", Channels: " << channels
-              << ", Sample Rate: " << sampleRate << ", Total Frames: " << totalFrames << std::endl;
     return audioBuffer;
 }
