@@ -23,8 +23,8 @@ namespace our {
         MeshRendererComponent* processMesh(aiMesh* mesh, const aiScene* scene);
         void processVertexBoneData(aiMesh* mesh, std::vector<Vertex>& vertices);
         void loadMaterialsFromScene(const aiScene* scene);
-        LitMaterial* loadMaterial(const aiMaterial* mat);
-        Texture2D* loadTextureFromMaterial(const aiMaterial* mat, aiTextureType type);
+        LitMaterial* loadMaterial(const aiScene* scene, const aiMaterial* mat);
+        Texture2D* loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type);
 
         // note that we can replace this with our asset loader
         // instead of storing the textures and materials inside the model itself
