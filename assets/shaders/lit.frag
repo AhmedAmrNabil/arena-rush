@@ -117,11 +117,10 @@ vec3 calcLight(
 
         if(light.type == LIGHT_SPOT) {
             float theta = dot(L, normalize(-light.direction));
-            float inner = light.spotAngles.x;
-            float outer = light.spotAngles.y;
-            float epsilon = inner - outer;
-            float spot = clamp((theta - outer) / epsilon, 0.0, 1.0);
-            spot = pow(spot, 64.0);
+            float innerCos = light.spotAngles.x;
+            float outerCos = light.spotAngles.y;
+            float epsilon = innerCos - outerCos;
+            float spot = clamp((theta - outerCos) / epsilon, 0.0, 1.0);
             attenuation *= spot;
         }
     }
@@ -158,7 +157,8 @@ void main() {
 
     // accumulate all lights
     vec3 lighting = vec3(0.0);
-    for(int i = 0; i < numLights; i++) {
+    int lightCount = min(numLights, MAX_LIGHTS);
+    for(int i = 0; i < lightCount; i++) {
         lighting += calcLight(lights[i], N, V, albedo, roughness, metallic);
     }
 
