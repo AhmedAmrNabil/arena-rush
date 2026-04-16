@@ -6,7 +6,6 @@
 #include <ecs/entity.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <iostream>
 
 // Helper functions for GLM-Bullet conversions
 static inline btVector3 glmToBtVec3(const glm::vec3& v) {

@@ -1,9 +1,13 @@
 #pragma once
 
 #include <components/collider.hpp>
+#include <cstdint>
 #include <ecs/entity.hpp>
 #include <ecs/world.hpp>
 #include <glm/glm.hpp>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 // Forward declaration. So that we don't include Bullet headers here, instead include in .cpp file to reduce compilation
 // time for files that include this header
