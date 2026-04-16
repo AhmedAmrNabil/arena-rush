@@ -35,7 +35,7 @@ namespace gameplay {
         our::Entity* entityB = nullptr;
 
         glm::vec3 point;
-        glm::vec3 normal;               // from A to B
+        glm::vec3 normal;               // world-space normal on entity B
         float penetrationDepth = 0.0f;  // how much the two colliders are penetrating each other
     };
 
