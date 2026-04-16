@@ -24,16 +24,14 @@ namespace gameplay {
     public:
         void update(our::World* world, float deltaTime, our::Application* app) {
             PlayerMovementComponent* movement = nullptr;
-            our::CameraComponent* camera = nullptr;
             for (auto entity : world->getEntities()) {
                 movement = entity->getComponent<PlayerMovementComponent>();
-                camera = entity->getComponent<our::CameraComponent>();
-                if (movement && camera) break;
+                if (movement) break;
             }
 
-            if (!(movement && camera)) return;
+            if (!movement) return;
 
-            our::Entity* playerEntity = camera->getOwner();
+            our::Entity* playerEntity = movement->getOwner();
             glm::vec3& playerPosition = playerEntity->localTransform.position;
 
             our::Keyboard& keyboard = app->getKeyboard();
