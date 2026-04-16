@@ -252,7 +252,7 @@ namespace gameplay {
         auto* collider = entity->getComponent<ColliderComponent>();
         if (!collider) return;
 
-        // Create or reuse collision shape based on colldier data
+        // Create or reuse collision shape based on collider data
         btCollisionShape* shape = nullptr;
 
         // Shape_r_h_Scale_x_y_z
@@ -316,7 +316,7 @@ namespace gameplay {
             if (ownedShapes[shape] == 0) {
                 ownedShapes.erase(shape);
 
-                // Erase it form the cache
+                // Erase it from the cache
                 for (auto it = shapesCache.begin(); it != shapesCache.end(); ++it) {
                     if (it->second == shape) {
                         shapesCache.erase(it);
