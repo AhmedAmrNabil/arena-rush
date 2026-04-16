@@ -189,9 +189,9 @@ namespace gameplay {
             if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
                 event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * event.penetrationDepth);
             } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityA->localTransform.position += worldToLocal(event.entityB, event.normal * event.penetrationDepth);
+                event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * event.penetrationDepth);
             } else {  // this may be edited or removed later
-                event.entityA->localTransform.position += worldToLocal(event.entityB, event.normal * (event.penetrationDepth / 2.0f));
+                event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * (event.penetrationDepth / 2.0f));
                 event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * (event.penetrationDepth / 2.0f));
             }
             // clang-format on
