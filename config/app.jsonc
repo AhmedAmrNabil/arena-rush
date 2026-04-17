@@ -272,9 +272,7 @@
                         "playerHeight": 1.8
                     },
                     {
-                        "type": "Player",
-                        "radius": 0.45,
-                        "height": 1.8
+                        "type": "Player"
                     },
                     {
                         "type": "Health",
