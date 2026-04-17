@@ -207,5 +207,7 @@ class Menustate : public our::State {
         delete highlightMaterial->shader;
         delete highlightMaterial;
         getApp()->getAudioSystem().stopAll();
+        delete menuMusic;
+        delete menuSelectSound;
     }
 };
