@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
+
 #include <cmath>
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
@@ -70,15 +71,16 @@ namespace gameplay {
 
                 glm::vec3 enemyPos = glm::vec3(enemyEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
                 glm::vec3 toPlayer = playerPos - enemyPos;
-                toPlayer.y = 0.0f;
                 float distanceToPlayer = glm::length(toPlayer);
+                glm::vec3 toPlayerXZ = toPlayer;
+                toPlayerXZ.y = 0.0f;
+                float XZDistance = glm::length(toPlayerXZ);
 
                 glm::vec3 movementDirection = glm::vec3(0.0f);
                 float movementSpeed = 0.0f;
                 bool inAttackRange = distanceToPlayer <= enemy->attackRange;
                 bool inAggroRange = distanceToPlayer <= enemy->aggroRange;
-                glm::vec3 toPlayerDirection =
-                    (distanceToPlayer > 0.0001f) ? (toPlayer / distanceToPlayer) : glm::vec3(0.0f);
+                glm::vec3 toPlayerDirection = (XZDistance > 0.0001f) ? (toPlayerXZ / XZDistance) : glm::vec3(0.0f);
 
                 if (enemy->type == EnemyType::Flyer) {
                     if (!inAttackRange) {
