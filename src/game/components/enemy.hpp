@@ -14,8 +14,15 @@ namespace gameplay {
         float turnSpeed = 6.0f;
         float aggroRange = 15.0f;
         float attackRange = 1.5f;
-        float separationRadius = 1.0f;
+        float attackCooldown = 2.0f;
+        float attackTimer = 0.0f;
+        float attackDamage = 10.0f;
         float preferredDistance = 4.0f;
+        float hoverFrequency = 2.0f;
+        float hoverAmplitude = 0.5f;
+        float baseHeight = 3.0f;
+        bool hoverOriginSet = false;
+        float hoverOriginY = 0.0f;
         int scoreValue = 100;
 
         static std::string getID() {

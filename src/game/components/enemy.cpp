@@ -17,8 +17,12 @@ namespace gameplay {
         turnSpeed = data.value("turnSpeed", turnSpeed);
         aggroRange = data.value("aggroRange", aggroRange);
         attackRange = data.value("attackRange", attackRange);
-        separationRadius = data.value("separationRadius", separationRadius);
+        attackCooldown = data.value("attackCooldown", attackCooldown);
+        attackDamage = data.value("attackDamage", attackDamage);
         preferredDistance = data.value("preferredDistance", preferredDistance);
+        hoverFrequency = data.value("hoverFrequency", hoverFrequency);
+        hoverAmplitude = data.value("hoverAmplitude", hoverAmplitude);
+        baseHeight = data.value("baseHeight", baseHeight);
         scoreValue = data.value("scoreValue", scoreValue);
     }
 
