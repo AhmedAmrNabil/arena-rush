@@ -113,7 +113,7 @@ namespace gameplay {
         }
 
     public:
-        void configure(const nlohmann::json& sceneConfig) {
+        void deserialize(const nlohmann::json& sceneConfig) {
             if (!(sceneConfig.contains("game") && sceneConfig["game"].contains("enemySpawner"))) return;
 
             const nlohmann::json& spawnerConfig = sceneConfig["game"]["enemySpawner"];

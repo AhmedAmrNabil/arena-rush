@@ -67,7 +67,7 @@ class Playstate : public our::State {
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
 
-        enemySpawner.configure(config);
+        enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
     }
 
