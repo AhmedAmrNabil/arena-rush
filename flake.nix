@@ -23,6 +23,9 @@
           libGL
           libffi
 
+          # Audio
+          pipewire
+
           # Wayland
           wayland
           wayland-protocols
