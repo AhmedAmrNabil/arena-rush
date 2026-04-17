@@ -1,9 +1,5 @@
 #pragma once
 
-// Master kill-switch: comment this out to strip all debug-draw code from the build.
-// When defined, you can still toggle drawing at runtime with F3 (zero overhead when off).
-#define COLLISION_DEBUG_DRAW
-
 #ifdef COLLISION_DEBUG_DRAW
 
 #include <LinearMath/btIDebugDraw.h>
