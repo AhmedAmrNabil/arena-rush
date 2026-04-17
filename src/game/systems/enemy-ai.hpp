@@ -72,9 +72,9 @@ namespace gameplay {
                 glm::vec3 toPlayerDirection = (XZDistance > 0.0001f) ? (toPlayerXZ / XZDistance) : glm::vec3(0.0f);
 
                 if (enemy->type == EnemyType::Flyer) {
-                    if (!inAttackRange) {
+                    if (inAggroRange) {
                         movementDirection = droneDirection(enemyPos, playerPos, enemy->preferredDistance);
-                        movementSpeed = inAggroRange ? enemy->moveSpeed : 0.0f;
+                        movementSpeed = enemy->moveSpeed;
                     }
 
                     // should attack here
