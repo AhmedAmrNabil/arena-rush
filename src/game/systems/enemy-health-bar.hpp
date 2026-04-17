@@ -81,7 +81,7 @@ namespace gameplay {
         }
 
     public:
-        void configure(const nlohmann::json& sceneConfig) {
+        void deserialize(const nlohmann::json& sceneConfig) {
             if (!(sceneConfig.contains("game") && sceneConfig["game"].contains("enemyHealthBars"))) return;
 
             const auto& healthBarConfig = sceneConfig["game"]["enemyHealthBars"];

@@ -92,7 +92,7 @@ class Playstate : public our::State {
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
-        enemyHealthBars.configure(config);
+        enemyHealthBars.deserialize(config);
         enemyHealthBars.initialize();
     }
 
