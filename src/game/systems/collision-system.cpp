@@ -6,6 +6,11 @@
 #include <ecs/entity.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#ifdef COLLISION_DEBUG_DRAW
+#include "collision-debug-drawer.hpp"
+#endif
 
 // Helper functions for GLM-Bullet conversions
 static inline btVector3 glmToBtVec3(const glm::vec3& v) {
@@ -76,9 +81,24 @@ namespace gameplay {
 
         // the default constraint solver
         collisionWorld = new btCollisionWorld(dispatcher, broadphase, collisionConfiguration);
+
+#ifdef COLLISION_DEBUG_DRAW
+        debugDrawer = new CollisionDebugDrawer();
+        debugDrawer->initialize();
+        debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+        collisionWorld->setDebugDrawer(debugDrawer);
+#endif
     }
 
     void CollisionSystem::destroy() {
+#ifdef COLLISION_DEBUG_DRAW
+        if (debugDrawer) {
+            debugDrawer->destroy();
+            delete debugDrawer;
+            debugDrawer = nullptr;
+        }
+#endif
+
         // remove collision objects
         for (auto& [entity, obj] : entityToBullet) {
             collisionWorld->removeCollisionObject(obj);
@@ -346,5 +366,67 @@ namespace gameplay {
     const std::vector<CollisionEvent>& CollisionSystem::getCollisions() const {
         return frameCollisions;
     }
+
+#ifdef COLLISION_DEBUG_DRAW
+    // Returns a debug color based on the collision layer of the entity
+    static glm::vec3 getLayerColor(our::Entity* entity) {
+        auto* collider = entity->getComponent<ColliderComponent>();
+        if (!collider) return glm::vec3(1, 1, 1);
+
+        switch (collider->layer) {
+            case LAYER_PLAYER:      return glm::vec3(0.0f, 1.0f, 0.0f);   // green
+            case LAYER_ENEMY:       return glm::vec3(1.0f, 0.2f, 0.2f);   // red
+            case LAYER_ENVIRONMENT: return glm::vec3(0.0f, 0.8f, 1.0f);   // cyan
+            case LAYER_PROJECTILE:  return glm::vec3(1.0f, 1.0f, 0.0f);   // yellow
+            case LAYER_TRIGGER:     return glm::vec3(1.0f, 0.0f, 1.0f);   // magenta
+            default:                return glm::vec3(1.0f, 1.0f, 1.0f);   // white
+        }
+    }
+
+    void CollisionSystem::debugDraw(const glm::mat4& VP) {
+        if (!debugDrawEnabled || !collisionWorld || !debugDrawer) return;
+
+        // Manually generate wireframe geometry for every collision object.
+        // We do NOT use Bullet's debugDrawObject/debugDrawWorld because btCollisionWorld
+        // (as opposed to btDynamicsWorld) has very limited debug draw support.
+        for (const auto& [entity, obj] : entityToBullet) {
+            auto* collider = entity->getComponent<ColliderComponent>();
+            if (!collider) continue;
+
+            glm::vec3 color = getLayerColor(entity);
+
+            // Build a glm::mat4 from the Bullet world transform
+            btTransform bt = obj->getWorldTransform();
+            float m[16];
+            bt.getOpenGLMatrix(m);
+            glm::mat4 transform = glm::make_mat4(m);
+
+            // Apply the collision shape's local scaling
+            btVector3 scale = obj->getCollisionShape()->getLocalScaling();
+            float scaledRadius = collider->radius * scale.getX();
+            float scaledHeight = collider->height * scale.getY();
+
+            switch (collider->shape) {
+                case ColliderShape::Sphere:
+                    debugDrawer->drawSphereWireframe(transform, scaledRadius, color);
+                    break;
+                case ColliderShape::Capsule:
+                    debugDrawer->drawCapsuleWireframe(transform, scaledRadius, scaledHeight, color);
+                    break;
+            }
+        }
+
+        // Flush all accumulated lines to the screen
+        debugDrawer->render(VP);
+    }
+
+    void CollisionSystem::setDebugDrawEnabled(bool enabled) {
+        debugDrawEnabled = enabled;
+    }
+
+    bool CollisionSystem::isDebugDrawEnabled() const {
+        return debugDrawEnabled;
+    }
+#endif
 
 }  // namespace gameplay
