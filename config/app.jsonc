@@ -210,7 +210,7 @@
                             {
                                 "type": "Collider",
                                 "layer": "enemy",
-                                "shape": "capsule",
+                                "shape": "Capsule",
                                 "radius": 0.5,
                                 "height": 1.5
                             }
