@@ -3,6 +3,7 @@
 #include <application.hpp>
 #include <components/player.hpp>
 #include <ecs/world.hpp>
+#include <systems/collision-system.hpp>
 #include <systems/enemy-ai.hpp>
 #include <systems/enemy-spawner.hpp>
 #include <systems/forward-renderer.hpp>
@@ -15,6 +16,7 @@ class Playstate : public our::State {
     our::ForwardRenderer renderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
+    gameplay::CollisionSystem collisionSystem;
     our::Entity* playerEntity = nullptr;
     gameplay::EnemyAISystem enemyAI;
     gameplay::EnemySpawner enemySpawner;
@@ -66,6 +68,7 @@ class Playstate : public our::State {
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+        collisionSystem.initialize();
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
@@ -78,6 +81,7 @@ class Playstate : public our::State {
         enemyAI.update(&world, playerEntity, (float)deltaTime);
         enemySpawner.update(&world, (float)deltaTime);
         // And finally we use the renderer system to draw the scene
+        collisionSystem.update(&world);
         renderer.render(&world);
 
         // Get a reference to the keyboard object
@@ -90,14 +94,13 @@ class Playstate : public our::State {
     }
 
     void onDestroy() override {
-        // Don't forget to destroy the renderer
+        collisionSystem.destroy();
         renderer.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         playerEntity = nullptr;
-        // Clear the world
         world.clear();
-        // and we delete all the loaded assets to free memory on the RAM and the VRAM
+        // Delete all the loaded assets to free memory on the RAM and the VRAM
         our::clearAllAssets();
     }
 };
