@@ -23,11 +23,19 @@ namespace gameplay {
         std::string material = "monster";
         glm::vec3 rotationDegrees = glm::vec3(0.0f, 0.0f, 0.0f);
         glm::vec3 scale = glm::vec3(0.45f);
-        nlohmann::json enemyComponent = {{"enemyType", "Brute"},   {"moveSpeed", 2.8f},   {"turnSpeed", 5.5f},
-                                         {"aggroRange", 120.0f},   {"attackRange", 2.0f}, {"attackDamage", 10.0f},
-                                         {"attackCooldown", 1.2f}, {"scoreValue", 100}};
-        nlohmann::json healthComponent = {{"maxHealth", 60.0f}};
-        nlohmann::json colliderComponent = {{"layer", "enemy"}, {"radius", 1.0f}};
+        nlohmann::json components = nlohmann::json::array({
+            {{"type", "Enemy"},
+             {"enemyType", "Brute"},
+             {"moveSpeed", 2.8f},
+             {"turnSpeed", 5.5f},
+             {"aggroRange", 120.0f},
+             {"attackRange", 2.0f},
+             {"attackDamage", 10.0f},
+             {"attackCooldown", 1.2f},
+             {"scoreValue", 100}},
+            {{"type", "Health"}, {"maxHealth", 60.0f}},
+            {{"type", "Collider"}, {"layer", "enemy"}, {"radius", 1.0f}},
+        });
     };
 
     struct EnemySpawnConfig {
@@ -79,14 +87,21 @@ namespace gameplay {
             rendererComponent->mesh = mesh;
             rendererComponent->material = material;
 
-            EnemyComponent* enemy = enemyEntity->addComponent<EnemyComponent>();
-            enemy->deserialize(config.enemyComponent);
+            for (const nlohmann::json& componentConfig : config.components) {
+                if (!componentConfig.is_object()) continue;
 
-            HealthComponent* health = enemyEntity->addComponent<HealthComponent>();
-            health->deserialize(config.healthComponent);
-
-            ColliderComponent* collider = enemyEntity->addComponent<ColliderComponent>();
-            collider->deserialize(config.colliderComponent);
+                std::string type = componentConfig.value("type", "");
+                if (type == "Enemy") {
+                    EnemyComponent* enemy = enemyEntity->addComponent<EnemyComponent>();
+                    enemy->deserialize(componentConfig);
+                } else if (type == "Health") {
+                    HealthComponent* health = enemyEntity->addComponent<HealthComponent>();
+                    health->deserialize(componentConfig);
+                } else if (type == "Collider") {
+                    ColliderComponent* collider = enemyEntity->addComponent<ColliderComponent>();
+                    collider->deserialize(componentConfig);
+                }
+            }
         }
 
         void spawnNextEnemy(our::World* world) {
@@ -124,14 +139,9 @@ namespace gameplay {
                     enemyTemplate.rotationDegrees = enemyConfig.value("rotation", enemyTemplate.rotationDegrees);
                     enemyTemplate.scale = enemyConfig.value("scale", enemyTemplate.scale);
 
-                    if (enemyConfig.contains("components") && enemyConfig["components"].is_object())
-                        enemyTemplate.enemyComponent = enemyConfig["components"];
-
-                    if (enemyConfig.contains("health") && enemyConfig["health"].is_object())
-                        enemyTemplate.healthComponent = enemyConfig["health"];
-
-                    if (enemyConfig.contains("collider") && enemyConfig["collider"].is_object())
-                        enemyTemplate.colliderComponent = enemyConfig["collider"];
+                    if (enemyConfig.contains("components") && enemyConfig["components"].is_array()) {
+                        enemyTemplate.components = enemyConfig["components"];
+                    }
 
                     config.enemies.push_back(enemyTemplate);
                 }
