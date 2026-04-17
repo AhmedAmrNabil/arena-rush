@@ -10,9 +10,10 @@ out Varyings {
 } vs_out;
 
 uniform mat4 transform;
+uniform vec2 uvScale;
 
 void main(){
     gl_Position = transform * vec4(position, 1.0);
     vs_out.color = color;
-    vs_out.tex_coord = tex_coord;
+    vs_out.tex_coord = tex_coord * uvScale;
 }

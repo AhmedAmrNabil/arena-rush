@@ -1,9 +1,11 @@
 #pragma once
 
 #include <application.hpp>
-#include <asset-loader.hpp>
+#include <components/player.hpp>
 #include <ecs/world.hpp>
 #include <systems/audio-system.hpp>
+#include <systems/enemy-ai.hpp>
+#include <systems/enemy-spawner.hpp>
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
 #include <systems/movement.hpp>
@@ -15,6 +17,9 @@ class Playstate : public our::State {
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
     ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
+    our::Entity* playerEntity = nullptr;
+    gameplay::EnemyAISystem enemyAI;
+    gameplay::EnemySpawner enemySpawner;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -49,11 +54,23 @@ class Playstate : public our::State {
         if (config.contains("world")) {
             world.deserialize(config["world"]);
         }
+
+        // Store a pointer to the player entity
+        for (our::Entity* entity : world.getEntities()) {
+            if (entity->getComponent<gameplay::PlayerComponent>()) {
+                playerEntity = entity;
+                break;
+            }
+        }
+
         // We initialize the camera controller system since it needs a pointer to the app
         cameraController.enter(getApp());
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+
+        enemySpawner.deserialize(config);
+        enemySpawner.initialize(&world);
     }
 
     void onDraw(double deltaTime) override {
@@ -61,7 +78,8 @@ class Playstate : public our::State {
         movementSystem.update(&world, (float)deltaTime);
         cameraController.update(&world, (float)deltaTime);
         getApp()->getAudioSystem().update(&world);
-
+        enemyAI.update(&world, playerEntity, (float)deltaTime);
+        enemySpawner.update(&world, (float)deltaTime);
         // And finally we use the renderer system to draw the scene
         renderer.render(&world);
 
@@ -89,6 +107,7 @@ class Playstate : public our::State {
         cameraController.exit();
         // Stop all audio and release resources
         getApp()->getAudioSystem().stopAll();
+        playerEntity = nullptr;
         // Clear the world
         world.clear();
         // and we delete all the loaded assets to free memory on the RAM and the VRAM

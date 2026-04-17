@@ -43,6 +43,7 @@ namespace our {
     void TexturedMaterial::setup() const {
         TintedMaterial::setup();
         shader->set("alphaThreshold", alphaThreshold);
+        shader->set("uvScale", uvScale);
         glActiveTexture(GL_TEXTURE0);
         if (texture) {
             texture->bind();
@@ -60,6 +61,7 @@ namespace our {
         alphaThreshold = data.value("alphaThreshold", 0.0f);
         texture = AssetLoader<Texture2D>::get(data.value("texture", ""));
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
+        uvScale = data.value("uvScale", uvScale);
     }
 
 }  // namespace our
