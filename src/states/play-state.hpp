@@ -1,8 +1,10 @@
 #pragma once
 
 #include <application.hpp>
-#include <asset-loader.hpp>
+#include <components/player.hpp>
 #include <ecs/world.hpp>
+#include <systems/enemy-ai.hpp>
+#include <systems/enemy-spawner.hpp>
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
 #include <systems/movement.hpp>
@@ -13,6 +15,9 @@ class Playstate : public our::State {
     our::ForwardRenderer renderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
+    our::Entity* playerEntity = nullptr;
+    gameplay::EnemyAISystem enemyAI;
+    gameplay::EnemySpawner enemySpawner;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -47,17 +52,31 @@ class Playstate : public our::State {
         if (config.contains("world")) {
             world.deserialize(config["world"]);
         }
+
+        // Store a pointer to the player entity
+        for (our::Entity* entity : world.getEntities()) {
+            if (entity->getComponent<gameplay::PlayerComponent>()) {
+                playerEntity = entity;
+                break;
+            }
+        }
+
         // We initialize the camera controller system since it needs a pointer to the app
         cameraController.enter(getApp());
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+
+        enemySpawner.deserialize(config);
+        enemySpawner.initialize(&world);
     }
 
     void onDraw(double deltaTime) override {
         // Here, we just run a bunch of systems to control the world logic
         movementSystem.update(&world, (float)deltaTime);
         cameraController.update(&world, (float)deltaTime);
+        enemyAI.update(&world, playerEntity, (float)deltaTime);
+        enemySpawner.update(&world, (float)deltaTime);
         // And finally we use the renderer system to draw the scene
         renderer.render(&world);
 
@@ -75,6 +94,7 @@ class Playstate : public our::State {
         renderer.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
+        playerEntity = nullptr;
         // Clear the world
         world.clear();
         // and we delete all the loaded assets to free memory on the RAM and the VRAM
