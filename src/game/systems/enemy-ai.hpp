@@ -1,6 +1,6 @@
 #pragma once
 
-#include <application.hpp>
+#include <GLFW/glfw3.h>
 #include <cmath>
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
@@ -16,8 +16,6 @@
 namespace gameplay {
 
     class EnemyAISystem {
-        our::Application* app = nullptr;
-
         static glm::vec3 droneDirection(const glm::vec3& enemyPos, const glm::vec3& playerPos, float preferredDist) {
             glm::vec3 toPlayer = playerPos - enemyPos;
             toPlayer.y = 0.0f;
@@ -45,10 +43,6 @@ namespace gameplay {
         }
 
     public:
-        void enter(our::Application* app) {
-            this->app = app;
-        }
-
         void update(our::World* world, float deltaTime) {
             if (!world || deltaTime <= 0.0f) return;
 
@@ -63,7 +57,7 @@ namespace gameplay {
             if (!playerEntity) return;
 
             glm::vec3 playerPos = glm::vec3(playerEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
-            float t = app ? static_cast<float>(glfwGetTime()) : 0.0f;
+            float t = static_cast<float>(glfwGetTime());
 
             for (our::Entity* enemyEntity : world->getEntities()) {
                 EnemyComponent* enemy = enemyEntity->getComponent<EnemyComponent>();
