@@ -12,7 +12,6 @@
 
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
-#include "../components/player.hpp"
 
 namespace gameplay {
 
@@ -44,18 +43,8 @@ namespace gameplay {
         }
 
     public:
-        void update(our::World* world, float deltaTime) {
-            if (!world || deltaTime <= 0.0f) return;
-
-            // get player position
-            our::Entity* playerEntity = nullptr;
-            for (our::Entity* entity : world->getEntities()) {
-                if (entity->getComponent<PlayerComponent>()) {
-                    playerEntity = entity;
-                    break;
-                }
-            }
-            if (!playerEntity) return;
+        void update(our::World* world, our::Entity* playerEntity, float deltaTime) {
+            if (!world || !playerEntity || deltaTime <= 0.0f) return;
 
             glm::vec3 playerPos = glm::vec3(playerEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
             float t = static_cast<float>(glfwGetTime());
