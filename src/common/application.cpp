@@ -266,6 +266,8 @@ int our::Application::run(int run_for_frames) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
+    audioSystem.initialize();
+
     // This part of the code extracts the list of requested screenshots and puts them into a priority queue
     using ScreenshotRequest = std::pair<int, std::string>;
     std::priority_queue<ScreenshotRequest, std::vector<ScreenshotRequest>, std::greater<ScreenshotRequest>>
@@ -388,6 +390,8 @@ int our::Application::run(int run_for_frames) {
 
     // Call for cleaning up
     if (currentState) currentState->onDestroy();
+
+    audioSystem.destroy();
 
     // Shutdown ImGui & destroy the context
     ImGui_ImplOpenGL3_Shutdown();

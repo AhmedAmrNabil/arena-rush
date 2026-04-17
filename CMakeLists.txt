@@ -167,6 +167,10 @@ add_executable(${PROJECT_NAME}
     src/game/systems/collision-system.cpp
 
     src/common/systems/forward-renderer.cpp
+    src/common/systems/audio-system.cpp
+
+    src/common/audio/audio-utils.cpp
+    src/common/components/audio-source.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

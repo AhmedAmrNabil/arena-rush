@@ -2,6 +2,7 @@
 
 #include "../ecs/component-registry.hpp"
 #include "../ecs/entity.hpp"
+#include "audio-source.hpp"
 #include "camera.hpp"
 #include "free-camera-controller.hpp"
 #include "mesh-renderer.hpp"
@@ -17,6 +18,7 @@ namespace our {
         ComponentRegistry::registerType<FreeCameraControllerComponent>();
         ComponentRegistry::registerType<MovementComponent>();
         ComponentRegistry::registerType<MeshRendererComponent>();
+        ComponentRegistry::registerType<AudioSourceComponent>();
 
         initialized = true;
     }

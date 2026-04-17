@@ -3,6 +3,7 @@
 #include <application.hpp>
 #include <components/player.hpp>
 #include <ecs/world.hpp>
+#include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
 #include <systems/enemy-ai.hpp>
 #include <systems/enemy-spawner.hpp>
@@ -16,6 +17,7 @@ class Playstate : public our::State {
     our::ForwardRenderer renderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
+    ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
     gameplay::CollisionSystem collisionSystem;
     our::Entity* playerEntity = nullptr;
     gameplay::EnemyAISystem enemyAI;
@@ -78,6 +80,7 @@ class Playstate : public our::State {
         // Here, we just run a bunch of systems to control the world logic
         movementSystem.update(&world, (float)deltaTime);
         cameraController.update(&world, (float)deltaTime);
+        getApp()->getAudioSystem().update(&world);
         enemyAI.update(&world, playerEntity, (float)deltaTime);
         enemySpawner.update(&world, (float)deltaTime);
         // And finally we use the renderer system to draw the scene
@@ -91,6 +94,14 @@ class Playstate : public our::State {
             // If the escape  key is pressed in this frame, go to the play state
             getApp()->changeState("menu");
         }
+        // clang-format off
+        if (keyboard.justPressed(GLFW_KEY_R)) {
+            if (!getApp()->getAudioSystem().isPlaying(reloadSource)) { // TODO: remove when implementing a proper weapon/player system
+                reloadSource = getApp()->getAudioSystem().playSound2D(
+                    our::AssetLoader<our::AudioBuffer>::get("gun-reload"), 1.0f, 1.0f, false);
+            }
+        }
+        // clang-format on
     }
 
     void onDestroy() override {
@@ -98,6 +109,8 @@ class Playstate : public our::State {
         renderer.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
+        // Stop all audio and release resources
+        getApp()->getAudioSystem().stopAll();
         playerEntity = nullptr;
         world.clear();
         // Delete all the loaded assets to free memory on the RAM and the VRAM

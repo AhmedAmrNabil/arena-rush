@@ -1,5 +1,7 @@
 #include "asset-loader.hpp"
 
+#include "audio/audio-buffer.hpp"
+#include "audio/audio-utils.hpp"
 #include "deserialize-utils.hpp"
 #include "material/material.hpp"
 #include "mesh/mesh-utils.hpp"
@@ -99,6 +101,20 @@ namespace our {
         }
     };
 
+    // This will load all the audio buffers defined in "data"
+    // data must be in the form:
+    //    { sound_name : "path/to/audio-file", ... }
+    template <>
+    void AssetLoader<AudioBuffer>::deserialize(const nlohmann::json& data) {
+        if (data.is_object()) {
+            for (auto& [name, desc] : data.items()) {
+                std::string path = desc.get<std::string>();
+                AudioBuffer* buffer = audio_utils::loadWAV(path);
+                if (buffer) assets[name] = buffer;
+            }
+        }
+    }
+
     void deserializeAllAssets(const nlohmann::json& assetData) {
         if (!assetData.is_object()) return;
         if (assetData.contains("shaders")) AssetLoader<ShaderProgram>::deserialize(assetData["shaders"]);
@@ -106,6 +122,7 @@ namespace our {
         if (assetData.contains("samplers")) AssetLoader<Sampler>::deserialize(assetData["samplers"]);
         if (assetData.contains("meshes")) AssetLoader<Mesh>::deserialize(assetData["meshes"]);
         if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
+        if (assetData.contains("sounds")) AssetLoader<AudioBuffer>::deserialize(assetData["sounds"]);
     }
 
     void clearAllAssets() {
@@ -114,6 +131,7 @@ namespace our {
         AssetLoader<Sampler>::clear();
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
+        AssetLoader<AudioBuffer>::clear();
     }
 
 }  // namespace our

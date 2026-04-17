@@ -2,6 +2,9 @@
 
 #include <application.hpp>
 #include <array>
+#include <asset-loader.hpp>
+#include <audio/audio-buffer.hpp>
+#include <audio/audio-utils.hpp>
 #include <functional>
 #include <material/material.hpp>
 #include <mesh/mesh.hpp>
@@ -42,6 +45,12 @@ class Menustate : public our::State {
     float time;
     // An array of the button that we can interact with
     std::array<Button, 2> buttons;
+
+    our::AudioBuffer* menuMusic = nullptr;
+    our::AudioBuffer* menuSelectSound = nullptr;
+
+    // Index of the currently hovered button (-1 = none). Used to detect hover-enter transitions.
+    int hoveredButton = -1;
 
     void onInitialize() override {
         // First, we create a material for the menu's background
@@ -110,6 +119,11 @@ class Menustate : public our::State {
         buttons[1].position = {830.0f, 644.0f};
         buttons[1].size = {400.0f, 33.0f};
         buttons[1].action = [this]() { this->getApp()->close(); };
+
+        // TODO: Maybe load them in application.cpp or serialize them from the config json
+        menuMusic = our::audio_utils::loadWAV("assets/sounds/menu-music.wav");
+        menuSelectSound = our::audio_utils::loadWAV("assets/sounds/menu-select.wav");
+        getApp()->getAudioSystem().playSound2D(menuMusic, 0.5f, 1.0f, true);
     }
 
     void onDraw(double deltaTime) override {
@@ -161,14 +175,26 @@ class Menustate : public our::State {
         menuMaterial->shader->set("transform", VP * M);
         rectangle->draw();
 
-        // For every button, check if the mouse is inside it. If the mouse is inside, we draw the highlight rectangle
-        // over it.
-        for (auto& button : buttons) {
-            if (button.isInside(mousePosition)) {
-                highlightMaterial->setup();
-                highlightMaterial->shader->set("transform", VP * button.getLocalToWorld());
-                rectangle->draw();
+        // Determine which button (if any) the mouse is currently over
+        int currentlyHovered = -1;
+        for (int i = 0; i < (int)buttons.size(); i++) {
+            if (buttons[i].isInside(mousePosition)) {
+                currentlyHovered = i;
+                break;
             }
+        }
+
+        // Play hover sound only on the frame the mouse first enters a button (edge detection)
+        if (currentlyHovered != -1 && currentlyHovered != hoveredButton) {
+            getApp()->getAudioSystem().playSound2D(menuSelectSound, 1.0, 1.0, false);
+        }
+        hoveredButton = currentlyHovered;
+
+        // Draw the highlight rectangle over the hovered button
+        if (currentlyHovered != -1) {
+            highlightMaterial->setup();
+            highlightMaterial->shader->set("transform", VP * buttons[currentlyHovered].getLocalToWorld());
+            rectangle->draw();
         }
     }
 
@@ -180,5 +206,8 @@ class Menustate : public our::State {
         delete menuMaterial;
         delete highlightMaterial->shader;
         delete highlightMaterial;
+        getApp()->getAudioSystem().stopAll();
+        delete menuMusic;
+        delete menuSelectSound;
     }
 };

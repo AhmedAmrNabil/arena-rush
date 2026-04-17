@@ -2,7 +2,11 @@
     "configurations": [
         {
             "name": "Default",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "cppStandard": "c++17",
+            "browse": {
+                "path": ["${workspaceFolder}/src", "${workspaceFolder}/vendor"]
+            }
         }
     ],
     "version": 4
