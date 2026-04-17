@@ -6,7 +6,8 @@
             "cppStandard": "c++17",
             "browse": {
                 "path": ["${workspaceFolder}/src", "${workspaceFolder}/vendor"]
-            }
+            },
+            "defines": ["COLLISION_DEBUG_DRAW"]
         }
     ],
     "version": 4
