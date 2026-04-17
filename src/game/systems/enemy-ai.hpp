@@ -89,7 +89,7 @@ namespace gameplay {
                 if (enemy->type == EnemyType::Flyer) {
                     if (!inAttackRange) {
                         movementDirection = droneDirection(enemyPos, playerPos, enemy->preferredDistance);
-                        movementSpeed = inAggroRange ? enemy->moveSpeed : enemy->moveSpeed * 0.35f;
+                        movementSpeed = inAggroRange ? enemy->moveSpeed : 0.0f;
                     }
 
                     // should attack here
