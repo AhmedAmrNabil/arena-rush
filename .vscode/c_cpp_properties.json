@@ -3,8 +3,6 @@
         {
             "name": "Default",
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",
-            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
-            "intelliSenseMode": "windows-gcc-x64",
             "cppStandard": "c++17",
             "includePath": [
                 "${workspaceFolder}/src",
