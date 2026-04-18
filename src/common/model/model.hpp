@@ -12,7 +12,6 @@
 
 #include "components/mesh-renderer.hpp"
 #include "material/material.hpp"
-#include "systems/render-command.hpp"
 
 namespace our {
     class Model {
