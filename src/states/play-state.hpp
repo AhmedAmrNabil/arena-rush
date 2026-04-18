@@ -22,6 +22,7 @@ class Playstate : public our::State {
     our::UIRenderer uiRenderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
+    ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
     gameplay::CollisionSystem collisionSystem;
     our::Entity* playerEntity = nullptr;
     our::CameraComponent* activeCamera = nullptr;
@@ -138,6 +139,14 @@ class Playstate : public our::State {
             // If the escape  key is pressed in this frame, go to the play state
             getApp()->changeState("menu");
         }
+        // clang-format off
+        if (keyboard.justPressed(GLFW_KEY_R)) {
+            if (!getApp()->getAudioSystem().isPlaying(reloadSource)) { // TODO: remove when implementing a proper weapon/player system
+                reloadSource = getApp()->getAudioSystem().playSound2D(
+                    our::AssetLoader<our::AudioBuffer>::get("gun-reload"), 1.0f, 1.0f, false);
+            }
+        }
+        // clang-format on
     }
 
     void onDestroy() override {
