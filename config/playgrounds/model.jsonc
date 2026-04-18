@@ -290,18 +290,20 @@
                                 "model": "gun"
                             }
                         ],
-                        "children": {
-                            "position": [0, 0, 0],
-                            "components": [
-                                {
-                                    "type": "light",
-                                    "lightType": "spot",
-                                    "color": [1, 0.8, 0.6],
-                                    "attenuation": [1.0, 0.14, 0.07],
-                                    "spotAngles": [15, 20]
-                                }
-                            ]
-                        }
+                        "children": [
+                            {
+                                "position": [0, 0, 0],
+                                "components": [
+                                    {
+                                        "type": "light",
+                                        "lightType": "spot",
+                                        "color": [1, 0.8, 0.6],
+                                        "attenuation": [1.0, 0.14, 0.07],
+                                        "spotAngles": [15, 20]
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
