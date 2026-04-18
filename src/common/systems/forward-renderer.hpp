@@ -8,22 +8,10 @@
 #include "../asset-loader.hpp"
 #include "../components/camera.hpp"
 #include "../components/mesh-renderer.hpp"
-#include "../components/model-renderer.hpp"
 #include "../ecs/world.hpp"
+#include "render-command.hpp"
 
 namespace our {
-
-    // The render command stores command that tells the renderer that it should draw
-    // the given mesh at the given localToWorld matrix using the given material
-    // The renderer will fill this struct using the mesh renderer components
-    struct RenderCommand {
-        glm::mat4 localToWorld;
-        glm::vec3 center;
-        Mesh* mesh;
-        Material* material;
-        Model* model;
-    };
-
     // A forward renderer is a renderer that draw the object final color directly to the framebuffer
     // In other words, the fragment shader in the material should output the color that we should see on the screen
     // This is different from more complex renderers that could draw intermediate data to a framebuffer before computing
@@ -36,7 +24,6 @@ namespace our {
         // reallocating them every frame
         std::vector<RenderCommand> opaqueCommands;
         std::vector<RenderCommand> transparentCommands;
-        std::vector<RenderCommand> modelCommands;
         // Objects used for rendering a skybox
         Mesh* skySphere;
         TexturedMaterial* skyMaterial;
