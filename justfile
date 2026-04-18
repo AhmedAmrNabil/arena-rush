@@ -4,7 +4,7 @@ dev:
 
 # Configure the project with CMake
 configure:
-    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DUSE_SYSTEM_LIBS=ON
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
 # Build the project using Ninja
 build: configure
