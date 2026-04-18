@@ -22,6 +22,8 @@ namespace our {
         // We need to remember the number of elements that will be draw by glDrawElements
         GLsizei elementCount;
         GLsizei vertexCount;
+        std::vector<Vertex> vertices;  // Store vertices for potential future use (e.g., collision, CPU-side processing)
+        std::vector<unsigned int> indices;  // Store indices for potential future use
 
     public:
         GLsizei getVertexCount() const {
@@ -90,6 +92,8 @@ namespace our {
 
             elementCount = static_cast<GLsizei>(elements.size());
             vertexCount = static_cast<GLsizei>(vertices.size());
+            this->vertices = vertices;
+            this->indices = elements;
         }
 
         // this function should render the mesh
@@ -103,6 +107,14 @@ namespace our {
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
             glDeleteVertexArrays(1, &VAO);
+        }
+
+        std::vector<Vertex> getVertices() const {
+            return vertices;
+        }
+
+        std::vector<unsigned int> getIndices() const {
+            return indices;
         }
 
         Mesh(Mesh const&) = delete;
