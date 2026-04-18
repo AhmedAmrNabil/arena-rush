@@ -33,6 +33,10 @@ namespace our {
             }
             return nullptr;
         };
+
+        static void add(const std::string& name, T* asset) {
+            assets[name] = asset;
+        }
         // This function deletes all the assets held by this class and clear the assets map
         static void clear() {
             for (auto& [name, asset] : assets) {

@@ -158,6 +158,7 @@ add_executable(${PROJECT_NAME}
     src/common/components/mesh-renderer.cpp
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
+    src/common/components/light.cpp
 
     src/game/components/collider.cpp
     src/game/components/enemy.cpp

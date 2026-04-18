@@ -19,6 +19,7 @@ namespace our {
         ComponentRegistry::registerType<MovementComponent>();
         ComponentRegistry::registerType<MeshRendererComponent>();
         ComponentRegistry::registerType<AudioSourceComponent>();
+        ComponentRegistry::registerType<Light>();
 
         initialized = true;
     }

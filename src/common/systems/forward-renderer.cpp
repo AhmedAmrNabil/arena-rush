@@ -130,6 +130,7 @@ namespace our {
         CameraComponent* camera = nullptr;
         opaqueCommands.clear();
         transparentCommands.clear();
+        sceneLights.clear();
         for (auto entity : world->getEntities()) {
             // If we hadn't found a camera yet, we look for a camera in this entity
             if (!camera) camera = entity->getComponent<CameraComponent>();
@@ -149,6 +150,22 @@ namespace our {
                     opaqueCommands.push_back(command);
                 }
             }
+
+            if (auto light = entity->getComponent<our::Light>(); light) {
+                LightRenderData lightData;
+                lightData.type = light->type;
+                lightData.color = light->color;
+                // compute world space position and direction of the light using the entity's transform
+                glm::mat4 localToWorld = entity->getLocalToWorldMatrix();
+                lightData.position = glm::vec3(localToWorld * glm::vec4(0, 0, 0, 1));
+                // assume default light direction points to - z direction in local space
+                // so away from the camera if the light is attached to the camera
+                // this could be useful for rifle flashlight for example
+                lightData.direction = glm::normalize(glm::vec3(localToWorld * glm::vec4(0, 0, -1, 0)));
+                lightData.attenuation = light->attenuation;
+                lightData.spotAngles = light->spotAngles;
+                sceneLights.push_back(lightData);
+            }
         }
 
         // If there is no camera, we return (we cannot render without a camera)
@@ -160,6 +177,8 @@ namespace our {
                   [cameraForward](const RenderCommand& first, const RenderCommand& second) {
                       return glm::dot(first.center, cameraForward) > glm::dot(second.center, cameraForward);
                   });
+
+        glm::vec3 cameraPosition = camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1);
 
         glm::mat4 VP = camera->getProjectionMatrix(windowSize) * camera->getViewMatrix();
 
@@ -184,6 +203,12 @@ namespace our {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
+            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
+                // if the material is a lit material, we need to set the light uniforms
+                litMaterial->setLightUniforms(sceneLights);
+                litMaterial->shader->set("cameraPos", cameraPosition);
+                litMaterial->shader->set("model", command.localToWorld);
+            }
             command.mesh->draw();
         }
 
@@ -211,6 +236,12 @@ namespace our {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
+            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
+                // if the material is a lit material, we need to set the light uniforms
+                litMaterial->setLightUniforms(sceneLights);
+                litMaterial->shader->set("cameraPos", cameraPosition);
+                litMaterial->shader->set("model", command.localToWorld);
+            }
             command.mesh->draw();
         }
 

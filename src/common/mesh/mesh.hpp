@@ -10,6 +10,7 @@ namespace our {
 #define ATTRIB_LOC_COLOR 1
 #define ATTRIB_LOC_TEXCOORD 2
 #define ATTRIB_LOC_NORMAL 3
+#define ATTRIB_LOC_TANGENT 4
 
     class Mesh {
         // Here, we store the object names of the 3 main components of a mesh:
@@ -53,6 +54,10 @@ namespace our {
             glVertexAttribPointer(ATTRIB_LOC_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                   (void*)offsetof(Vertex, normal));
             glEnableVertexAttribArray(ATTRIB_LOC_NORMAL);
+
+            glVertexAttribPointer(ATTRIB_LOC_TANGENT, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                  (void*)offsetof(Vertex, tangent));
+            glEnableVertexAttribArray(ATTRIB_LOC_TANGENT);
 
             // Generate EBO and send indices of vertices
             glGenBuffers(1, &EBO);

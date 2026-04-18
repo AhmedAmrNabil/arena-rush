@@ -1,5 +1,7 @@
 #include "material.hpp"
 
+#include <iostream>
+
 #include "../asset-loader.hpp"
 #include "deserialize-utils.hpp"
 
@@ -62,6 +64,123 @@ namespace our {
         texture = AssetLoader<Texture2D>::get(data.value("texture", ""));
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
         uvScale = data.value("uvScale", uvScale);
+    }
+
+    void LitMaterial::setLightUniforms(const std::vector<our::LightRenderData>& lights) const {
+        int lightCount = std::min(static_cast<int>(lights.size()), MAX_LIGHTS);
+        shader->set("numLights", lightCount);
+        for (size_t i = 0; i < lightCount; i++) {
+            const auto& light = lights[i];
+            std::string prefix = "lights[" + std::to_string(i) + "]";
+            shader->set(prefix + ".type", static_cast<int>(light.type));
+            shader->set(prefix + ".color", light.color);
+            shader->set(prefix + ".position", light.position);
+            if (light.type == LightType::DIRECTIONAL) {
+                shader->set(prefix + ".direction", light.direction);
+            }
+            if (light.type == LightType::POINT) {
+                shader->set(prefix + ".attenuation", light.attenuation);
+            }
+            if (light.type == LightType::SPOT) {
+                shader->set(prefix + ".attenuation", light.attenuation);
+                shader->set(prefix + ".direction", light.direction);
+                shader->set(prefix + ".spotAngles", light.spotAngles);
+            }
+        }
+    }
+
+    void LitMaterial::setup() const {
+        TintedMaterial::setup();
+
+        shader->set("alphaThreshold", alphaThreshold);
+        shader->set("material.albedo", albedo);
+        shader->set("material.metallic", metallic);
+        shader->set("material.roughness", roughness);
+        shader->set("material.ambientOcclusion", ambientOcclusion);
+        shader->set("material.emission", emission);
+
+        shader->set("material.hasTextureAlbedo", textureAlbedo != nullptr);
+        if (textureAlbedo) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ALBEDO));
+            textureAlbedo->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::ALBEDO));
+            }
+            shader->set("material.textureAlbedo", static_cast<int>(TextureUnits::ALBEDO));
+        }
+
+        shader->set("material.hasTextureMetallic", textureMetallic != nullptr);
+        if (textureMetallic) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::METALLIC));
+            textureMetallic->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::METALLIC));
+            }
+            shader->set("material.textureMetallic", static_cast<int>(TextureUnits::METALLIC));
+        }
+
+        shader->set("material.hasTextureRoughness", textureRoughness != nullptr);
+        if (textureRoughness) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::ROUGHNESS));
+            textureRoughness->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::ROUGHNESS));
+            }
+            shader->set("material.textureRoughness", static_cast<int>(TextureUnits::ROUGHNESS));
+        }
+
+        shader->set("material.hasTextureNormal", textureNormal != nullptr);
+        if (textureNormal) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::NORMAL));
+            textureNormal->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::NORMAL));
+            }
+            shader->set("material.textureNormal", static_cast<int>(TextureUnits::NORMAL));
+        }
+
+        shader->set("material.hasTextureAmbientOcclusion", textureAmbientOcclusion != nullptr);
+        if (textureAmbientOcclusion) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
+            textureAmbientOcclusion->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
+            }
+            shader->set("material.textureAmbientOcclusion", static_cast<int>(TextureUnits::AMBIENT_OCCLUSION));
+        }
+
+        shader->set("material.hasTextureEmissive", textureEmissive != nullptr);
+        if (textureEmissive) {
+            glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::EMISSIVE));
+            textureEmissive->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::EMISSIVE));
+            }
+            shader->set("material.textureEmissive", static_cast<int>(TextureUnits::EMISSIVE));
+        }
+    }
+
+    void LitMaterial::setup(const std::vector<our::LightRenderData>& lights) const {
+        setup();
+        setLightUniforms(lights);
+    }
+
+    void LitMaterial::deserialize(const nlohmann::json& data) {
+        TintedMaterial::deserialize(data);
+        if (!data.is_object()) return;
+        sampler = AssetLoader<Sampler>::get(data.value("sampler", "default"));
+        alphaThreshold = data.value("alphaThreshold", 0.0f);
+        albedo = data.value("albedo", glm::vec3(1.0f, 1.0f, 1.0f));
+        metallic = data.value("metallic", 0.2f);
+        roughness = data.value("roughness", 0.2f);
+        ambientOcclusion = data.value("ambientOcclusion", 1.0f);
+        emission = data.value("emission", glm::vec3(0.0f, 0.0f, 0.0f));
+        textureAlbedo = AssetLoader<Texture2D>::get(data.value("textureAlbedo", ""));
+        textureMetallic = AssetLoader<Texture2D>::get(data.value("textureMetallic", ""));
+        textureRoughness = AssetLoader<Texture2D>::get(data.value("textureRoughness", ""));
+        textureNormal = AssetLoader<Texture2D>::get(data.value("textureNormal", ""));
+        textureAmbientOcclusion = AssetLoader<Texture2D>::get(data.value("textureAmbientOcclusion", ""));
+        textureEmissive = AssetLoader<Texture2D>::get(data.value("textureEmissive", ""));
     }
 
 }  // namespace our

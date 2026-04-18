@@ -22,6 +22,10 @@
                 "textured": {
                     "vs": "assets/shaders/textured.vert",
                     "fs": "assets/shaders/textured.frag"
+                },
+                "lit": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
                 }
             },
             "textures": {
@@ -144,8 +148,8 @@
                     "sampler": "default"
                 },
                 "monkey": {
-                    "type": "textured",
-                    "shader": "textured",
+                    "type": "lit",
+                    "shader": "lit",
                     "pipelineState": {
                         "faceCulling": {
                             "enabled": false
@@ -154,8 +158,8 @@
                             "enabled": true
                         }
                     },
-                    "tint": [1.0, 1.0, 1.0, 1.0],
-                    "texture": "monkey",
+                    "tint": [1, 1, 1, 1],
+                    "textureAlbedo": "monkey",
                     "sampler": "default"
                 },
                 "moon": {
@@ -178,8 +182,14 @@
         "game": {
             "enemySpawner": {
                 "spawnPoints": [
-                    [30.0, 0.0, 30.0], [-30.0, 0.0, 30.0], [30.0, 0.0, -30.0], [-30.0, 0.0, -30.0],
-                    [42.0, 0.0, 0.0], [-42.0, 0.0, 0.0], [0.0, 0.0, 42.0], [0.0, 0.0, -42.0]
+                    [30.0, 0.0, 30.0],
+                    [-30.0, 0.0, 30.0],
+                    [30.0, 0.0, -30.0],
+                    [-30.0, 0.0, -30.0],
+                    [42.0, 0.0, 0.0],
+                    [-42.0, 0.0, 0.0],
+                    [0.0, 0.0, 42.0],
+                    [0.0, 0.0, -42.0]
                 ],
                 "spawnInterval": 2.0,
                 "initialSpawnCount": 4,
@@ -283,6 +293,13 @@
                         "layer": "player",
                         "radius": 0.45,
                         "height": 1.8
+                    },
+                    {
+                        "type": "light",
+                        "lightType": "spot",
+                        "color": [1, 1, 1],
+                        "attenuation": [1.0, 0.22, 0.2],
+                        "spotAngles": [2, 5]
                     }
                 ]
             },
@@ -296,6 +313,17 @@
                         "type": "Mesh Renderer",
                         "mesh": "plane",
                         "material": "ground"
+                    }
+                ]
+            },
+            {
+                "position": [2, 1, -2],
+                "scale": [5, 5, 5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "monkey",
+                        "material": "monkey"
                     }
                 ]
             }
