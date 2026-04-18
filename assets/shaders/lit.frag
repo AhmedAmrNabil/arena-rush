@@ -38,7 +38,7 @@ struct Material {
     sampler2D textureEmissive;
     bool hasTextureEmissive;
 
-    sampler2D textureMetalnessRoughness;
+    sampler2D hasTextureMetalnessRoughness;
     bool hasMetalnessRoughness;
 };
 uniform Material material;
@@ -73,7 +73,7 @@ vec3 sampleAlbedo(vec2 uv) {
 
 float sampleMetallic(vec2 uv) {
     if(material.hasMetalnessRoughness)
-        return texture(material.textureMetalnessRoughness, uv).b * material.metallic; // B channel
+        return texture(material.hasTextureMetalnessRoughness, uv).b * material.metallic; // B channel
     if(material.hasTextureMetallic)
         return texture(material.textureMetallic, uv).r * material.metallic;
     return material.metallic;
@@ -81,7 +81,7 @@ float sampleMetallic(vec2 uv) {
 
 float sampleRoughness(vec2 uv) {
     if(material.hasMetalnessRoughness)
-        return texture(material.textureMetalnessRoughness, uv).g * material.roughness; // G channel
+        return texture(material.hasTextureMetalnessRoughness, uv).g * material.roughness; // G channel
     if(material.hasTextureRoughness)
         return texture(material.textureRoughness, uv).r * material.roughness;
     return material.roughness;
