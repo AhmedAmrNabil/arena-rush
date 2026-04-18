@@ -262,10 +262,39 @@
                 ]
             },
             "models": {
-                "drone": "assets/gltf/mech_drone/mech_drone.glb"
+                "drone": "assets/gltf/mech_drone/mech_drone.glb",
+                "arena": "assets/gltf/map/SpeedArenaUpdated.glb"
             }
         },
         "world": [
+            {
+                "name": "Arena Map",
+                // ──────────────────────────────────────────────────
+                // Position at origin. Since generateCombinedMesh()
+                // bakes all submesh transforms into the vertex
+                // positions, the geometry is already in final
+                // model space. Placing the entity at [0,0,0] means
+                // model space == world space.
+                // ──────────────────────────────────────────────────
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [0.0, 0.0, 0.0],
+                "scale": [1.0, 1.0, 1.0],
+                "components": [
+                    {
+                        // This renders the arena visually.
+                        // "arena" must match the key in "models" above.
+                        "type": "Model Renderer",
+                        "model": "arena"
+                    },
+                    {
+                        // This generates the collision mesh.
+                        "type": "Collider",
+                        "shape": "Mesh",
+                        "layer": "environment",
+                        "meshModelName": "arena"
+                    }
+                ]
+            },
             {
                 "name": "Player Camera",
                 "position": [0.0, 1.8, 14.0],

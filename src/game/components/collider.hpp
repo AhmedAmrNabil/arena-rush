@@ -4,7 +4,7 @@
 
 namespace gameplay {
 
-    enum class ColliderShape { Sphere, Capsule };
+    enum class ColliderShape { Sphere, Capsule, Mesh };
 
     enum CollisionLayer : short {
         LAYER_PLAYER = 1 << 0,       // bit 0:  0000 0001
@@ -21,6 +21,8 @@ namespace gameplay {
         float radius = 0.5f;
         float height = 1.0f;  // must be the total height
         bool isTrigger = false;
+
+        std::string meshModelName;
 
         static std::string getID() {
             return "Collider";

@@ -2,11 +2,16 @@
 
 #include <btBulletCollisionCommon.h>
 
+#include <asset-loader.hpp>
 #include <components/collider.hpp>
+#include <components/model-renderer.hpp>
 #include <ecs/entity.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <mesh/mesh.hpp>
+#include <mesh/vertex.hpp>
+#include <model/model.hpp>
 
 #ifdef COLLISION_DEBUG_DRAW
 #include "collision-debug-drawer.hpp"
@@ -112,6 +117,16 @@ namespace gameplay {
         }
         ownedShapes.clear();
         shapesCache.clear();
+
+        // ──────────────────────────────────────────────────────
+        // NEW: Delete the btTriangleMesh objects.
+        // These MUST be deleted AFTER the shapes that reference
+        // them (the shapes were deleted in the loop above).
+        // ──────────────────────────────────────────────────────
+        for (auto& [key, triMesh] : ownedTriangleMeshes) {
+            delete triMesh;
+        }
+        ownedTriangleMeshes.clear();
 
         // delete bullet internals
         delete collisionWorld;
@@ -275,32 +290,160 @@ namespace gameplay {
         // Create or reuse collision shape based on collider data
         btCollisionShape* shape = nullptr;
 
-        // Shape_r_h_Scale_x_y_z
-        std::string shapeKey =
-            std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) + "_" +
-            std::to_string(collider->height) + "_Scale_" + std::to_string(entity->localTransform.scale.x) + "_" +
-            std::to_string(entity->localTransform.scale.y) + "_" + std::to_string(entity->localTransform.scale.z);
-        if (shapesCache.find(shapeKey) != shapesCache.end()) {
-            ownedShapes[shapesCache[shapeKey]]++;
-            shape = shapesCache[shapeKey];
-        } else {
-            // Create new shape and cache it
-            switch (collider->shape) {
-                case ColliderShape::Sphere:
-                    shape = new btSphereShape(collider->radius);
-                    break;
-                case ColliderShape::Capsule: {
-                    float spine = collider->height - 2.0f * collider->radius;
-                    if (spine < 0.0f) spine = 0.0f;
-                    shape = new btCapsuleShape(collider->radius, spine);
-                    break;
+        if (collider->shape == ColliderShape::Mesh) {
+            // ──────────────────────────────────────────────────
+            // STEP 1: Determine the cache key.
+            // For mesh shapes, we key on the model asset name
+            // (e.g. "arena") instead of radius/height/scale.
+            // This means if two entities share the same model,
+            // they share the same BVH — no redundant rebuilds.
+            // ──────────────────────────────────────────────────
+            std::string meshKey = "mesh_" + collider->meshModelName;
+            if (shapesCache.find(meshKey) != shapesCache.end()) {
+                // ── Cache HIT: reuse the existing BVH shape ──
+                shape = shapesCache[meshKey];
+                ownedShapes[shape]++;
+            } else {
+                // ── Cache MISS: build the BVH from scratch ──
+                // ──────────────────────────────────────────────
+                // STEP 2: Get the Model from the AssetLoader.
+                // The model name in the collider component must
+                // match a key in your JSON's "models" section.
+                //
+                // Fallback: if meshModelName is empty, try to
+                // get the model from a sibling ModelRendererComponent
+                // on the same entity.
+                // ──────────────────────────────────────────────
+                our::Model* model = nullptr;
+                if (!collider->meshModelName.empty()) {
+                    model = our::AssetLoader<our::Model>::get(collider->meshModelName);
                 }
+                // Fallback: try the entity's own ModelRendererComponent
+                if (!model) {
+                    auto* renderer = entity->getComponent<our::ModelRendererComponent>();
+                    if (renderer && renderer->model) {
+                        model = renderer->model;
+                    }
+                }
+                if (!model || !model->getCombinedMesh()) {
+                    std::cerr << "[CollisionSystem] ERROR: Mesh collider on entity '"
+                              << (entity->name.empty() ? "unnamed" : entity->name)
+                              << "' but no model/combinedMesh found. Skipping." << std::endl;
+                    return;
+                }
+                // ──────────────────────────────────────────────
+                // STEP 3: Extract CPU-side vertex and index data.
+                //
+                // Your Model::generateCombinedMesh() already:
+                //   • merges all submeshes
+                //   • transforms each vertex by its submesh transform
+                //   • re-bases indices into the combined buffer
+                //
+                // So the data we get here is in MODEL SPACE.
+                // Since we place the entity at the origin with
+                // identity rotation, model space == world space.
+                // ──────────────────────────────────────────────
+                our::Mesh* combinedMesh = model->getCombinedMesh();
+                const std::vector<our::Vertex>& vertices = combinedMesh->getVertices();
+                const std::vector<unsigned int>& indices = combinedMesh->getIndices();
+                // ──────────────────────────────────────────────
+                // STEP 4: Create a btTriangleMesh.
+                //
+                // btTriangleMesh is Bullet's container for
+                // arbitrary triangle soup. We feed it triangles
+                // one by one (3 vertices per call).
+                //
+                // Constructor args:
+                //   use32bitIndices = true  (matches our unsigned int)
+                //   use4componentVertices = false (we use 3-component)
+                // ──────────────────────────────────────────────
+                btTriangleMesh* triangleMesh = new btTriangleMesh(
+                    /* use32bitIndices = */ true,
+                    /* use4componentVertices = */ false);
+                // ──────────────────────────────────────────────
+                // STEP 5: Feed triangles into btTriangleMesh.
+                //
+                // The indices array is a flat list where every
+                // 3 consecutive values form one triangle:
+                //   [i0, i1, i2,  i3, i4, i5,  ...]
+                //    ╰─ tri 0 ─╯  ╰─ tri 1 ─╯
+                //
+                // For each triangle, we:
+                //   1. Look up the 3 vertex positions by index
+                //   2. Convert each glm::vec3 → btVector3
+                //   3. Call addTriangle(v0, v1, v2)
+                // ──────────────────────────────────────────────
+                size_t triCount = indices.size() / 3;
+                for (size_t i = 0; i < triCount; ++i) {
+                    // Extract the three vertex positions for this triangle
+                    const glm::vec3& p0 = vertices[indices[i * 3 + 0]].position;
+                    const glm::vec3& p1 = vertices[indices[i * 3 + 1]].position;
+                    const glm::vec3& p2 = vertices[indices[i * 3 + 2]].position;
+                    // Convert from glm to Bullet's vector type
+                    btVector3 v0(p0.x, p0.y, p0.z);
+                    btVector3 v1(p1.x, p1.y, p1.z);
+                    btVector3 v2(p2.x, p2.y, p2.z);
+                    // Feed the triangle to Bullet.
+                    // removeDuplicateVertices = false → faster build,
+                    // our mesh is already optimized by Assimp's
+                    // aiProcess_JoinIdenticalVertices.
+                    triangleMesh->addTriangle(v0, v1, v2, /* removeDuplicateVertices = */ false);
+                }
+                std::cout << "[CollisionSystem] Built triangle mesh for '" << collider->meshModelName
+                          << "': " << triCount << " triangles, " << vertices.size() << " vertices." << std::endl;
+                // ──────────────────────────────────────────────
+                // STEP 6: Create the btBvhTriangleMeshShape.
+                //
+                // This is where the BVH tree is actually built.
+                // The second argument (useQuantizedAabbCompression)
+                // = true means Bullet will use 16-bit quantized
+                // AABBs internally → ~4x less memory for the BVH
+                // nodes, with negligible precision loss.
+                //
+                // This call is expensive (it builds the entire
+                // tree), but it only happens ONCE thanks to our
+                // caching strategy.
+                // ──────────────────────────────────────────────
+                shape = new btBvhTriangleMeshShape(triangleMesh,
+                                                   /* useQuantizedAabbCompression = */ true);
+                // ──────────────────────────────────────────────
+                // STEP 7: Cache both the shape AND the triangle
+                // mesh so we can:
+                //   a) Reuse the shape if the scene reloads
+                //   b) Properly delete the btTriangleMesh in
+                //      destroy() — it must outlive the shape!
+                // ──────────────────────────────────────────────
+                shapesCache[meshKey] = shape;
+                ownedShapes[shape] = 1;
+                ownedTriangleMeshes[meshKey] = triangleMesh;  // prevent premature deletion
             }
-            shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
-            shapesCache[shapeKey] = shape;
-            ownedShapes[shape] = 1;
+        } else {
+            // Shape_r_h_Scale_x_y_z
+            std::string shapeKey =
+                std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) + "_" +
+                std::to_string(collider->height) + "_Scale_" + std::to_string(entity->localTransform.scale.x) + "_" +
+                std::to_string(entity->localTransform.scale.y) + "_" + std::to_string(entity->localTransform.scale.z);
+            if (shapesCache.find(shapeKey) != shapesCache.end()) {
+                ownedShapes[shapesCache[shapeKey]]++;
+                shape = shapesCache[shapeKey];
+            } else {
+                // Create new shape and cache it
+                switch (collider->shape) {
+                    case ColliderShape::Sphere:
+                        shape = new btSphereShape(collider->radius);
+                        break;
+                    case ColliderShape::Capsule: {
+                        float spine = collider->height - 2.0f * collider->radius;
+                        if (spine < 0.0f) spine = 0.0f;
+                        shape = new btCapsuleShape(collider->radius, spine);
+                        break;
+                    }
+                }
+                shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
+                shapesCache[shapeKey] = shape;
+                ownedShapes[shape] = 1;
+            }
         }
-
         // Create the collision object
         btCollisionObject* obj = new btCollisionObject();
         obj->setCollisionShape(shape);
@@ -419,6 +562,11 @@ namespace gameplay {
                 case ColliderShape::Capsule:
                     debugDrawer->drawCapsuleWireframe(transform, scaledRadius, scaledHeight, color);
                     break;
+                case ColliderShape::Mesh: {
+                    btVector3 btColor(color.x, color.y, color.z);
+                    collisionWorld->debugDrawObject(bt, obj->getCollisionShape(), btColor);
+                    break;
+                }
             }
         }
 

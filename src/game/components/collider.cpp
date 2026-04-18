@@ -3,6 +3,7 @@
 static gameplay::ColliderShape parseColliderShape(const std::string& value, gameplay::ColliderShape fallback) {
     if (value == "Sphere") return gameplay::ColliderShape::Sphere;
     if (value == "Capsule") return gameplay::ColliderShape::Capsule;
+    if (value == "Mesh") return gameplay::ColliderShape::Mesh;
     return fallback;
 }
 
@@ -24,6 +25,8 @@ namespace gameplay {
         isTrigger = data.value("isTrigger", isTrigger);
         std::string stringLayer = data.value("layer", "");
         layer = layerStringToGroup(stringLayer);
+
+        meshModelName = data.value("meshModelName", std::string(""));
     }
 
 }  // namespace gameplay
