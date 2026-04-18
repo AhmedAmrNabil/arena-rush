@@ -15,7 +15,7 @@ namespace our {
         Color color;          // The vertex color
         glm::vec2 tex_coord;  // The texture coordinates (the vertex position in the texture space)
         glm::vec3 normal;     // The surface normal at the vertex (This will be used for lighting in the final phase)
-        glm::vec3
+        glm::vec4
             tangent;  // The surface tangent at the vertex (This will be used for normal mapping in the final phase)
         int bone_ids[MAX_BONE_INFLUENCE];  // The IDs of the bones that affect this vertex (up to 4 bones per vertex)
         float
