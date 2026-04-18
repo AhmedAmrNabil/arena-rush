@@ -124,7 +124,8 @@ namespace our {
         Material* material = AssetLoader<Material>::get(name);
         if (!material) {
             std::cerr << "\033[31mFailed to load material for mesh " << mesh->mName.C_Str() << "\033[0m" << std::endl;
-            material = new Material();  // fallback to default material
+            delete ourMesh;
+            return nullptr;
         }
 
         MeshRendererComponent* meshComponent = new MeshRendererComponent();
