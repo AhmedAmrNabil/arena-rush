@@ -20,6 +20,7 @@ namespace gameplay {
 
         // ---- Manual wireframe generators (used instead of Bullet's debugDrawObject) ----
         void drawSphereWireframe(const glm::mat4& transform, float radius, const glm::vec3& color);
+        void drawBoxWireframe(const glm::mat4& transform, const glm::vec3& halfExtents, const glm::vec3& color);
         void drawCapsuleWireframe(const glm::mat4& transform, float radius, float totalHeight, const glm::vec3& color);
 
         // ---- btIDebugDraw overrides (required by interface) ----

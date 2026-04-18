@@ -152,6 +152,33 @@ void main() {
         addCircle(center, forward, up, radius, color, 32);     // ZY circle
     }
 
+    void CollisionDebugDrawer::drawBoxWireframe(const glm::mat4& transform, const glm::vec3& halfExtents,
+                                                const glm::vec3& color) {
+        glm::vec3 center = glm::vec3(transform[3]);
+        glm::vec3 right = glm::normalize(glm::vec3(transform[0]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
+        glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
+
+        // 8 corners of the box
+        glm::vec3 corners[8];
+        for (int i = 0; i < 8; i++) {
+            float x = (i & 1) ? halfExtents.x : -halfExtents.x;
+            float y = (i & 2) ? halfExtents.y : -halfExtents.y;
+            float z = (i & 4) ? halfExtents.z : -halfExtents.z;
+            corners[i] = center + right * x + up * y + forward * z;
+        }
+
+        // 12 edges of the box (pairs of corner indices)
+        int edgeIndices[12][2] = {
+            {0, 1}, {1, 3}, {3, 2}, {2, 0},  // bottom face
+            {4, 5}, {5, 7}, {7, 6}, {6, 4},  // top face
+            {0, 4}, {1, 5}, {2, 6}, {3, 7}   // vertical edges
+        };
+        for (int i = 0; i < 12; i++) {
+            addLine(corners[edgeIndices[i][0]], corners[edgeIndices[i][1]], color);
+        }
+    }
+
     void CollisionDebugDrawer::drawCapsuleWireframe(const glm::mat4& transform, float radius, float totalHeight,
                                                     const glm::vec3& color) {
         glm::vec3 center = glm::vec3(transform[3]);

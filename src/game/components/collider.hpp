@@ -1,10 +1,11 @@
 #pragma once
 
 #include <ecs/component.hpp>
+#include <glm/glm.hpp>
 
 namespace gameplay {
 
-    enum class ColliderShape { Sphere, Capsule };
+    enum class ColliderShape { Sphere, Capsule, Box };
 
     enum CollisionLayer : short {
         LAYER_PLAYER = 1 << 0,       // bit 0:  0000 0001
@@ -21,6 +22,7 @@ namespace gameplay {
         float radius = 0.5f;
         float height = 1.0f;  // must be the total height
         bool isTrigger = false;
+        glm::vec3 halfExtents = glm::vec3(0.5f);
 
         static std::string getID() {
             return "Collider";

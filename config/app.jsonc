@@ -255,7 +255,8 @@
                             {
                                 "type": "Collider",
                                 "layer": "enemy",
-                                "radius": 0.8
+                                "shape": "Box",
+                                "size": [1.0, 1.0, 1.0]
                             }
                         ]
                     }

@@ -275,11 +275,13 @@ namespace gameplay {
         // Create or reuse collision shape based on collider data
         btCollisionShape* shape = nullptr;
 
-        // Shape_r_h_Scale_x_y_z
+        // Shape_r_h_HalfExtents_x_y_z_Scale_x_y_z
         std::string shapeKey =
             std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) + "_" +
-            std::to_string(collider->height) + "_Scale_" + std::to_string(entity->localTransform.scale.x) + "_" +
-            std::to_string(entity->localTransform.scale.y) + "_" + std::to_string(entity->localTransform.scale.z);
+            std::to_string(collider->height) + "_HalfExtents_" + std::to_string(collider->halfExtents[0]) + "_" +
+            std::to_string(collider->halfExtents[1]) + "_" + std::to_string(collider->halfExtents[2]) + "_Scale_" +
+            std::to_string(entity->localTransform.scale.x) + "_" + std::to_string(entity->localTransform.scale.y) +
+            "_" + std::to_string(entity->localTransform.scale.z);
         if (shapesCache.find(shapeKey) != shapesCache.end()) {
             ownedShapes[shapesCache[shapeKey]]++;
             shape = shapesCache[shapeKey];
@@ -288,6 +290,9 @@ namespace gameplay {
             switch (collider->shape) {
                 case ColliderShape::Sphere:
                     shape = new btSphereShape(collider->radius);
+                    break;
+                case ColliderShape::Box:
+                    shape = new btBoxShape(glmToBtVec3(collider->halfExtents));
                     break;
                 case ColliderShape::Capsule: {
                     float spine = collider->height - 2.0f * collider->radius;
@@ -418,6 +423,10 @@ namespace gameplay {
                     break;
                 case ColliderShape::Capsule:
                     debugDrawer->drawCapsuleWireframe(transform, scaledRadius, scaledHeight, color);
+                    break;
+                case ColliderShape::Box:
+                    debugDrawer->drawBoxWireframe(
+                        transform, collider->halfExtents * glm::vec3(scale.getX(), scale.getY(), scale.getZ()), color);
                     break;
             }
         }
