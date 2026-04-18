@@ -81,15 +81,6 @@ namespace our {
             quad->draw();
         }
 
-        static CameraComponent* findActiveCamera(World* world) {
-            if (!world) return nullptr;
-
-            for (Entity* entity : world->getEntities())
-                if (auto* camera = entity->getComponent<CameraComponent>()) return camera;
-
-            return nullptr;
-        }
-
         static ScreenPoint worldToScreen(const glm::vec3& worldPos, const glm::mat4& viewProj,
                                          glm::ivec2 framebufferSize, float frustumMargin = 1.1f) {
             ScreenPoint result{{0.0f, 0.0f}, 0.0f, false};

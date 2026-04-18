@@ -24,6 +24,7 @@ class Playstate : public our::State {
     our::MovementSystem movementSystem;
     gameplay::CollisionSystem collisionSystem;
     our::Entity* playerEntity = nullptr;
+    our::CameraComponent* activeCamera = nullptr;
     gameplay::EnemyAISystem enemyAI;
     gameplay::EnemySpawner enemySpawner;
     gameplay::EnemyHealthBarSystem enemyHealthBars;
@@ -76,12 +77,12 @@ class Playstate : public our::State {
             world.deserialize(config["world"]);
         }
 
-        // Store a pointer to the player entity
+        activeCamera = nullptr;
+        playerEntity = nullptr;
         for (our::Entity* entity : world.getEntities()) {
-            if (entity->getComponent<gameplay::PlayerComponent>()) {
-                playerEntity = entity;
-                break;
-            }
+            if (!activeCamera) activeCamera = entity->getComponent<our::CameraComponent>();
+            if (!playerEntity && entity->getComponent<gameplay::PlayerComponent>()) playerEntity = entity;
+            if (activeCamera && playerEntity) break;
         }
 
         // We initialize the camera controller system since it needs a pointer to the app
@@ -111,7 +112,7 @@ class Playstate : public our::State {
 
         // Rendering
         renderer.render(&world);
-        enemyHealthBars.render(&world, getApp(), uiRenderer);
+        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera);
 
 #ifdef COLLISION_DEBUG_DRAW
         // Toggle debug draw with F3
@@ -122,10 +123,9 @@ class Playstate : public our::State {
 
         // Draw collision wireframes after the main render pass
         if (collisionSystem.isDebugDrawEnabled()) {
-            our::CameraComponent* camera = our::UIRenderer::findActiveCamera(&world);
-            if (camera) {
+            if (activeCamera) {
                 auto size = getApp()->getFrameBufferSize();
-                glm::mat4 VP = camera->getProjectionMatrix(size) * camera->getViewMatrix();
+                glm::mat4 VP = activeCamera->getProjectionMatrix(size) * activeCamera->getViewMatrix();
                 collisionSystem.debugDraw(VP);
             }
         }
@@ -148,6 +148,7 @@ class Playstate : public our::State {
         cameraController.exit();
         // Stop all audio and release resources
         getApp()->getAudioSystem().stopAll();
+        activeCamera = nullptr;
         playerEntity = nullptr;
         world.clear();
         // Delete all the loaded assets to free memory on the RAM and the VRAM
