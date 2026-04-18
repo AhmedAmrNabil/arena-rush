@@ -9,7 +9,10 @@ namespace gameplay {
         float maxHealth = 100.0f;
         float currentHealth = 100.0f;
         float invulnerabilityTimer = 0.0f;
+        float damageRevealTimer = 0.0f;
         bool isDead = false;
+
+        float getHealthRatio() const;
 
         static std::string getID() {
             return "Health";
