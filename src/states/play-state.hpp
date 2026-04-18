@@ -1,6 +1,8 @@
 #pragma once
 
 #include <application.hpp>
+#include <asset-loader.hpp>
+#include <components/camera.hpp>
 #include <components/player.hpp>
 #include <ecs/world.hpp>
 #include <systems/audio-system.hpp>
@@ -43,6 +45,20 @@ class Playstate : public our::State {
 
     void onImmediateGui() override {
         displayFPS();
+
+#ifdef COLLISION_DEBUG_DRAW
+        if (collisionSystem.isDebugDrawEnabled()) {
+            ImGui::SetNextWindowPos(ImVec2(10.0f, 40.0f), ImGuiCond_Always);
+            ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                     ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
+            ImGui::SetNextWindowBgAlpha(0.35f);
+            if (ImGui::Begin("Debug Draw Overlay", nullptr, flags)) {
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[F3] Collision Debug: ON");
+            }
+            ImGui::End();
+        }
+#endif
     }
 
     void onInitialize() override {
@@ -87,8 +103,31 @@ class Playstate : public our::State {
         collisionSystem.update(&world);
         renderer.render(&world);
 
+#ifdef COLLISION_DEBUG_DRAW
+        // Toggle debug draw with F3
+        auto& keyboard = getApp()->getKeyboard();
+        if (keyboard.justPressed(GLFW_KEY_F3)) {
+            collisionSystem.setDebugDrawEnabled(!collisionSystem.isDebugDrawEnabled());
+        }
+
+        // Draw collision wireframes after the main render pass
+        if (collisionSystem.isDebugDrawEnabled()) {
+            // Find the active camera and compute the VP matrix (same as forward renderer)
+            our::CameraComponent* camera = nullptr;
+            for (auto entity : world.getEntities()) {
+                camera = entity->getComponent<our::CameraComponent>();
+                if (camera) break;
+            }
+            if (camera) {
+                auto size = getApp()->getFrameBufferSize();
+                glm::mat4 VP = camera->getProjectionMatrix(size) * camera->getViewMatrix();
+                collisionSystem.debugDraw(VP);
+            }
+        }
+#else
         // Get a reference to the keyboard object
         auto& keyboard = getApp()->getKeyboard();
+#endif
 
         if (keyboard.justPressed(GLFW_KEY_ESCAPE)) {
             // If the escape  key is pressed in this frame, go to the play state

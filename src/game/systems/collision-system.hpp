@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "collision-debug-drawer.hpp"
+
 // Forward declaration. So that we don't include Bullet headers here, instead include in .cpp file to reduce compilation
 // time for files that include this header
 class btCollisionWorld;
@@ -17,6 +19,10 @@ class btCollisionDispatcher;
 class btDbvtBroadphase;
 class btCollisionObject;
 class btCollisionShape;
+
+#ifdef COLLISION_DEBUG_DRAW
+class CollisionDebugDrawer;
+#endif
 
 namespace gameplay {
 
@@ -53,6 +59,11 @@ namespace gameplay {
         btDbvtBroadphase* broadphase = nullptr;
         btCollisionWorld* collisionWorld = nullptr;
 
+#ifdef COLLISION_DEBUG_DRAW
+        CollisionDebugDrawer* debugDrawer = nullptr;
+        bool debugDrawEnabled = false;
+#endif
+
         // Entity-Bullet mappings
         std::unordered_map<our::Entity*, btCollisionObject*> entityToBullet;
         std::unordered_map<btCollisionShape*, std::uint16_t> ownedShapes;
@@ -80,6 +91,14 @@ namespace gameplay {
         std::vector<our::Entity*> overlapSphere(const glm::vec3& center, float radius, short targetLayer);
 
         const std::vector<CollisionEvent>& getCollisions() const;
+
+#ifdef COLLISION_DEBUG_DRAW
+        /// Call after the main renderer finishes to overlay collision wireframes.
+        /// @param VP  the View-Projection matrix from the active camera.
+        void debugDraw(const glm::mat4& VP);
+        void setDebugDrawEnabled(bool enabled);
+        bool isDebugDrawEnabled() const;
+#endif
     };
 
 }  // namespace gameplay
