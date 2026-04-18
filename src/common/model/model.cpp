@@ -11,8 +11,6 @@
 #include "texture/texture-utils.hpp"
 
 namespace our {
-    int Model::ID_COUNTER = 0;
-
     void Model::generateDrawCommands(std::vector<RenderCommand>& modelCommands,
                                      std::vector<RenderCommand>& transparentCommands,
                                      const glm::mat4& modelMatrix) const {
@@ -123,7 +121,7 @@ namespace our {
         }
 
         our::Mesh* ourMesh = new our::Mesh(vertices, indices);
-        std::string name = std::to_string(id) + "_" + std::to_string(mesh->mMaterialIndex);
+        std::string name = this->name + "_" + std::to_string(mesh->mMaterialIndex);
 
         Material* material = AssetLoader<Material>::get(name);
         if (!material) {
@@ -141,7 +139,7 @@ namespace our {
         for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
             aiMaterial* mat = scene->mMaterials[i];
             LitMaterial* material = loadMaterial(scene, mat);
-            std::string name = std::to_string(id) + "_" + std::to_string(i);
+            std::string name = this->name + "_" + std::to_string(i);
             if (material) {
                 AssetLoader<Material>::add(name, material);
             }

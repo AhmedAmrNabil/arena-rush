@@ -16,9 +16,8 @@
 
 namespace our {
     class Model {
-        static int ID_COUNTER;  // this is used to give each model a unique ID for caching purposes
-        int id;                 // the unique ID of this model
         std::string modelDirectory;
+        std::string name;
         std::vector<MeshRendererComponent*> submeshes;  // submeshes with opaque materials (rendered in the first pass)
 
         void processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform);
@@ -30,9 +29,10 @@ namespace our {
         void generateCombinedMesh();  // will be used for collision detection and other non-rendering purposes
         Mesh* combinedMesh;           // a single mesh that combines all the submeshes of this model (used for collision
                                       // detection and other non-rendering purposes)
+
     public:
-        Model() {
-            id = ID_COUNTER++;
+        Model(const std::string& name) {
+            this->name = name;
         };
         void generateDrawCommands(std::vector<RenderCommand>& modelCommands,
                                   std::vector<RenderCommand>& transparentCommands, const glm::mat4& modelMatrix) const;
