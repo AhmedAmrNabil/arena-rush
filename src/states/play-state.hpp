@@ -1,9 +1,9 @@
 #pragma once
 
 #include <application.hpp>
-#include <components/player.hpp>
 #include <asset-loader.hpp>
 #include <components/camera.hpp>
+#include <components/player.hpp>
 #include <ecs/world.hpp>
 #include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>

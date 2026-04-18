@@ -374,12 +374,18 @@ namespace gameplay {
         if (!collider) return glm::vec3(1, 1, 1);
 
         switch (collider->layer) {
-            case LAYER_PLAYER:      return glm::vec3(0.0f, 1.0f, 0.0f);   // green
-            case LAYER_ENEMY:       return glm::vec3(1.0f, 0.2f, 0.2f);   // red
-            case LAYER_ENVIRONMENT: return glm::vec3(0.0f, 0.8f, 1.0f);   // cyan
-            case LAYER_PROJECTILE:  return glm::vec3(1.0f, 1.0f, 0.0f);   // yellow
-            case LAYER_TRIGGER:     return glm::vec3(1.0f, 0.0f, 1.0f);   // magenta
-            default:                return glm::vec3(1.0f, 1.0f, 1.0f);   // white
+            case LAYER_PLAYER:
+                return glm::vec3(0.0f, 1.0f, 0.0f);  // green
+            case LAYER_ENEMY:
+                return glm::vec3(1.0f, 0.2f, 0.2f);  // red
+            case LAYER_ENVIRONMENT:
+                return glm::vec3(0.0f, 0.8f, 1.0f);  // cyan
+            case LAYER_PROJECTILE:
+                return glm::vec3(1.0f, 1.0f, 0.0f);  // yellow
+            case LAYER_TRIGGER:
+                return glm::vec3(1.0f, 0.0f, 1.0f);  // magenta
+            default:
+                return glm::vec3(1.0f, 1.0f, 1.0f);  // white
         }
     }
 

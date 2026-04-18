@@ -2,9 +2,9 @@
 
 #ifdef COLLISION_DEBUG_DRAW
 
-#include <glm/gtc/type_ptr.hpp>
 #include <cmath>
 #include <cstdio>
+#include <glm/gtc/type_ptr.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -126,7 +126,7 @@ void main() {
     }
 
     void CollisionDebugDrawer::addCircle(const glm::vec3& center, const glm::vec3& axisA, const glm::vec3& axisB,
-                                          float radius, const glm::vec3& color, int segments) {
+                                         float radius, const glm::vec3& color, int segments) {
         for (int i = 0; i < segments; i++) {
             float a0 = (float)i / (float)segments * 2.0f * (float)M_PI;
             float a1 = (float)(i + 1) / (float)segments * 2.0f * (float)M_PI;
@@ -142,22 +142,22 @@ void main() {
         glm::vec3 center = glm::vec3(transform[3]);
 
         // Extract rotated axes (normalized, ignoring scale since Bullet shapes handle scale internally)
-        glm::vec3 right   = glm::normalize(glm::vec3(transform[0]));
-        glm::vec3 up      = glm::normalize(glm::vec3(transform[1]));
+        glm::vec3 right = glm::normalize(glm::vec3(transform[0]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
 
         // Draw 3 orthogonal circles
-        addCircle(center, right, forward, radius, color, 32);   // XZ circle (horizontal)
-        addCircle(center, right, up, radius, color, 32);        // XY circle
-        addCircle(center, forward, up, radius, color, 32);      // ZY circle
+        addCircle(center, right, forward, radius, color, 32);  // XZ circle (horizontal)
+        addCircle(center, right, up, radius, color, 32);       // XY circle
+        addCircle(center, forward, up, radius, color, 32);     // ZY circle
     }
 
     void CollisionDebugDrawer::drawCapsuleWireframe(const glm::mat4& transform, float radius, float totalHeight,
-                                                     const glm::vec3& color) {
+                                                    const glm::vec3& color) {
         glm::vec3 center = glm::vec3(transform[3]);
 
-        glm::vec3 right   = glm::normalize(glm::vec3(transform[0]));
-        glm::vec3 up      = glm::normalize(glm::vec3(transform[1]));
+        glm::vec3 right = glm::normalize(glm::vec3(transform[0]));
+        glm::vec3 up = glm::normalize(glm::vec3(transform[1]));
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
 
         // Capsule spine = totalHeight - 2*radius
@@ -182,7 +182,7 @@ void main() {
         // Semi-circles for the top cap (hemisphere going up)
         int halfSegs = 16;
         for (int i = 0; i < halfSegs; i++) {
-            float a0 = (float)i / (float)halfSegs * (float)M_PI;        // 0 to PI (top half)
+            float a0 = (float)i / (float)halfSegs * (float)M_PI;  // 0 to PI (top half)
             float a1 = (float)(i + 1) / (float)halfSegs * (float)M_PI;
 
             // XY plane semi-circle
@@ -224,8 +224,7 @@ void main() {
 
         // Upload line data
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     static_cast<GLsizeiptr>(lineVertices.size() * sizeof(LineVertex)),
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(lineVertices.size() * sizeof(LineVertex)),
                      lineVertices.data(), GL_STREAM_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
