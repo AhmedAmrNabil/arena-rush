@@ -4,7 +4,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 color;
 layout(location = 2) in vec2 tex_coord;
 layout(location = 3) in vec3 normal;
-layout(location = 4) in vec3 tangent;
+layout(location = 4) in vec4 tangent;
 layout(location = 5) in ivec4 bone_ids;
 layout(location = 6) in vec4 weights;
 
@@ -32,8 +32,8 @@ void main() {
     vs_out.worldNormal = N;
 
     // TBN matrix for normal mapping
-    vec3 T = normalize(normalMatrix * tangent);
+    vec3 T = normalize(normalMatrix * tangent.xyz);
     T = normalize(T - dot(T, N) * N);  // re-orthogonalize
-    vec3 B = cross(N, T);
+    vec3 B = cross(N, T) * tangent.w;  // bitangent with handedness
     vs_out.TBN = mat3(T, B, N);
 }

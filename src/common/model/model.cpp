@@ -87,6 +87,20 @@ namespace our {
             else
                 v.color = our::Color(255, 255, 255, 255);
 
+            // Tangents and bitangents are needed for normal mapping, but not all models have them. If they don't exist
+            // we will set them to zero and the shader will handle it as if the surface is flat (facing up)
+            if (mesh->mTangents && mesh->mBitangents) {
+                glm::vec3 T = aiToGlm(mesh->mTangents[i]);
+                glm::vec3 B = aiToGlm(mesh->mBitangents[i]);
+                glm::vec3 N = aiToGlm(mesh->mNormals[i]);
+
+                // Determine handedness sign
+                float sign = (glm::dot(glm::cross(N, T), B) < 0.0f) ? -1.0f : 1.0f;
+                v.tangent = glm::vec4(T, sign);
+            } else {
+                v.tangent = glm::vec4(0.0f);
+            }
+
             // bone data
             for (int j = 0; j < MAX_BONE_INFLUENCE; ++j) {
                 v.bone_ids[j] = -1;
