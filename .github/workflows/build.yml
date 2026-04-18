@@ -86,7 +86,8 @@ jobs:
             cmake ninja-build \
             libgl1-mesa-dev \
             libx11-dev libxrandr-dev libxi-dev \
-            libxinerama-dev libxcursor-dev pipewire-dev
+            libxinerama-dev libxcursor-dev \
+            libpipewire-0.3-dev pkg-config
 
       - name: ccache
         if: runner.os == 'Linux'
