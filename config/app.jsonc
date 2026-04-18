@@ -182,7 +182,15 @@
         "game": {
             "enemyHealthBars": {
                 "enabled": true,
-                "maxDistance": 22.0
+                "maxDistance": 22.0,
+                "colors": {
+                    "low": [0.84, 0.18, 0.24, 0.96],
+                    "mid": [0.96, 0.76, 0.25, 0.96],
+                    "high": [0.28, 0.84, 0.45, 0.96],
+                    "border": [0.02, 0.03, 0.05, 0.92],
+                    "background": [0.12, 0.14, 0.18, 0.88],
+                    "highlight": [1.0, 1.0, 1.0, 0.12]
+                }
             },
             "enemySpawner": {
                 "spawnPoints": [

@@ -2,11 +2,14 @@
 
 #include <algorithm>
 #include <application.hpp>
+#include <deserialize-utils.hpp>
 #include <cmath>
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <json/json.hpp>
 #include <systems/ui-renderer.hpp>
 
@@ -20,17 +23,23 @@ namespace gameplay {
         struct Config {
             bool enabled = true;
             float maxDistance = 24.0f;
+            glm::vec4 lowColor = {0.84f, 0.18f, 0.24f, 0.96f};
+            glm::vec4 midColor = {0.96f, 0.76f, 0.25f, 0.96f};
+            glm::vec4 highColor = {0.28f, 0.84f, 0.45f, 0.96f};
+            glm::vec4 borderColor = {0.02f, 0.03f, 0.05f, 0.92f};
+            glm::vec4 backgroundColor = {0.12f, 0.14f, 0.18f, 0.88f};
+            glm::vec4 highlightColor = {1.0f, 1.0f, 1.0f, 0.12f};
         } config;
 
-        static glm::vec4 healthColor(float ratio) {
-            ratio = glm::clamp(ratio, 0.0f, 1.0f);
-            glm::vec3 low = {0.84f, 0.18f, 0.24f};
-            glm::vec3 mid = {0.96f, 0.76f, 0.25f};
-            glm::vec3 high = {0.28f, 0.84f, 0.45f};
-            glm::vec3 color =
-                ratio < 0.5f ? glm::mix(low, mid, ratio * 2.0f) : glm::mix(mid, high, (ratio - 0.5f) * 2.0f);
+        static void deserializeColor(const nlohmann::json& colorConfig, const char* key, glm::vec4& color) {
+            if (!(colorConfig.contains(key) && colorConfig[key].is_array())) return;
 
-            return glm::vec4(color, 1.0f);
+            const auto& value = colorConfig[key];
+            if (value.size() == 3) {
+                color = glm::vec4(value.get<glm::vec3>(), color.a);
+            } else if (value.size() == 4) {
+                color = value.get<glm::vec4>();
+            }
         }
 
         static float estimateBarHeight(const our::Entity* entity, const ColliderComponent* collider) {
@@ -54,13 +63,21 @@ namespace gameplay {
             config.enabled = healthBarConfig.value("enabled", config.enabled);
             config.maxDistance = healthBarConfig.value("maxDistance", config.maxDistance);
             config.maxDistance = std::max(0.0f, config.maxDistance);
+
+            if (healthBarConfig.contains("colors") && healthBarConfig["colors"].is_object()) {
+                const auto& colors = healthBarConfig["colors"];
+                deserializeColor(colors, "low", config.lowColor);
+                deserializeColor(colors, "mid", config.midColor);
+                deserializeColor(colors, "high", config.highColor);
+                deserializeColor(colors, "border", config.borderColor);
+                deserializeColor(colors, "background", config.backgroundColor);
+                deserializeColor(colors, "highlight", config.highlightColor);
+            }
         }
 
-        void render(our::World* world, our::Application* app, const our::UIRenderer& ui) const {
-            if (!(config.enabled && world && app)) return;
-
-            our::CameraComponent* camera = our::UIRenderer::findActiveCamera(world);
-            if (!camera) return;
+        void render(our::World* world, our::Application* app, const our::UIRenderer& ui,
+                    const our::CameraComponent* camera) const {
+            if (!(config.enabled && world && app && camera)) return;
 
             glm::ivec2 framebufferSize = app->getFrameBufferSize();
             if (framebufferSize.x <= 0 || framebufferSize.y <= 0) return;
@@ -109,17 +126,27 @@ namespace gameplay {
                 glm::vec2 innerSize = {barWidth - 4.0f, barHeight - 4.0f};
                 glm::vec2 fillSize = {innerSize.x * healthRatio, innerSize.y};
 
-                ui.drawRect(overlayProj, barPosition - glm::vec2(1.0f), outerSize,
-                            {0.02f, 0.03f, 0.05f, 0.92f * alpha});
-                ui.drawRect(overlayProj, barPosition, {barWidth, barHeight}, {0.12f, 0.14f, 0.18f, 0.88f * alpha});
+                glm::vec4 borderColor = config.borderColor;
+                borderColor.a *= alpha;
+                ui.drawRect(overlayProj, barPosition - glm::vec2(1.0f), outerSize, borderColor);
 
-                glm::vec4 fillColor = healthColor(healthRatio);
-                fillColor.a = 0.96f * alpha;
+                glm::vec4 backgroundColor = config.backgroundColor;
+                backgroundColor.a *= alpha;
+                ui.drawRect(overlayProj, barPosition, {barWidth, barHeight}, backgroundColor);
+
+                float clampedHealthRatio = glm::clamp(healthRatio, 0.0f, 1.0f);
+                glm::vec4 fillColor =
+                    clampedHealthRatio < 0.5f
+                        ? glm::mix(config.lowColor, config.midColor, clampedHealthRatio * 2.0f)
+                        : glm::mix(config.midColor, config.highColor, (clampedHealthRatio - 0.5f) * 2.0f);
+                fillColor.a *= alpha;
                 ui.drawRect(overlayProj, innerPosition, fillSize, fillColor);
 
                 if (fillSize.x > 6.0f) {
+                    glm::vec4 highlightColor = config.highlightColor;
+                    highlightColor.a *= alpha;
                     ui.drawRect(overlayProj, innerPosition + glm::vec2(0.0f, 1.0f),
-                                {fillSize.x, std::max(1.0f, innerSize.y * 0.28f)}, {1.0f, 1.0f, 1.0f, 0.12f * alpha});
+                                {fillSize.x, std::max(1.0f, innerSize.y * 0.28f)}, highlightColor);
                 }
             }
         }
