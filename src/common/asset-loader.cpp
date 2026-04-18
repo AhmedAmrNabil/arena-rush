@@ -136,13 +136,9 @@ namespace our {
         if (assetData.contains("sounds")) AssetLoader<AudioBuffer>::deserialize(assetData["sounds"]);
         if (assetData.contains("lights")) AssetLoader<our::Light>::deserialize(assetData["lights"]);
         // setting some default assets if something is missing
-        if (!AssetLoader<Sampler>::get("defaultSampler")) {
+        if (!AssetLoader<Sampler>::get("default")) {
             Sampler* defaultSampler = new Sampler();
-            defaultSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            defaultSampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            defaultSampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
-            defaultSampler->set(GL_TEXTURE_WRAP_T, GL_REPEAT);
-            AssetLoader<Sampler>::add("defaultSampler", defaultSampler);
+            AssetLoader<Sampler>::add("default", defaultSampler);
         }
     }
 

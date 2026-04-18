@@ -1,5 +1,7 @@
 #include "material.hpp"
 
+#include <iostream>
+
 #include "../asset-loader.hpp"
 #include "deserialize-utils.hpp"
 
@@ -166,10 +168,7 @@ namespace our {
     void LitMaterial::deserialize(const nlohmann::json& data) {
         TintedMaterial::deserialize(data);
         if (!data.is_object()) return;
-        sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
-        if (!sampler) {
-            sampler = AssetLoader<Sampler>::get("defaultSampler");
-        }
+        sampler = AssetLoader<Sampler>::get(data.value("sampler", "default"));
         alphaThreshold = data.value("alphaThreshold", 0.0f);
         albedo = data.value("albedo", glm::vec3(1.0f, 1.0f, 1.0f));
         metallic = data.value("metallic", 0.2f);
