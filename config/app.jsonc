@@ -13,6 +13,15 @@
             "sky": "assets/textures/sky.jpg",
             "postprocess": "assets/shaders/postprocess/vignette.frag"
         },
+        "hud": {
+            "paddingX": 20,
+            "paddingY": 10,
+            "weaponSize": 80,
+            "barWidth": 160,
+            "barHeight": 9,
+            "outlineThickness": 3,
+            "weaponIconPath": "assets/UI/GTASA_AK.png"
+        },
         "assets": {
             "shaders": {
                 "tinted": {
@@ -284,6 +293,11 @@
                     {
                         "type": "Player"
                     },
+                    {
+                        "type": "Health"
+                    }
+                ],
+                "children": [
                     {
                         "type": "Health",
                         "maxHealth": 100.0
