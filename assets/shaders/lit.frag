@@ -67,7 +67,7 @@ uniform vec3 cameraPos;
 
 // ── Helpers ───────────────────────────────────────────────────────────
 vec3 sampleAlbedo(vec2 uv) {
-    vec3 base = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).rgb : vec3(1.0);
+    vec3 base = material.hasTextureAlbedo ? pow(texture(material.textureAlbedo, uv).rgb, vec3(2.2)) : vec3(1.0);
     return base * material.albedo;
 }
 
@@ -93,8 +93,8 @@ float sampleAO(vec2 uv) {
 
 vec3 sampleEmission(vec2 uv) {
     if(material.hasTextureEmissive)
-        return texture(material.textureEmissive, uv).rgb; // texture owns the color
-    return material.emission; // factor only when no texture
+        return pow(texture(material.textureEmissive, uv).rgb, vec3(2.2)) * material.emission;
+    return material.emission;
 }
 
 vec3 sampleNormal(vec2 uv) {
@@ -179,6 +179,7 @@ void main() {
     }
 
     vec3 result = ambient + lighting + emission;
+    result = pow(result, vec3(1.0 / 2.2)); // before writing frag_color, apply gamma correction (assuming albedo and emission are in linear space)
 
     // alpha from albedo texture or tint
     float alpha = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).a * tint.a * fs_in.color.a : tint.a * fs_in.color.a;
