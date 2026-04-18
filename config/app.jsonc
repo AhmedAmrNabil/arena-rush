@@ -177,6 +177,9 @@
                     "texture": "moon",
                     "sampler": "default"
                 }
+            },
+            "models": {
+                "drone": "assets/gltf/mech_drone/mech_drone.glb"
             }
         },
         "game": {
@@ -260,9 +263,6 @@
                         ]
                     }
                 ]
-            },
-            "models": {
-                "drone": "assets/gltf/mech_drone/mech_drone.glb"
             }
         },
         "world": [
