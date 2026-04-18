@@ -370,6 +370,8 @@ namespace our {
             delete submesh->mesh;
             delete submesh;
         }
+        delete combinedMesh;
+        combinedMesh = nullptr;
     }
 
 }  // namespace our
