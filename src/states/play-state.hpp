@@ -106,7 +106,7 @@ class Playstate : public our::State {
         // And finally we use the renderer system to draw the scene
         collisionSystem.update(&world);
         renderer.render(&world);
-        playerHud.render(&world, getApp()->getFrameBufferSize());
+        playerHud.render(&world,playerEntity,  getApp()->getFrameBufferSize());
 
 #ifdef COLLISION_DEBUG_DRAW
         // Toggle debug draw with F3
