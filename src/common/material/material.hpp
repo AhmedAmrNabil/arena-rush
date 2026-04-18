@@ -86,7 +86,7 @@ namespace our {
         float roughness = 0.2f;
         float ambientOcclusion = 1.0f;
         glm::vec3 emission = glm::vec3(0.0, 0.0, 0.0);
-        TextureMask mask;
+        TextureMask mask = {0};
 
         Sampler* sampler;
 
