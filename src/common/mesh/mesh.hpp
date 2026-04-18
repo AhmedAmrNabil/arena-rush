@@ -71,8 +71,7 @@ namespace our {
                                   (void*)offsetof(Vertex, tangent));
             glEnableVertexAttribArray(ATTRIB_LOC_TANGENT);
 
-            glVertexAttribPointer(ATTRIB_LOC_BONE_IDS, 4, GL_INT, GL_FALSE, sizeof(Vertex),
-                                  (void*)offsetof(Vertex, bone_ids));
+            glVertexAttribIPointer(ATTRIB_LOC_BONE_IDS, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, bone_ids));
             glEnableVertexAttribArray(ATTRIB_LOC_BONE_IDS);
 
             glVertexAttribPointer(ATTRIB_LOC_BONE_WEIGHTS, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -109,11 +108,11 @@ namespace our {
             glDeleteVertexArrays(1, &VAO);
         }
 
-        std::vector<Vertex> getVertices() const {
+        const std::vector<Vertex>& getVertices() const {
             return vertices;
         }
 
-        std::vector<unsigned int> getIndices() const {
+        const std::vector<unsigned int>& getIndices() const {
             return indices;
         }
 
