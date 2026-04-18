@@ -61,6 +61,7 @@
         devShells.default = pkgs.mkShell {
 
           inherit buildInputs nativeBuildInputs LD_LIBRARY_PATH;
+          USE_SYSTEM_LIBS = "ON";
 
           packages = with pkgs; [
             # helper
