@@ -13,23 +13,20 @@
 namespace our {
     int Model::ID_COUNTER = 0;
 
-    void Model::draw(const glm::mat4& VP, const glm::mat4& modelMatrix, const std::vector<our::LightRenderData>& lights,
-                     const glm::vec3& cameraPosition) const {
-        glm::mat4 MVP = VP * modelMatrix;
+    void Model::generateDrawCommands(std::vector<RenderCommand>& modelCommands,
+                                     std::vector<RenderCommand>& transparentCommands,
+                                     const glm::mat4& modelMatrix) const {
         for (const auto& submesh : submeshes) {
-            // this dynamic cast will always pass
-            // as we only make LitMaterials when loading the model
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(submesh->material)) {
-                litMaterial->setup(lights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", modelMatrix * submesh->transform);
-                litMaterial->shader->set("transform", MVP * submesh->transform);
-            } else if (submesh->material) {
-                submesh->material->setup();
-                submesh->material->shader->set("model", modelMatrix * submesh->transform);
-                submesh->material->shader->set("transform", MVP * submesh->transform);
+            RenderCommand cmd;
+            cmd.localToWorld = modelMatrix * submesh->transform;
+            cmd.center = glm::vec3(cmd.localToWorld * glm::vec4(0, 0, 0, 1));
+            cmd.mesh = submesh->mesh;
+            cmd.material = submesh->material;
+            if (submesh->material->transparent) {
+                transparentCommands.push_back(cmd);
+            } else {
+                modelCommands.push_back(cmd);
             }
-            submesh->mesh->draw();
         }
     }
 
@@ -69,6 +66,7 @@ namespace our {
         loadMaterialsFromScene(scene);
         glm::mat4 identity(1.0f);
         processNode(scene->mRootNode, scene, identity);
+        generateCombinedMesh();
     }
 
     void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform) {
@@ -263,7 +261,8 @@ namespace our {
         material->transparent = material->tint.a < 0.999f;
 
         if (material->transparent) {
-            material->pipelineState.depthTesting.enabled = GL_FALSE;  // disable depth writing for transparent materials
+            material->pipelineState.depthTesting.enabled = GL_TRUE;  // disable depth writing for transparent materials
+            material->pipelineState.depthMask = false;
             material->pipelineState.blending.enabled = true;
             material->pipelineState.blending.sourceFactor = GL_SRC_ALPHA;
             int blendFunc = 0;
@@ -362,6 +361,36 @@ namespace our {
                 }
             }
         }
+    }
+
+    void Model::generateCombinedMesh() {
+        std::vector<Vertex> combinedVertices;
+        std::vector<unsigned int> combinedIndices;
+
+        for (const auto& submesh : submeshes) {
+            unsigned int indexOffset = static_cast<unsigned int>(combinedVertices.size());
+
+            // Transform each vertex into model space using the submesh's local transform
+            for (const Vertex& v : submesh->mesh->getVertices()) {
+                Vertex transformed = v;
+
+                // Apply the submesh transform to position
+                glm::vec4 worldPos = submesh->transform * glm::vec4(v.position, 1.0f);
+                transformed.position = glm::vec3(worldPos);
+
+                // Transform normal using the normal matrix (inverse transpose)
+                glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(submesh->transform)));
+                transformed.normal = glm::normalize(normalMatrix * v.normal);
+
+                combinedVertices.push_back(transformed);
+            }
+
+            // Re-base indices so they point into the combined vertex buffer
+            for (unsigned int idx : submesh->mesh->getIndices()) {
+                combinedIndices.push_back(idx + indexOffset);
+            }
+        }
+        combinedMesh = new Mesh(combinedVertices, combinedIndices);
     }
 
     Model::~Model() {

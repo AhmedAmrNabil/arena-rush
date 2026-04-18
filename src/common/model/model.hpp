@@ -12,14 +12,14 @@
 
 #include "components/mesh-renderer.hpp"
 #include "material/material.hpp"
+#include "systems/render-command.hpp"
 
 namespace our {
-
     class Model {
         static int ID_COUNTER;  // this is used to give each model a unique ID for caching purposes
         int id;                 // the unique ID of this model
         std::string modelDirectory;
-        std::vector<MeshRendererComponent*> submeshes;
+        std::vector<MeshRendererComponent*> submeshes;  // submeshes with opaque materials (rendered in the first pass)
 
         void processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform);
         MeshRendererComponent* processMesh(aiMesh* mesh, const aiScene* scene);
@@ -27,13 +27,18 @@ namespace our {
         void loadMaterialsFromScene(const aiScene* scene);
         LitMaterial* loadMaterial(const aiScene* scene, const aiMaterial* mat);
         Texture2D* loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type);
-
+        void generateCombinedMesh();  // will be used for collision detection and other non-rendering purposes
+        Mesh* combinedMesh;           // a single mesh that combines all the submeshes of this model (used for collision
+                                      // detection and other non-rendering purposes)
     public:
         Model() {
             id = ID_COUNTER++;
         };
-        void draw(const glm::mat4& VP, const glm::mat4& modelMatrix, const std::vector<our::LightRenderData>& lights,
-                  const glm::vec3& cameraPosition) const;
+        void generateDrawCommands(std::vector<RenderCommand>& modelCommands,
+                                  std::vector<RenderCommand>& transparentCommands, const glm::mat4& modelMatrix) const;
+        Mesh* getCombinedMesh() const {
+            return combinedMesh;
+        }
         ~Model();
         void loadFromFile(const std::string& path);
     };
