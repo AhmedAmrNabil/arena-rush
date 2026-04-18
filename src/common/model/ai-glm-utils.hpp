@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 namespace our {
-    glm::mat4 aiToGlm(const aiMatrix4x4& mat) {
+    inline glm::mat4 aiToGlm(const aiMatrix4x4& mat) {
         // clang-format off
         return glm::mat4(
             mat.a1, mat.b1, mat.c1, mat.d1,
@@ -15,15 +15,15 @@ namespace our {
         // clang-format on
     }
 
-    glm::vec3 aiToGlm(const aiVector3D& vec) {
+    inline glm::vec3 aiToGlm(const aiVector3D& vec) {
         return glm::vec3(vec.x, vec.y, vec.z);
     }
 
-    glm::vec2 aiToGlm(const aiVector2D& vec) {
+    inline glm::vec2 aiToGlm(const aiVector2D& vec) {
         return glm::vec2(vec.x, vec.y);
     }
 
-    glm::vec4 aiToGlm(const aiColor4D& color) {
+    inline glm::vec4 aiToGlm(const aiColor4D& color) {
         return glm::vec4(color.r, color.g, color.b, color.a);
     }
 }  // namespace our
