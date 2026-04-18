@@ -26,6 +26,11 @@
           # Audio
           pipewire
 
+          # extra precompiled libs
+          openal-soft
+          bullet
+          glfw
+
           # Wayland
           wayland
           wayland-protocols
@@ -84,6 +89,7 @@
               "-DGLFW_BUILD_WAYLAND=1"
               "-DGLFW_BUILD_X11=1"
               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+              "-DUSE_SYSTEM_LIBS=ON"
             ];
 
             installPhase = ''
