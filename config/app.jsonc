@@ -182,7 +182,6 @@
         "game": {
             "enemyHealthBars": {
                 "enabled": true,
-                "showWhenDamagedOnly": false,
                 "maxDistance": 22.0
             },
             "enemySpawner": {
