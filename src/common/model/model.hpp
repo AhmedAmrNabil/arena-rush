@@ -34,8 +34,9 @@ namespace our {
         Model(const std::string& name) {
             this->name = name;
         };
-        void generateDrawCommands(std::vector<RenderCommand>& modelCommands,
-                                  std::vector<RenderCommand>& transparentCommands, const glm::mat4& modelMatrix) const;
+        std::vector<MeshRendererComponent*>& getSubmeshes() {
+            return submeshes;
+        }
         Mesh* getCombinedMesh() const {
             return combinedMesh;
         }
