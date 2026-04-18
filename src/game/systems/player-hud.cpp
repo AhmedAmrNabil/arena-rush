@@ -57,16 +57,8 @@ namespace gameplay {
         weaponIconPath = data.value("weaponIconPath", weaponIconPath);
     }
 
-    void PlayerHUDSystem::render(our::World* world, glm::ivec2 windowSize) {
-        HealthComponent* playerHealth = nullptr;
-        for (auto entity : world->getEntities()) {
-            if (entity->getComponent<PlayerComponent>()) {
-                playerHealth = entity->getComponent<HealthComponent>();
-                break;
-            }
-        }
-
-        if (!playerHealth) return;
+    void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize) {
+        HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
         
         float healthPercentage = playerHealth->currentHealth / playerHealth->maxHealth;
         healthPercentage = glm::clamp(healthPercentage, 0.0f, 1.0f);

@@ -25,7 +25,7 @@ namespace gameplay {
     public:
         void initialize();
         void deserialize(const nlohmann::json& data);
-        void render(our::World* world, glm::ivec2 windowSize);
+        void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize);
         void destroy();
     };
 
