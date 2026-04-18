@@ -21,6 +21,7 @@
 #include <systems/projectile-system.hpp>
 #include <systems/ui-renderer.hpp>
 #include <ui/play-overlay.hpp>
+#include "../game/systems/player-hud.hpp"
 
 class Playstate : public our::State {
     our::World world;
@@ -42,6 +43,7 @@ class Playstate : public our::State {
     float aimBlend = 0.0f;
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
+    gameplay::PlayerHUDSystem playerHud;
 
     void displayFPS() const {
         ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
@@ -105,6 +107,8 @@ public:
         uiRenderer.initialize();
         collisionSystem.initialize();
         overlay.initialize(getApp(), &cameraController);
+        if (config.contains("hud")) playerHud.deserialize(config["hud"]);
+        playerHud.initialize();
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
@@ -159,6 +163,7 @@ public:
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
+        playerHud.render(&world, getApp()->getFrameBufferSize());
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
@@ -184,6 +189,8 @@ public:
         collisionSystem.destroy();
         renderer.destroy();
         uiRenderer.destroy();
+        playerHud.destroy();
+        // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         getApp()->getAudioSystem().stopAll();
         overlay.destroy();
