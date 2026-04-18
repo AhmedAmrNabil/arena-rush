@@ -182,8 +182,19 @@ namespace our {
             }
 
             if (auto modelRenderer = entity->getComponent<ModelRendererComponent>(); modelRenderer) {
-                glm::mat4 localToWorld = modelRenderer->getOwner()->getLocalToWorldMatrix();
-                modelRenderer->model->generateDrawCommands(opaqueCommands, transparentCommands, localToWorld);
+                glm::mat4 modelMatrix = modelRenderer->getOwner()->getLocalToWorldMatrix();
+                for (MeshRendererComponent* submesh : modelRenderer->model->getSubmeshes()) {
+                    RenderCommand command;
+                    command.localToWorld = modelMatrix * submesh->transform;
+                    command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
+                    command.mesh = submesh->mesh;
+                    command.material = submesh->material;
+                    if (command.material->transparent) {
+                        transparentCommands.push_back(command);
+                    } else {
+                        opaqueCommands.push_back(command);
+                    }
+                }
             }
         }
 

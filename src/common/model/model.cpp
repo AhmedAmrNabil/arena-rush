@@ -11,22 +11,6 @@
 #include "texture/texture-utils.hpp"
 
 namespace our {
-    void Model::generateDrawCommands(std::vector<RenderCommand>& modelCommands,
-                                     std::vector<RenderCommand>& transparentCommands,
-                                     const glm::mat4& modelMatrix) const {
-        for (const auto& submesh : submeshes) {
-            RenderCommand cmd;
-            cmd.localToWorld = modelMatrix * submesh->transform;
-            cmd.center = glm::vec3(cmd.localToWorld * glm::vec4(0, 0, 0, 1));
-            cmd.mesh = submesh->mesh;
-            cmd.material = submesh->material;
-            if (submesh->material->transparent) {
-                transparentCommands.push_back(cmd);
-            } else {
-                modelCommands.push_back(cmd);
-            }
-        }
-    }
 
     void Model::loadFromFile(const std::string& path) {
         std::cout << "Loading model from file: " << path << std::endl;
