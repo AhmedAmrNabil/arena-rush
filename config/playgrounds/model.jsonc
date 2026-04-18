@@ -152,7 +152,7 @@
             },
             "models": {
                 "drone": "assets/gltf/mech_drone/mech_drone.glb",
-                "gun": "assets/gltf/gun/gun.glb"
+                "gun": "assets/gltf/weapons/rifle.glb"
             }
         },
         "game": {
@@ -281,9 +281,9 @@
                 ],
                 "children": [
                     {
-                        "position": [1, -1, -1],
+                        "position": [1, -1, -2],
                         "rotation": [0, 0, 0],
-                        "scale": [0.5, 0.5, 0.5],
+                        "scale": [0.3, 0.3, 0.3],
                         "components": [
                             {
                                 "type": "Model Renderer",
