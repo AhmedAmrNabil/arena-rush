@@ -3,9 +3,11 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include <algorithm>
 #include <asset-loader.hpp>
 #include <assimp/Importer.hpp>
 #include <iostream>
+#include <unordered_map>
 
 #include "ai-glm-utils.hpp"
 #include "texture/texture-utils.hpp"
@@ -330,34 +332,7 @@ namespace our {
     };
 
     void Model::processVertexBoneData(aiMesh* mesh, std::vector<Vertex>& vertices) {
-        static std::unordered_map<std::string, int> boneMapping(0);  // maps a bone name to its index
-        std::vector<BoneInfo> boneInfo;
-        for (unsigned int i = 0; i < mesh->mNumBones; ++i) {
-            aiBone* bone = mesh->mBones[i];
-            std::string boneName(bone->mName.C_Str());
-            int boneID;
-            if (boneMapping.find(boneName) == boneMapping.end()) {
-                boneID = boneMapping.size();
-                boneMapping[boneName] = boneID;
-                boneInfo.push_back({aiToGlm(bone->mOffsetMatrix)});
-            } else {
-                boneID = boneMapping[boneName];
-            }
-
-            for (unsigned int j = 0; j < bone->mNumWeights; ++j) {
-                aiVertexWeight weight = bone->mWeights[j];
-                unsigned int vertexId = weight.mVertexId;
-                float weightValue = weight.mWeight;
-
-                for (int k = 0; k < MAX_BONE_INFLUENCE; ++k) {
-                    if (vertices[vertexId].bone_ids[k] == -1) {
-                        vertices[vertexId].bone_ids[k] = boneID;
-                        vertices[vertexId].weights[k] = weightValue;
-                        break;
-                    }
-                }
-            }
-        }
+        // will be implemented correctly later with the animation system
     }
 
     void Model::generateCombinedMesh() {
