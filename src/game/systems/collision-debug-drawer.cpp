@@ -39,6 +39,24 @@ void main() {
 }
 )";
 
+    static const char* kMeshVertexShader = R"(
+#version 330 core
+layout(location = 0) in vec3 aPos;
+uniform mat4 uMVP;
+void main() {
+    gl_Position = uMVP * vec4(aPos, 1.0);
+}
+)";
+
+    static const char* kMeshFragmentShader = R"(
+#version 330 core
+uniform vec3 uColor;
+out vec4 fragColor;
+void main() {
+    fragColor = vec4(uColor, 1.0);
+}
+)";
+
     // ---- Helper: compile a single shader stage ----
     static GLuint compileShaderStage(GLenum type, const char* source) {
         GLuint shader = glCreateShader(type);
@@ -77,6 +95,29 @@ void main() {
         glDeleteShader(frag);
 
         vpUniformLoc = glGetUniformLocation(shaderProgram, "uVP");
+
+        // Mesh shader program
+        GLuint mVert = compileShaderStage(GL_VERTEX_SHADER, kMeshVertexShader);
+        GLuint mFrag = compileShaderStage(GL_FRAGMENT_SHADER, kMeshFragmentShader);
+
+        meshShaderProgram = glCreateProgram();
+        glAttachShader(meshShaderProgram, mVert);
+        glAttachShader(meshShaderProgram, mFrag);
+        glLinkProgram(meshShaderProgram);
+
+        success = 0;
+        glGetProgramiv(meshShaderProgram, GL_LINK_STATUS, &success);
+        if (!success) {
+            char log[512];
+            glGetProgramInfoLog(meshShaderProgram, sizeof(log), nullptr, log);
+            fprintf(stderr, "[CollisionDebugDrawer] Mesh Shader link error:\n%s\n", log);
+        }
+
+        glDeleteShader(mVert);
+        glDeleteShader(mFrag);
+
+        meshMVPUniformLoc = glGetUniformLocation(meshShaderProgram, "uMVP");
+        meshColorUniformLoc = glGetUniformLocation(meshShaderProgram, "uColor");
     }
 
     void CollisionDebugDrawer::initialize() {
@@ -115,7 +156,12 @@ void main() {
             glDeleteProgram(shaderProgram);
             shaderProgram = 0;
         }
+        if (meshShaderProgram) {
+            glDeleteProgram(meshShaderProgram);
+            meshShaderProgram = 0;
+        }
         lineVertices.clear();
+        meshDrawCommands.clear();
     }
 
     // ---- Wireframe generation helpers ----
@@ -213,6 +259,10 @@ void main() {
         }
     }
 
+    void CollisionDebugDrawer::drawMeshWireframe(our::Mesh* mesh, const glm::mat4& transform, const glm::vec3& color) {
+        meshDrawCommands.push_back({mesh, transform, color});
+    }
+
     // ---- btIDebugDraw overrides (still needed since Bullet requires them) ----
     void CollisionDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
         lineVertices.push_back({from.getX(), from.getY(), from.getZ(), color.getX(), color.getY(), color.getZ()});
@@ -242,6 +292,23 @@ void main() {
         glBindVertexArray(0);
 
         glUseProgram(0);
+
+        // Render meshes if any
+        if (!meshDrawCommands.empty()) {
+            glUseProgram(meshShaderProgram);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+            for (const auto& cmd : meshDrawCommands) {
+                glm::mat4 MVP = VP * cmd.transform;
+                glUniformMatrix4fv(meshMVPUniformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+                glUniform3fv(meshColorUniformLoc, 1, glm::value_ptr(cmd.color));
+                cmd.mesh->draw();
+            }
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glUseProgram(0);
+            meshDrawCommands.clear();
+        }
 
         // Restore previous state
         if (prevDepthTest) glEnable(GL_DEPTH_TEST);

@@ -295,6 +295,26 @@ namespace gameplay {
                     shape = new btCapsuleShape(collider->radius, spine);
                     break;
                 }
+                case ColliderShape::Mesh:
+                    if (collider->mesh) {
+                        collider->bulletMesh = new btTriangleMesh();
+                        const std::vector<our::Vertex>& vertices = collider->mesh->getVertices();
+                        const std::vector<unsigned int>& indices = collider->mesh->getIndices();
+                        collider->bulletMesh->preallocateVertices(vertices.size());
+                        collider->bulletMesh->preallocateIndices(indices.size());
+                        for (size_t i = 0; i < indices.size(); i += 3) {
+                            const glm::vec3& v0 = vertices[indices[i]].position;
+                            const glm::vec3& v1 = vertices[indices[i + 1]].position;
+                            const glm::vec3& v2 = vertices[indices[i + 2]].position;
+                            collider->bulletMesh->addTriangle(glmToBtVec3(v0), glmToBtVec3(v1), glmToBtVec3(v2));
+                        }
+                        shape = new btBvhTriangleMeshShape(collider->bulletMesh, true);
+                    } else {
+                        std::cerr << "\033[31mCollider mesh is null for entity " << entity->name
+                                  << ". Defaulting to sphere shape.\033[0m" << std::endl;
+                        shape = new btSphereShape(collider->radius);
+                    }
+                    break;
             }
             shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
             shapesCache[shapeKey] = shape;
@@ -411,6 +431,7 @@ namespace gameplay {
             btVector3 scale = obj->getCollisionShape()->getLocalScaling();
             float scaledRadius = collider->radius * scale.getX();
             float scaledHeight = collider->height * scale.getY();
+            transform = transform * glm::scale(glm::mat4(1.0f), glm::vec3(scale.getX(), scale.getY(), scale.getZ()));
 
             switch (collider->shape) {
                 case ColliderShape::Sphere:
@@ -418,6 +439,11 @@ namespace gameplay {
                     break;
                 case ColliderShape::Capsule:
                     debugDrawer->drawCapsuleWireframe(transform, scaledRadius, scaledHeight, color);
+                    break;
+                case ColliderShape::Mesh:
+                    if (collider->mesh) {
+                        debugDrawer->drawMeshWireframe(collider->mesh, transform, color);
+                    }
                     break;
             }
         }
