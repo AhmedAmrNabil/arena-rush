@@ -1,0 +1,350 @@
+{
+    "start-scene": "play",
+    "window": {
+        "title": "Default Game Window",
+        "size": {
+            "width": 1920,
+            "height": 1080
+        },
+        "fullscreen": false
+    },
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg",
+            "postprocess": "assets/shaders/postprocess/vignette.frag"
+        },
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                },
+                "textured": {
+                    "vs": "assets/shaders/textured.vert",
+                    "fs": "assets/shaders/textured.frag"
+                },
+                "lit": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
+                }
+            },
+            "textures": {
+                "moon": "assets/textures/moon.jpg",
+                "grass": "assets/textures/grass_ground_d.jpg"
+            },
+            "meshes": {
+                "plane": "assets/models/plane.obj",
+                "sphere": "assets/models/sphere.obj",
+                "cube": "assets/models/cube.obj",
+                "monkey": "assets/models/monkey.obj"
+            },
+            "samplers": {
+                "default": {},
+                "ground_tiled": {
+                    "MIN_FILTER": "GL_LINEAR_MIPMAP_LINEAR",
+                    "MAG_FILTER": "GL_LINEAR",
+                    "WRAP_S": "GL_REPEAT",
+                    "WRAP_T": "GL_REPEAT",
+                    "MAX_ANISOTROPY": 16.0
+                }
+            },
+            "materials": {
+                "ground": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "grass",
+                    "sampler": "ground_tiled",
+                    "uvScale": [96.0, 96.0]
+                },
+                "drone": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [0.85, 0.9, 1.0, 1.0]
+                },
+                "monster": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0]
+                },
+                "metal": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [0.45, 0.4, 0.5, 1.0]
+                },
+                "grass": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "grass",
+                    "sampler": "default"
+                },
+                "monkey": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "textureAlbedo": "monkey",
+                    "sampler": "default"
+                },
+                "moon": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "moon",
+                    "sampler": "default"
+                }
+            },
+            "models": {
+                "drone": "assets/gltf/mech_drone/mech_drone.glb",
+                "gun": "assets/gltf/gun/gun.glb"
+            }
+        },
+        "game": {
+            "enemySpawner": {
+                "spawnPoints": [
+                    [30.0, 0.0, 30.0],
+                    [-30.0, 0.0, 30.0],
+                    [30.0, 0.0, -30.0],
+                    [-30.0, 0.0, -30.0],
+                    [42.0, 0.0, 0.0],
+                    [-42.0, 0.0, 0.0],
+                    [0.0, 0.0, 42.0],
+                    [0.0, 0.0, -42.0]
+                ],
+                "spawnInterval": 2.0,
+                "initialSpawnCount": 4,
+                "maxAliveEnemies": 12,
+                "enemies": [
+                    {
+                        "name": "Monster",
+                        "mesh": "cube",
+                        "material": "monster",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [0.65, 0.65, 0.65],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Brute",
+                                "moveSpeed": 3.8,
+                                "turnSpeed": 5.5,
+                                "aggroRange": 120.0,
+                                "attackRange": 2.0,
+                                "attackDamage": 10.0,
+                                "attackCooldown": 1.2,
+                                "scoreValue": 100
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 60.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "shape": "Capsule",
+                                "radius": 0.5,
+                                "height": 1.5
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Drone",
+                        "mesh": "cube",
+                        "material": "drone",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [1.2, 1.2, 1.2],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Flyer",
+                                "moveSpeed": 3.4,
+                                "turnSpeed": 6.0,
+                                "aggroRange": 120.0,
+                                "attackRange": 12.0,
+                                "preferredDistance": 9.0,
+                                "attackDamage": 8.0,
+                                "attackCooldown": 2.0,
+                                "hoverFrequency": 2.3,
+                                "hoverAmplitude": 0.4,
+                                "baseHeight": 5.0,
+                                "scoreValue": 150
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 35.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "radius": 0.8
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "world": [
+            {
+                "name": "Player Camera",
+                "position": [0.0, 1.8, 14.0],
+                "components": [
+                    {
+                        "type": "Camera",
+                        "fovY": 60,
+                        "near": 0.1,
+                        "far": 500.0
+                    },
+                    {
+                        "type": "Free Camera Controller",
+                        "positionSensitivity": [8.0, 0.0, 8.0],
+                        "rotationSensitivity": 0.008,
+                        "speedupFactor": 2.5,
+                        "groundLevel": 0.0,
+                        "playerHeight": 1.8
+                    },
+                    {
+                        "type": "Player"
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 100.0
+                    },
+                    {
+                        "type": "Collider",
+                        "shape": "Capsule",
+                        "height": 3.6,
+                        "radius": 0.4,
+                        "layer": "player"
+                    },
+                    {
+                        "type": "light",
+                        "lightType": "spot",
+                        "color": [1, 1, 1],
+                        "attenuation": [1.0, 0.1, 0.1],
+                        "spotAngles": [12, 20]
+                    }
+                ],
+                "children": [
+                    {
+                        "position": [1, -1, -1],
+                        "rotation": [0, 0, 0],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "Model Renderer",
+                                "model": "gun"
+                            }
+                        ],
+                        "children": {
+                            "position": [0, 0, 0],
+                            "components": [
+                                {
+                                    "type": "light",
+                                    "lightType": "spot",
+                                    "color": [1, 0.8, 0.6],
+                                    "attenuation": [1.0, 0.14, 0.07],
+                                    "spotAngles": [15, 20]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Ground",
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [-90.0, 0.0, 0.0],
+                "scale": [120.0, 120.0, 1.0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "plane",
+                        "material": "ground"
+                    }
+                ]
+            },
+            {
+                "position": [2, 1, -2],
+                "scale": [5, 5, 5],
+                "components": [
+                    {
+                        "type": "Model Renderer",
+                        "model": "drone"
+                    }
+                ]
+            },
+            {
+                "name": "moon (test lighting)",
+                "position": [-5.0, 5.0, -5.0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "moon"
+                    },
+                    {
+                        "type": "light",
+                        "lightType": "point",
+                        "color": [1, 1, 1],
+                        "attenuation": [1.0, 0.14, 0.07]
+                    }
+                ]
+            }
+        ]
+    }
+}
