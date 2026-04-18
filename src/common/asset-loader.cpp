@@ -131,7 +131,7 @@ namespace our {
     void AssetLoader<our::Model>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
-                auto model = new our::Model();
+                auto model = new our::Model(name);
                 model->loadFromFile(desc.get<std::string>());
                 assets[name] = model;
             }
