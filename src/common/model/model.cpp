@@ -160,6 +160,8 @@ namespace our {
         material->shader = AssetLoader<ShaderProgram>::get("lit");
         if (!material->shader) {
             std::cerr << "\033[31mFailed to load shader for material " << matName.C_Str() << "\033[0m" << std::endl;
+            delete material;
+            material = nullptr;
             return nullptr;
         }
 
@@ -352,7 +354,8 @@ namespace our {
 
                 // Transform normal using the normal matrix (inverse transpose)
                 glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(submesh->transform)));
-                transformed.normal = glm::normalize(normalMatrix * v.normal);
+                glm::vec3 t = glm::normalize(normalMatrix * glm::vec3(v.tangent));
+                transformed.tangent = glm::vec4(t, v.tangent.w);  // keep handedness unchanged
 
                 combinedVertices.push_back(transformed);
             }
