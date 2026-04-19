@@ -4,6 +4,7 @@
 #include "../components/post-process-effects.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
+#include "components/weapon.hpp"
 
 namespace our {
 
@@ -146,9 +147,12 @@ namespace our {
         opaqueCommands.clear();
         transparentCommands.clear();
         sceneLights.clear();
+        weaponCommands.clear();
         for (auto entity : world->getEntities()) {
             // If we hadn't found a camera yet, we look for a camera in this entity
             if (!camera) camera = entity->getComponent<CameraComponent>();
+
+            bool isWeapon = entity->getComponent<gameplay::WeaponComponent>() != nullptr;
             // If this entity has a mesh renderer component
             if (auto meshRenderer = entity->getComponent<MeshRendererComponent>(); meshRenderer) {
                 // We construct a command from it
@@ -157,8 +161,9 @@ namespace our {
                 command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                 command.mesh = meshRenderer->mesh;
                 command.material = meshRenderer->material;
-                // if it is transparent, we add it to the transparent commands list
-                if (command.material->transparent) {
+                if (isWeapon) {
+                    weaponCommands.push_back(command);
+                } else if (command.material->transparent) {
                     transparentCommands.push_back(command);
                 } else {
                     // Otherwise, we add it to the opaque command list
@@ -190,7 +195,10 @@ namespace our {
                     command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                     command.mesh = submesh->mesh;
                     command.material = submesh->material;
-                    if (command.material->transparent) {
+
+                    if (isWeapon) {
+                        weaponCommands.push_back(command);
+                    } else if (command.material->transparent) {
                         transparentCommands.push_back(command);
                     } else {
                         opaqueCommands.push_back(command);
@@ -265,6 +273,22 @@ namespace our {
 
         // draw all the transparent commands
         for (const RenderCommand& command : transparentCommands) {
+            command.material->setup();
+            glm::mat4 MVP = VP * command.localToWorld;
+            command.material->shader->set("transform", MVP);
+            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
+                // if the material is a lit material, we need to set the light uniforms
+                litMaterial->setLightUniforms(sceneLights);
+                litMaterial->shader->set("cameraPos", cameraPosition);
+                litMaterial->shader->set("model", command.localToWorld);
+            }
+            command.mesh->draw();
+        }
+
+        // render weapon at the end with depth testing cleared
+        glClear(GL_DEPTH_BUFFER_BIT);
+        for (const RenderCommand& command : weaponCommands) {
+            command.material->pipelineState.depthMask = false;
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);

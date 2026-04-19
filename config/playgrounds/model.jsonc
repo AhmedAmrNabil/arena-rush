@@ -288,6 +288,12 @@
                             {
                                 "type": "Model Renderer",
                                 "model": "gun"
+                            },
+                            {
+                                "type": "Weapon",
+                                "damage": 25,
+                                "range": 50.0,
+                                "fireRate": 0.5
                             }
                         ],
                         "children": [

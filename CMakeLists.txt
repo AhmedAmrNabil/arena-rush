@@ -262,6 +262,7 @@ add_executable(${PROJECT_NAME}
     src/game/components/enemy.cpp
     src/game/components/health.cpp
     src/game/components/player.cpp
+    src/game/components/weapon.cpp
     src/game/game-registration.cpp
     src/game/systems/collision-system.cpp
     src/game/systems/collision-debug-drawer.cpp
