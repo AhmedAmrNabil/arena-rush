@@ -4,12 +4,12 @@
 #include <assimp/scene.h>
 
 #include <algorithm>
-#include <asset-loader.hpp>
 #include <assimp/Importer.hpp>
 #include <iostream>
 #include <unordered_map>
 
 #include "ai-glm-utils.hpp"
+#include "asset-loader.hpp"
 #include "texture/texture-utils.hpp"
 
 namespace our {
