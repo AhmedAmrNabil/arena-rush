@@ -6,7 +6,7 @@
 #include "components/enemy.hpp"
 #include "components/health.hpp"
 #include "components/player.hpp"
-
+#include "components/weapon.hpp"
 namespace gameplay {
 
     void registerGameComponents() {
@@ -17,6 +17,7 @@ namespace gameplay {
         our::ComponentRegistry::registerType<EnemyComponent>();
         our::ComponentRegistry::registerType<HealthComponent>();
         our::ComponentRegistry::registerType<PlayerComponent>();
+        our::ComponentRegistry::registerType<WeaponComponent>();
 
         initialized = true;
     }
