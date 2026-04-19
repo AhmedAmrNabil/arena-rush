@@ -99,9 +99,8 @@ namespace gameplay {
                 float distance = glm::distance(enemyPosition, cameraPos);
 
                 bool visibleWhenDamaged = health->damageRevealTimer > 0.0f;
-                bool visibleWhenClose = distance <= 8.0f;
+                bool visibleWhenClose = distance <= config.maxDistance;
 
-                if (!visibleWhenDamaged && distance > config.maxDistance) continue;
                 if (!(visibleWhenDamaged || visibleWhenClose)) continue;
 
                 ColliderComponent* collider = entity->getComponent<ColliderComponent>();
