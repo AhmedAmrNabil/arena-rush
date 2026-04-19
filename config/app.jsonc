@@ -3,8 +3,8 @@
     "window": {
         "title": "Default Game Window",
         "size": {
-            "width": 1280,
-            "height": 720
+            "width": 1920,
+            "height": 1080
         },
         "fullscreen": false
     },
@@ -179,7 +179,9 @@
                 }
             },
             "models": {
-                "drone": "assets/gltf/mech_drone/mech_drone.glb"
+                "drone": "assets/gltf/mech_drone/mech_drone.glb",
+                "map": "assets/gltf/map/map.glb",
+                "gun": "assets/gltf/weapons/rifle.glb"
             }
         },
         "game": {
@@ -325,37 +327,43 @@
                         "layer": "player",
                         "radius": 0.45,
                         "height": 1.8
-                    },
+                    }
+                ],
+                "children": [
                     {
-                        "type": "light",
-                        "lightType": "spot",
-                        "color": [1, 1, 1],
-                        "attenuation": [1.0, 0.22, 0.2],
-                        "spotAngles": [2, 5]
+                        "position": [1, -1, -2],
+                        "rotation": [0, 0, 0],
+                        "scale": [0.3, 0.3, 0.3],
+                        "components": [
+                            {
+                                "type": "Model Renderer",
+                                "model": "gun"
+                            }
+                        ],
+                        "children": [
+                            {
+                                "position": [0, 0, 0],
+                                "components": [
+                                    {
+                                        "type": "light",
+                                        "lightType": "spot",
+                                        "color": [1, 0.8, 0.6],
+                                        "attenuation": [1.0, 0.14, 0.07],
+                                        "spotAngles": [15, 20]
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
             {
-                "name": "Ground",
-                "position": [0.0, 0.0, 0.0],
-                "rotation": [-90.0, 0.0, 0.0],
-                "scale": [120.0, 120.0, 1.0],
+                "name": "map",
+                "position": [0, 0, 0],
                 "components": [
                     {
-                        "type": "Mesh Renderer",
-                        "mesh": "plane",
-                        "material": "ground"
-                    }
-                ]
-            },
-            {
-                "position": [2, 1, -2],
-                "scale": [5, 5, 5],
-                "components": [
-                    {
-                        "type": "Mesh Renderer",
-                        "mesh": "monkey",
-                        "material": "monkey"
+                        "type": "Model Renderer",
+                        "model": "map"
                     }
                 ]
             }

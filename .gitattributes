@@ -1,2 +1,6 @@
 *.cpp text eol=lf
 *.hpp text eol=lf
+*.jsonc text eol=lf
+CmakeLists.txt text eol=lf
+assets/shaders/** -filter -diff -merge text
+assets filter=lfs diff=lfs merge=lfs -text
