@@ -1,6 +1,7 @@
 #include "forward-renderer.hpp"
 
 #include "../components/model-renderer.hpp"
+#include "../components/post-process-effects.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 
@@ -280,6 +281,17 @@ namespace our {
         if (postprocessMaterial) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             postprocessMaterial->setup();
+
+            for (auto entity : world->getEntities()) {
+                if (auto* effects = entity->getComponent<our::PostProcessEffectsComponent>()) {
+                    for (auto& [name, value] : effects->uniforms) {
+                        postprocessMaterial->shader->set(name, value);
+                    }
+                    break;  // handles gameplay driven postprocess effects, other ones (like bloom) should be handled
+                            // separately outside this loop
+                }
+            }
+
             glBindVertexArray(postProcessVertexArray);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }

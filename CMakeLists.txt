@@ -265,6 +265,8 @@ add_executable(${PROJECT_NAME}
     src/game/game-registration.cpp
     src/game/systems/collision-system.cpp
     src/game/systems/collision-debug-drawer.cpp
+    src/game/components/player-movement.cpp
+    src/game/systems/player-movement-system.cpp
 
     src/common/systems/forward-renderer.cpp
     src/common/systems/audio-system.cpp

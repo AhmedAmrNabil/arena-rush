@@ -45,8 +45,7 @@ namespace our {
             // Get the entity that we found via getOwner of camera (we could use controller->getOwner())
             Entity* entity = camera->getOwner();
 
-            // We get a reference to the entity's position and rotation
-            glm::vec3& position = entity->localTransform.position;
+            // We get a reference to the entity's rotation
             glm::vec3& rotation = entity->localTransform.rotation;
 
             // While the play state is active, the mouse stays locked
@@ -69,31 +68,6 @@ namespace our {
             fov = glm::clamp(fov, glm::pi<float>() * 0.01f,
                              glm::pi<float>() * 0.99f);  // We keep the fov in the range 0.01*PI to 0.99*PI
             camera->fovY = fov;
-
-            // We get the camera model matrix (relative to its parent) to compute the front and right directions
-            glm::mat4 matrix = entity->localTransform.toMat4();
-
-            glm::vec3 front = glm::vec3(matrix * glm::vec4(0, 0, -1, 0));
-            glm::vec3 right = glm::vec3(matrix * glm::vec4(1, 0, 0, 0));
-
-            glm::vec3 current_sensitivity = controller->positionSensitivity;
-            // If the LEFT SHIFT key is pressed, we multiply the position sensitivity by the speed up factor
-            if (app->getKeyboard().isPressed(GLFW_KEY_LEFT_SHIFT)) current_sensitivity *= controller->speedupFactor;
-
-            // We change the camera position based on the keys WASD
-            glm::vec3 frontXZ = glm::normalize(glm::vec3(front.x, 0, front.z));
-            glm::vec3 rightXZ = glm::normalize(glm::vec3(right.x, 0, right.z));
-
-            // S & W moves the player back and forth along the ground plane
-            if (app->getKeyboard().isPressed(GLFW_KEY_W)) position += frontXZ * (deltaTime * current_sensitivity.z);
-            if (app->getKeyboard().isPressed(GLFW_KEY_S)) position -= frontXZ * (deltaTime * current_sensitivity.z);
-            // A & D moves the player left or right along the ground plane
-            if (app->getKeyboard().isPressed(GLFW_KEY_D)) position += rightXZ * (deltaTime * current_sensitivity.x);
-            if (app->getKeyboard().isPressed(GLFW_KEY_A)) position -= rightXZ * (deltaTime * current_sensitivity.x);
-
-            // stop the player from going below the ground plane
-            float minY = controller->groundLevel + controller->playerHeight;
-            if (position.y < minY) position.y = minY;
         }
 
         // When the state exits, it should call this function to ensure the mouse is unlocked

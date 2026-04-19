@@ -11,7 +11,7 @@
     "scene": {
         "renderer": {
             "sky": "assets/textures/sky.jpg",
-            "postprocess": "assets/shaders/postprocess/vignette.frag"
+            "postprocess": "assets/shaders/postprocess/dash-distortion.frag"
         },
         "assets": {
             "shaders": {
@@ -290,15 +290,32 @@
                     },
                     {
                         "type": "Free Camera Controller",
-                        "positionSensitivity": [8.0, 0.0, 8.0],
-                        "rotationSensitivity": 0.008,
-                        "speedupFactor": 2.5,
+                        "rotationSensitivity": 0.01,
+                        "fovSensitivity": 0.3
+                    },
+                    {
+                        "type": "PlayerMovement",
+                        "walkSpeed": 8.0,
+                        "sprintMultiplier": 2.0,
+                        "crouchSpeed": 4.0,
+                        "crouchHeight": 1.0,
+                        "slideSpeedMultiplier": 1.5,
+                        "slideDuration": 0.8,
+                        "slideCooldown": 0.5,
+                        "dashDistance": 5.0,
+                        "dashCooldown": 1.0,
                         "groundLevel": 0.0,
-                        "playerHeight": 1.8
+                        "playerHeight": 2,
+                        "jumpForce": 9.0
                     },
                     {
                         "type": "Player"
                     },
+                    {
+                        "type": "Post Process Effects Component"
+                    }
+                ],
+                "children": [
                     {
                         "type": "Health",
                         "maxHealth": 100.0
