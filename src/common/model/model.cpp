@@ -46,15 +46,17 @@ namespace our {
 
         this->modelDirectory = path.substr(0, path.find_last_of('/'));
 
+        glm::mat4 identity(1.0f);
         loadMaterialsFromScene(scene);
         if (scene->HasAnimations()) {
             skeleton = new Skeleton();
+            processNode(scene->mRootNode, scene, identity, skeleton->getNodes());
+        } else {
+            std::vector<SkeletonNode> dummySkeletonNodes;  // empty vector since we won't be using it
+            processNode(scene->mRootNode, scene, identity, dummySkeletonNodes);
         }
-        glm::mat4 identity(1.0f);
-        processNode(scene->mRootNode, scene, identity);
 
-        if (skeleton) skeleton->buildHierarchy(scene->mRootNode);
-        for (int i = 0; i < scene->mNumAnimations; ++i) {
+        for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
             std::string animName = scene->mAnimations[i]->mName.C_Str();
             if (animName.empty()) {
                 animName = "Anim_" + std::to_string(i);
@@ -65,11 +67,21 @@ namespace our {
         generateCombinedMesh();
     }
 
-    void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform) {
+    void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform,
+                            std::vector<SkeletonNode>& skeletonNodes, int parentIndex) {
         // process all the node's meshes (if any)
         aiMatrix4x4 t = node->mTransformation;
         glm::mat4 nodeTransform = aiToGlm(t);
         glm::mat4 globalTransform = parentTransform * nodeTransform;
+
+        SkeletonNode skeletonNode;
+        skeletonNode.name = node->mName.C_Str();
+        skeletonNode.localTransform = nodeTransform;
+        skeletonNode.parentIndex = parentIndex;
+
+        int currentIndex = static_cast<int>(skeletonNodes.size());
+        skeletonNodes.push_back(skeletonNode);
+
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             MeshRendererComponent* submesh = processMesh(mesh, scene);
@@ -77,7 +89,7 @@ namespace our {
             submeshes.push_back(submesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene, globalTransform);
+            processNode(node->mChildren[i], scene, globalTransform, skeletonNodes, currentIndex);
         }
     }
 
@@ -358,14 +370,11 @@ namespace our {
 
     void Model::processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene) {
         if (!skeleton) return;  // if the model has no animations, we won't have a skeleton to store the bone data in
-        for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+        for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
             aiBone* bone = mesh->mBones[boneIndex];
             std::string boneName(bone->mName.C_Str());
 
             BoneID boneID = skeleton->findOrCreateBone(boneName, bone->mOffsetMatrix);
-
-            auto weights = bone->mWeights;
-            int numWeights = bone->mNumWeights;
 
             for (unsigned int j = 0; j < bone->mNumWeights; ++j) {
                 auto boneWeight = bone->mWeights[j];
@@ -429,7 +438,9 @@ namespace our {
             delete submesh->mesh;
             delete submesh;
         }
-        delete combinedMesh;
+        if (skeleton) delete skeleton;
+
+        if (combinedMesh) delete combinedMesh;
         combinedMesh = nullptr;
     }
 

@@ -21,23 +21,24 @@ namespace our {
         if (!clip.empty()) {
             auto it = model->animations.find(clip);
             if (it != model->animations.end()) {
-                if (autoplay) animator.play(&it->second);
+                if (autoplay) animator.play(&it->second, loop);
             } else {
                 std::cerr << "\033[31mAnimation clip not found: " << clip << "\033[0m" << std::endl;
             }
         }
     }
 
-    void AnimationComponent::play(const std::string& clipName) {
+    void AnimationComponent::play(const std::string& clipName, bool loop) {
         if (!model) {
             std::cerr << "\033[31mCannot play animation: model is not set\033[0m" << std::endl;
             return;
         }
         auto it = model->animations.find(clipName);
         if (it != model->animations.end()) {
-            animator.play(&it->second);
+            animator.play(&it->second, loop);
         } else {
             std::cerr << "\033[31mAnimation clip not found: " << clipName << "\033[0m" << std::endl;
         }
     }
+
 }  // namespace our

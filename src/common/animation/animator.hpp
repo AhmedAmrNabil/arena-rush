@@ -10,50 +10,53 @@ namespace our {
         const Animation* currentAnimation;
         float currentTime;  // in ticks
         std::vector<glm::mat4> finalBoneMatrices;
-        float deltaTime;
+        bool loop;
 
-        void computeBoneTransform(const SkeletonNode& node, glm::mat4 parentTransform) {
+        void computeBoneTransform(const std::vector<SkeletonNode>& nodes) {
             const Skeleton& skeleton = currentAnimation->skeleton;
-            glm::mat4 nodeTransform = node.localTransform;  // fallback: bind pose
+            std::vector<glm::mat4> globalTransforms(nodes.size());
 
-            if (skeleton.hasBone(node.name)) {
+            for (int i = 0; i < (int)nodes.size(); i++) {
+                const auto& node = nodes[i];
+
+                // animated local transform, fallback to bind pose
+                glm::mat4 localTransform = node.localTransform;
                 BoneID id = skeleton.getBoneID(node.name);
-                auto it = currentAnimation->bones.find(id);
-                if (it != currentAnimation->bones.end()) {
-                    nodeTransform = it->second.interpolate(currentTime);
+                if (id >= 0) {
+                    auto it = currentAnimation->bones.find(id);
+                    if (it != currentAnimation->bones.end()) localTransform = it->second.interpolate(currentTime);
                 }
+
+                // accumulate from parent
+                if (node.parentIndex < 0)
+                    globalTransforms[i] = localTransform;
+                else
+                    globalTransforms[i] = globalTransforms[node.parentIndex] * localTransform;
+
+                if (id >= 0 && id < (BoneID)finalBoneMatrices.size())
+                    finalBoneMatrices[id] = skeleton.getGlobalInverseTransform() * globalTransforms[i] *
+                                            skeleton.getOffsetMatrix(node.name);
             }
-
-            glm::mat4 globalTransform = parentTransform * nodeTransform;
-
-            if (skeleton.hasBone(node.name)) {
-                BoneID id = skeleton.getBoneID(node.name);
-                glm::mat4 offset = skeleton.getOffsetMatrix(node.name);
-                if (id >= 0 && id < static_cast<BoneID>(finalBoneMatrices.size())) {
-                    finalBoneMatrices[id] = skeleton.getGlobalInverseTransform() * globalTransform * offset;
-                }
-            }
-
-            for (const SkeletonNode& child : node.children) computeBoneTransform(child, globalTransform);
         }
 
     public:
         Animator() : finalBoneMatrices(MAX_BONES, glm::mat4(1.0f)) {}
 
-        void play(const Animation* anim) {
+        void play(const Animation* anim, bool loop = true) {
             currentAnimation = anim;
             currentTime = 0.0f;
+            this->loop = loop;
         }
 
-        void update(float deltaTime, bool loop = true) {
+        void update(float deltaTime) {
             if (!currentAnimation) return;
             currentTime += currentAnimation->ticksPerSecond * deltaTime;
             if (loop) {
-                currentTime = fmod(currentTime, currentAnimation->duration);
+                currentTime = std::fmod(currentTime, currentAnimation->duration);
             } else {
                 currentTime = std::min(currentTime, currentAnimation->duration);
             }
-            computeBoneTransform(currentAnimation->skeleton.getRoot(), glm::mat4(1.0f));
+            computeBoneTransform(currentAnimation->skeleton.getNodes());
         }
 
         const std::vector<glm::mat4>& getFinalBoneMatrices() const {

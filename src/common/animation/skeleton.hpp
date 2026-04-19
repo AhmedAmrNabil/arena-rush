@@ -8,27 +8,42 @@
 #include <vector>
 
 #include "bone.hpp"
+#include "model/ai-glm-utils.hpp"
 
 namespace our {
 
     struct SkeletonNode {
         std::string name;
-        glm::mat4 localTransform;  // bind pose transform
-        std::vector<SkeletonNode> children;
+        glm::mat4 localTransform;  // bind pose transform of this node relative to its parent
+        int parentIndex = -1;      // index of the parent node in the Skeleton's nodes vector, -1 if this is the root
     };
 
     class Skeleton {
-        std::unordered_map<std::string, BoneInfo> boneInfoMap;  // maps bone names to their corresponding BoneInfo
-        SkeletonNode root;                                      // the root of the skeleton hierarchy
+        std::unordered_map<std::string, BonePose> boneInfoMap;  // maps bone names to their corresponding BonePose
         glm::mat4 globalInverseTransform = glm::mat4(1.0f);     // inverse of the scene root transform
-        void buildHierarchy(SkeletonNode& skeletonNode, aiNode* node);
+        std::vector<SkeletonNode> nodes;                        // flat list of all skeleton nodes (for easy traversal)
 
     public:
-        BoneID findOrCreateBone(const std::string& boneName, aiMatrix4x4& offsetMatrix);
-        void buildHierarchy(aiNode* node);
+        Skeleton() = default;
+        BoneID findOrCreateBone(const std::string& boneName, aiMatrix4x4& offsetMatrix) {
+            return findOrCreateBone(boneName, aiToGlm(offsetMatrix));
+        }
+
+        BoneID findOrCreateBone(const std::string& boneName, const glm::mat4& offsetMatrix) {
+            auto it = boneInfoMap.find(boneName);
+            if (it != boneInfoMap.end()) {
+                return it->second.id;
+            } else {
+                BoneID newID = static_cast<BoneID>(boneInfoMap.size());
+                boneInfoMap[boneName] = {newID, offsetMatrix};
+                return newID;
+            }
+        }
+
         bool hasBone(const std::string& boneName) const {
             return boneInfoMap.find(boneName) != boneInfoMap.end();
         }
+
         BoneID getBoneID(const std::string& boneName) const {
             auto it = boneInfoMap.find(boneName);
             if (it != boneInfoMap.end()) {
@@ -36,8 +51,9 @@ namespace our {
             }
             return -1;  // or throw an exception but will handle silently for now
         }
-        SkeletonNode& getRoot() {
-            return root;
+
+        std::vector<SkeletonNode>& getNodes() {
+            return nodes;
         }
 
         // used for FBX files where the root node's transform is not identity

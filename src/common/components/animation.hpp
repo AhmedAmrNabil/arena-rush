@@ -21,7 +21,7 @@ namespace our {
 
         void deserialize(const nlohmann::json& data) override;
 
-        void play(const std::string& clipName);
+        void play(const std::string& clipName, bool loop = false);
     };
 
 }  // namespace our

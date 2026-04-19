@@ -8,7 +8,7 @@
 
 namespace our {
     using BoneID = int;
-    struct BoneInfo {
+    struct BonePose {
         BoneID id;
         glm::mat4 offsetMatrix;
     };
@@ -28,100 +28,67 @@ namespace our {
         float time;
     };
 
-    class Bone {
-        std::string boneName;
+    class BoneAnimation {
         std::vector<KeyPosition> positions;
         std::vector<KeyRotation> rotations;
         std::vector<KeyScale> scales;
         std::string name;
         BoneID id;
 
-        glm::vec3 interpolatePosition(float animationTime) const {
-            if (positions.size() == 1) return positions[0].position;
-            if (animationTime >= positions.back().time) return positions.back().position;
-
-            int p0Index = 0;
-            for (size_t i = 0; i < positions.size() - 1; ++i) {
-                if (animationTime < positions[i + 1].time) {
-                    p0Index = i;
-                    break;
-                }
-            }
-            int p1Index = p0Index + 1;
-            float deltaTime = positions[p1Index].time - positions[p0Index].time;
-            float factor = (animationTime - positions[p0Index].time) / deltaTime;
-            return glm::mix(positions[p0Index].position, positions[p1Index].position, factor);
+        template <typename TKey>
+        static size_t findIndex(const std::vector<TKey>& keys, float animationTime) {
+            for (size_t i = 0; i < keys.size() - 1; ++i)
+                if (animationTime < keys[i + 1].time) return i;
+            return keys.size() - 2;
         }
 
-        glm::quat interpolateRotation(float animationTime) const {
-            if (rotations.size() == 1) return rotations[0].rotation;
-            if (animationTime >= rotations.back().time) return rotations.back().rotation;
+        template <typename TKey, typename TGet, typename TInterp>
+        static auto interpolateKeys(const std::vector<TKey>& keys, float animationTime, TInterp interp, TGet getValue) {
+            if (keys.size() == 1) return getValue(keys[0]);
+            if (animationTime >= keys.back().time) return getValue(keys.back());
 
-            int r0Index = 0;
-            for (size_t i = 0; i < rotations.size() - 1; ++i) {
-                if (animationTime < rotations[i + 1].time) {
-                    r0Index = i;
-                    break;
-                }
-            }
-            int r1Index = r0Index + 1;
-            float deltaTime = rotations[r1Index].time - rotations[r0Index].time;
-            float factor = (animationTime - rotations[r0Index].time) / deltaTime;
-            return glm::slerp(rotations[r0Index].rotation, rotations[r1Index].rotation, factor);
+            size_t i0 = findIndex(keys, animationTime);
+            size_t i1 = i0 + 1;
+            float factor = (animationTime - keys[i0].time) / (keys[i1].time - keys[i0].time);
+            return interp(getValue(keys[i0]), getValue(keys[i1]), factor);
         }
 
-        glm::vec3 interpolateScale(float animationTime) const {
-            if (scales.size() == 1) return scales[0].scale;
-            if (animationTime >= scales.back().time) return scales.back().scale;
-
-            int s0Index = 0;
-            for (size_t i = 0; i < scales.size() - 1; ++i) {
-                if (animationTime < scales[i + 1].time) {
-                    s0Index = i;
-                    break;
-                }
+        template <typename TKey, typename TAssimp, typename TExtract>
+        static std::vector<TKey> loadKeys(unsigned int count, TAssimp* keys, TExtract extract) {
+            std::vector<TKey> result;
+            result.reserve(count);
+            for (unsigned int i = 0; i < count; ++i) {
+                result.emplace_back(TKey{extract(keys[i]), static_cast<float>(keys[i].mTime)});
             }
-            int s1Index = s0Index + 1;
-            float deltaTime = scales[s1Index].time - scales[s0Index].time;
-            float factor = (animationTime - scales[s0Index].time) / deltaTime;
-            return glm::mix(scales[s0Index].scale, scales[s1Index].scale, factor);
+            return result;
         }
 
     public:
-        Bone(const std::string& name, BoneID id, const aiNodeAnim* channel) : name(name), id(id) {
-            boneName = channel->mNodeName.C_Str();
-
+        BoneAnimation(const std::string& name, BoneID id, const aiNodeAnim* channel) : name(name), id(id) {
             // Load position keyframes
-            for (unsigned int i = 0; i < channel->mNumPositionKeys; ++i) {
-                KeyPosition kp;
-                kp.position = glm::vec3(channel->mPositionKeys[i].mValue.x, channel->mPositionKeys[i].mValue.y,
-                                        channel->mPositionKeys[i].mValue.z);
-                kp.time = static_cast<float>(channel->mPositionKeys[i].mTime);
-                positions.push_back(kp);
-            }
+            positions = loadKeys<KeyPosition>(
+                channel->mNumPositionKeys, channel->mPositionKeys,
+                [](const aiVectorKey& k) { return glm::vec3(k.mValue.x, k.mValue.y, k.mValue.z); });
 
-            // Load rotation keyframes
-            for (unsigned int i = 0; i < channel->mNumRotationKeys; ++i) {
-                KeyRotation kr;
-                kr.rotation = glm::quat(channel->mRotationKeys[i].mValue.w, channel->mRotationKeys[i].mValue.x,
-                                        channel->mRotationKeys[i].mValue.y, channel->mRotationKeys[i].mValue.z);
-                kr.time = static_cast<float>(channel->mRotationKeys[i].mTime);
-                rotations.push_back(kr);
-            }
+            rotations = loadKeys<KeyRotation>(
+                channel->mNumRotationKeys, channel->mRotationKeys,
+                [](const aiQuatKey& k) { return glm::quat(k.mValue.w, k.mValue.x, k.mValue.y, k.mValue.z); });
 
-            // Load scale keyframes
-            for (unsigned int i = 0; i < channel->mNumScalingKeys; ++i) {
-                KeyScale ks;
-                ks.scale = glm::vec3(channel->mScalingKeys[i].mValue.x, channel->mScalingKeys[i].mValue.y,
-                                     channel->mScalingKeys[i].mValue.z);
-                ks.time = static_cast<float>(channel->mScalingKeys[i].mTime);
-                scales.push_back(ks);
-            }
+            scales = loadKeys<KeyScale>(channel->mNumScalingKeys, channel->mScalingKeys, [](const aiVectorKey& k) {
+                return glm::vec3(k.mValue.x, k.mValue.y, k.mValue.z);
+            });
         }
+
         glm::mat4 interpolate(float animationTime) const {
-            glm::vec3 interpolatedPosition = interpolatePosition(animationTime);
-            glm::quat interpolatedRotation = interpolateRotation(animationTime);
-            glm::vec3 interpolatedScale = interpolateScale(animationTime);
+            glm::vec3 interpolatedPosition = interpolateKeys(
+                positions, animationTime, [](auto a, auto b, float f) { return glm::mix(a, b, f); },
+                [](const KeyPosition& k) { return k.position; });
+            glm::quat interpolatedRotation = interpolateKeys(
+                rotations, animationTime, [](auto a, auto b, float f) { return glm::slerp(a, b, f); },
+                [](const KeyRotation& k) { return k.rotation; });
+            glm::vec3 interpolatedScale = interpolateKeys(
+                scales, animationTime, [](auto a, auto b, float f) { return glm::mix(a, b, f); },
+                [](const KeyScale& k) { return k.scale; });
 
             return glm::translate(glm::mat4(1.0f), interpolatedPosition) * glm::toMat4(interpolatedRotation) *
                    glm::scale(glm::mat4(1.0f), interpolatedScale);

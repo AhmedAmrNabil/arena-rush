@@ -240,8 +240,6 @@ add_executable(${PROJECT_NAME}
 
     src/common/model/model.cpp
 
-    src/common/animation/skeleton.cpp
-
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp

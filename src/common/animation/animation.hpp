@@ -16,7 +16,7 @@ namespace our {
     class Animation {
     public:
         std::string name;
-        std::unordered_map<BoneID, Bone> bones;
+        std::unordered_map<BoneID, BoneAnimation> bones;
         Skeleton& skeleton;
         float duration;  // in ticks
         float ticksPerSecond;
@@ -28,19 +28,18 @@ namespace our {
                 aiNodeAnim* channel = anim->mChannels[i];
                 std::string boneName = channel->mNodeName.C_Str();
 
-                // skip nodes that aren't bones (IK targets, camera nodes, etc.)
-                if (!skeleton.hasBone(boneName)) continue;
-
-                BoneID id = skeleton.getBoneID(boneName);
-                bones.emplace(id, Bone(boneName, id, channel));
+                // find or create because some bones are not referenced in the meshes but are still animated
+                // they don't contribute to mesh weights but they still affect the bones after them in the hierarchy
+                BoneID id = skeleton.findOrCreateBone(boneName, glm::mat4(1.0f));
+                bones.emplace(id, BoneAnimation(boneName, id, channel));
             }
         }
-        Bone& findBone(const std::string& name) {
+        BoneAnimation& findBone(const std::string& name) {
             auto it = bones.find(skeleton.getBoneID(name));
             if (it != bones.end()) {
                 return it->second;
             }
-            throw std::runtime_error("Bone not found: " + name);
+            throw std::runtime_error("BoneAnimation not found: " + name);
         }
     };
 }  // namespace our
