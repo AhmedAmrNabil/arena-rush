@@ -6,6 +6,8 @@ namespace gameplay {
 
     class PlayerComponent : public our::Component {
     public:
+        int currentAmmo = 30;
+        int maxAmmo = 120;
         static std::string getID() {
             return "Player";
         }
