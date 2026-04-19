@@ -15,6 +15,7 @@
 #include <systems/movement.hpp>
 #include <systems/player-movement-system.hpp>
 #include <systems/ui-renderer.hpp>
+#include <systems/post-process-effects-system.hpp>
 
 // This state shows how to use the ECS framework and deserialization.
 class Playstate : public our::State {
@@ -31,6 +32,7 @@ class Playstate : public our::State {
     gameplay::EnemySpawner enemySpawner;
     gameplay::EnemyHealthBarSystem enemyHealthBars;
     gameplay::PlayerMovementSystem playerMovement;
+    gameplay::PostProcessEffectsSystem postProcessEffects;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -110,6 +112,7 @@ class Playstate : public our::State {
         playerMovement.update(&world, dt, getApp());
         movementSystem.update(&world, dt);
         cameraController.update(&world, dt);
+        postProcessEffects.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
         enemyAI.update(&world, playerEntity, dt);

@@ -20,7 +20,7 @@ namespace gameplay {
         our::ComponentRegistry::registerType<HealthComponent>();
         our::ComponentRegistry::registerType<PlayerComponent>();
         our::ComponentRegistry::registerType<PlayerMovementComponent>();
-        our::ComponentRegistry::registerType<PostProcessEffectsComponent>();
+        our::ComponentRegistry::registerType<our::PostProcessEffectsComponent>();
 
         initialized = true;
     }

@@ -55,9 +55,8 @@ namespace gameplay {
         }
     }
 
-    void PlayerMovementSystem::handleDashing(PlayerMovementComponent* movement, our::Entity* playerEntity,
-                                             glm::vec3& playerPosition, our::Keyboard& keyboard,
-                                             const glm::vec3& frontXZ, float deltaTime) {
+    void PlayerMovementSystem::handleDashing(PlayerMovementComponent* movement, glm::vec3& playerPosition,
+                                             our::Keyboard& keyboard, const glm::vec3& frontXZ) {
         if (keyboard.justPressed(GLFW_KEY_Q) && movement->dashCooldownTimer <= 0) {
             glm::vec3 dashDirection = glm::normalize(frontXZ);
             if (glm::length(movement->velocity) > 0.001f) {
@@ -66,12 +65,7 @@ namespace gameplay {
             }
             playerPosition += dashDirection * movement->dashDistance;
             movement->dashCooldownTimer = movement->dashCooldown;
-            dashEffectTimer = DASH_EFFECT_DURATION;
-        }
-
-        if (dashEffectTimer > 0) dashEffectTimer -= deltaTime;
-        if (auto* effects = playerEntity->getComponent<PostProcessEffectsComponent>()) {
-            effects->uniforms["intensity"] = glm::max(0.0f, dashEffectTimer / DASH_EFFECT_DURATION);
+            movement->dashTriggeredThisFrame = true;
         }
     }
 
@@ -126,6 +120,7 @@ namespace gameplay {
         glm::vec3& playerPosition = playerEntity->localTransform.position;
 
         our::Keyboard& keyboard = app->getKeyboard();
+        movement->dashTriggeredThisFrame = false;
 
         if (movement->slideCooldownTimer > 0) movement->slideCooldownTimer -= deltaTime;
         if (movement->dashCooldownTimer > 0) movement->dashCooldownTimer -= deltaTime;
@@ -153,7 +148,7 @@ namespace gameplay {
 
         playerPosition += movement->velocity * deltaTime;
 
-        handleDashing(movement, playerEntity, playerPosition, keyboard, frontXZ, deltaTime);
+        handleDashing(movement, playerPosition, keyboard, frontXZ);
         handleJumpingAndGravity(movement, playerPosition, keyboard, deltaTime);
         handleHeightInterpolation(movement, playerPosition, deltaTime);
     }

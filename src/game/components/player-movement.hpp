@@ -33,6 +33,7 @@ namespace gameplay {
         float slideTimer = 0.0f;
         float slideCooldownTimer = 0.0f;
         float dashCooldownTimer = 0.0f;
+        bool dashTriggeredThisFrame = false;
         float verticalVelocity = 0.0f;
         bool isGrounded = true;
 

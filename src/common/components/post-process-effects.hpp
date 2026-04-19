@@ -4,11 +4,10 @@
 #include <string>
 #include <unordered_map>
 
-namespace gameplay {
+namespace our {
 
-    // values set in gameplay and renderer sets them for the current postprocess shader
-    // (if we need more than one process shader, the renderer needs a way to know which shader the values are for)
-    class PostProcessEffectsComponent : public our::Component {
+    // values set by gameplay and read by the renderer for the active postprocess shader
+    class PostProcessEffectsComponent : public Component {
     public:
         std::unordered_map<std::string, float> uniforms;
 
@@ -19,4 +18,4 @@ namespace gameplay {
         void deserialize(const nlohmann::json& data) override {}
     };
 
-}  // namespace gameplay
+}  // namespace our
