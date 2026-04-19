@@ -7,7 +7,7 @@ namespace gameplay {
     class HealthComponent : public our::Component {
     public:
         float maxHealth = 100.0f;
-        float currentHealth = 100.0f;
+        float currentHealth = 75.0f;
         float invulnerabilityTimer = 0.0f;
         bool isDead = false;
 

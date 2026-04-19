@@ -18,6 +18,7 @@
 class Playstate : public our::State {
     our::World world;
     our::ForwardRenderer renderer;
+    our::TextRenderer textRenderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
     ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
@@ -88,6 +89,7 @@ class Playstate : public our::State {
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+        textRenderer.initialize();
         collisionSystem.initialize();
 
         enemySpawner.deserialize(config);
@@ -106,7 +108,7 @@ class Playstate : public our::State {
         // And finally we use the renderer system to draw the scene
         collisionSystem.update(&world);
         renderer.render(&world);
-        playerHud.render(&world,playerEntity,  getApp()->getFrameBufferSize());
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer);
 
 #ifdef COLLISION_DEBUG_DRAW
         // Toggle debug draw with F3
@@ -151,6 +153,7 @@ class Playstate : public our::State {
     void onDestroy() override {
         collisionSystem.destroy();
         renderer.destroy();
+        textRenderer.destroy();
         playerHud.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
