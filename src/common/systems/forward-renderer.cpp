@@ -288,7 +288,6 @@ namespace our {
         // render weapon at the end with depth testing cleared
         glClear(GL_DEPTH_BUFFER_BIT);
         for (const RenderCommand& command : weaponCommands) {
-            command.material->pipelineState.depthMask = false;
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
