@@ -240,6 +240,8 @@ add_executable(${PROJECT_NAME}
 
     src/common/model/model.cpp
 
+    src/common/animation/skeleton.cpp
+
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp
@@ -257,6 +259,7 @@ add_executable(${PROJECT_NAME}
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
     src/common/components/light.cpp
+    src/common/components/animation.cpp
 
     src/game/components/collider.cpp
     src/game/components/enemy.cpp
@@ -272,6 +275,7 @@ add_executable(${PROJECT_NAME}
 
     src/common/systems/forward-renderer.cpp
     src/common/systems/audio-system.cpp
+    src/common/systems/animation-system.cpp
 
     src/common/audio/audio-utils.cpp
     src/common/components/audio-source.cpp

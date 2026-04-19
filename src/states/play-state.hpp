@@ -7,6 +7,8 @@
 #include <components/health.hpp>
 #include <components/player.hpp>
 #include <ecs/world.hpp>
+#include <systems/animation-system.hpp>
+#include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
 #include <systems/crosshair-renderer.hpp>
 #include <systems/enemy-ai.hpp>
@@ -26,6 +28,7 @@ class Playstate : public our::State {
     our::World world;
     our::ForwardRenderer renderer;
     our::UIRenderer uiRenderer;
+    our::AnimationSystem animationSystem;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
 
@@ -156,6 +159,7 @@ public:
         }
 
         postProcessEffects.update(&world, dt);
+        animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
         // Rendering

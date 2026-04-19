@@ -11,9 +11,10 @@ namespace our {
     // transformation of the owning entity.
     class MeshRendererComponent : public Component {
     public:
-        Mesh* mesh;           // The mesh that should be drawn
-        Material* material;   // The material used to draw the mesh
-        glm::mat4 transform;  // The transformation of the mesh relative to parent
+        Mesh* mesh;             // The mesh that should be drawn
+        Material* material;     // The material used to draw the mesh
+        glm::mat4 transform;    // The transformation of the mesh relative to parent
+        bool hasBones = false;  // True if this mesh has bone weights for skinning
 
         // The ID of this component type is "Mesh Renderer"
         static std::string getID() {

@@ -10,6 +10,9 @@
 #include <texture/texture2d.hpp>
 #include <vector>
 
+#include "animation/animation.hpp"
+#include "animation/bone.hpp"
+#include "animation/skeleton.hpp"
 #include "components/mesh-renderer.hpp"
 #include "material/material.hpp"
 
@@ -21,15 +24,18 @@ namespace our {
 
         void processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform);
         MeshRendererComponent* processMesh(aiMesh* mesh, const aiScene* scene);
-        void processVertexBoneData(aiMesh* mesh, std::vector<Vertex>& vertices);
+        void processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
         void loadMaterialsFromScene(const aiScene* scene);
         LitMaterial* loadMaterial(const aiScene* scene, const aiMaterial* mat);
         Texture2D* loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type);
         void generateCombinedMesh();  // will be used for collision detection and other non-rendering purposes
         Mesh* combinedMesh;           // a single mesh that combines all the submeshes of this model (used for collision
                                       // detection and other non-rendering purposes)
-
+        void setVertexBoneData(Vertex& vertex, BoneID boneID, float weight);
+        Skeleton* skeleton = nullptr;  // will be nullptr if the model has no animations
     public:
+        std::unordered_map<std::string, Animation>
+            animations;  // maps animation names to their corresponding Animation objects
         Model(const std::string& name) {
             this->name = name;
         };
@@ -38,6 +44,9 @@ namespace our {
         }
         Mesh* getCombinedMesh() const {
             return combinedMesh;
+        }
+        bool hasSkeleton() const {
+            return skeleton != nullptr;
         }
         ~Model();
         void loadFromFile(const std::string& path);

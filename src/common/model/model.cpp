@@ -25,9 +25,8 @@ namespace our {
                                   aiProcess_GenSmoothNormals |  // better than GenNormals, uses smoothing angles
 
                                   // Optimization
-                                  aiProcess_JoinIdenticalVertices |  // reduce vertex count
-                                  aiProcess_OptimizeMeshes |         // reduce draw calls
-                                  aiProcess_ImproveCacheLocality |   // better GPU cache usage
+                                  aiProcess_OptimizeMeshes |        // reduce draw calls
+                                  aiProcess_ImproveCacheLocality |  // better GPU cache usage
 
                                   // Skeletal
                                   aiProcess_LimitBoneWeights |      // limit to 4 weights per vertex (GPU standard)
@@ -48,8 +47,21 @@ namespace our {
         this->modelDirectory = path.substr(0, path.find_last_of('/'));
 
         loadMaterialsFromScene(scene);
+        if (scene->HasAnimations()) {
+            skeleton = new Skeleton();
+        }
         glm::mat4 identity(1.0f);
         processNode(scene->mRootNode, scene, identity);
+
+        if (skeleton) skeleton->buildHierarchy(scene->mRootNode);
+        for (int i = 0; i < scene->mNumAnimations; ++i) {
+            std::string animName = scene->mAnimations[i]->mName.C_Str();
+            if (animName.empty()) {
+                animName = "Anim_" + std::to_string(i);
+            }
+            animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
+            std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
+        }
         generateCombinedMesh();
     }
 
@@ -112,7 +124,7 @@ namespace our {
             vertices[i] = v;
         }
 
-        processVertexBoneData(mesh, vertices);
+        processVertexBoneData(vertices, mesh, scene);
 
         // process indices
         for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
@@ -133,6 +145,7 @@ namespace our {
         MeshRendererComponent* meshComponent = new MeshRendererComponent();
         meshComponent->mesh = ourMesh;
         meshComponent->material = material;
+        meshComponent->hasBones = mesh->HasBones();
         return meshComponent;
     }
 
@@ -329,12 +342,55 @@ namespace our {
         return texture;
     }
 
-    struct BoneInfo {
-        glm::mat4 offsetMatrix;
-    };
+    void Model::setVertexBoneData(Vertex& vertex, BoneID boneID, float weight) {
+        for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+            if (vertex.bone_ids[i] < 0) {
+                vertex.bone_ids[i] = boneID;
+                vertex.weights[i] = weight;
+                return;
+            }
+        }
+        // If we reach here, it means we have more than MAX_BONE_INFLUENCE bones affecting this vertex
+        // We will ignore the extra bones and just print a warning
+        std::cerr << "Warning: Vertex has more than " << MAX_BONE_INFLUENCE
+                  << " bone influences. Extra influences will be ignored." << std::endl;
+    }
 
-    void Model::processVertexBoneData(aiMesh* mesh, std::vector<Vertex>& vertices) {
-        // will be implemented correctly later with the animation system
+    void Model::processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene) {
+        if (!skeleton) return;  // if the model has no animations, we won't have a skeleton to store the bone data in
+        for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+            aiBone* bone = mesh->mBones[boneIndex];
+            std::string boneName(bone->mName.C_Str());
+
+            BoneID boneID = skeleton->findOrCreateBone(boneName, bone->mOffsetMatrix);
+
+            auto weights = bone->mWeights;
+            int numWeights = bone->mNumWeights;
+
+            for (unsigned int j = 0; j < bone->mNumWeights; ++j) {
+                auto boneWeight = bone->mWeights[j];
+                unsigned int vertexID = boneWeight.mVertexId;
+                float weight = boneWeight.mWeight;
+                setVertexBoneData(vertices[vertexID], boneID, weight);
+            }
+        }
+
+        for (Vertex& vertex : vertices) {
+            float weightSum = 0.0f;
+            for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+                if (vertex.bone_ids[i] >= 0) {
+                    weightSum += vertex.weights[i];
+                }
+            }
+            if (weightSum > 0.0f) {
+                float invSum = 1.0f / weightSum;
+                for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+                    if (vertex.bone_ids[i] >= 0) {
+                        vertex.weights[i] *= invSum;
+                    }
+                }
+            }
+        }
     }
 
     void Model::generateCombinedMesh() {

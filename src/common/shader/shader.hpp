@@ -68,6 +68,13 @@ namespace our {
             glUniformMatrix4fv(getUniformLocation(uniform), 1, GL_FALSE, glm::value_ptr(matrix));
         }
 
+        void bindUniformBlock(const std::string& blockName, GLuint binding) {
+            GLuint index = glGetUniformBlockIndex(program, blockName.c_str());
+            if (index != GL_INVALID_INDEX) {
+                glUniformBlockBinding(program, index, binding);
+            }
+        }
+
         ShaderProgram(const ShaderProgram&) = delete;
         ShaderProgram& operator=(const ShaderProgram&) = delete;
         // Question: Why do we delete the copy constructor and assignment operator?
