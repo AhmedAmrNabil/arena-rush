@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/gl.h>
+#include <glm/glm.hpp>
 
 namespace our {
 
@@ -18,6 +19,10 @@ namespace our {
     class Texture2D {
         // The OpenGL object name of this texture
         GLuint name = 0;
+        
+        // Needed for the text renderer, we use atlas textures so we calculate the UVs from the size
+        int width = 0;
+        int height = 0;
 
     public:
         // This constructor creates an OpenGL texture
@@ -30,8 +35,13 @@ namespace our {
             glDeleteTextures(1, &name);
         }
 
+        void setSize(int w, int h) { width = w; height = h; }
+        int getWidth() const { return width; }
+        int getHeight() const { return height; }
+        glm::ivec2 getSize() const { return {width, height}; }
+
         // Get the internal OpenGL name of the texture which is useful for use with framebuffers
-        GLuint getOpenGLName() {
+        GLuint getOpenGLName() const {
             return name;
         }
 

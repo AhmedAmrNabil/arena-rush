@@ -8,6 +8,7 @@
 namespace {
     our::Texture2D* uploadImage(unsigned char* pixels, glm::ivec2 size, bool generate_mipmap) {
         our::Texture2D* texture = new our::Texture2D();
+        texture->setSize(size.x, size.y);
         texture->bind();
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -22,6 +23,7 @@ namespace {
 
 our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size) {
     our::Texture2D* texture = new our::Texture2D();
+    texture->setSize(size.x, size.y);
     texture->bind();
     glTexStorage2D(GL_TEXTURE_2D, 1, format, size.x, size.y);
     texture->unbind();
