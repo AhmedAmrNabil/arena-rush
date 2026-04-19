@@ -6,6 +6,7 @@
 #include <audio/audio-buffer.hpp>
 #include <audio/audio-utils.hpp>
 #include <functional>
+#include <glm/common.hpp>
 #include <material/material.hpp>
 #include <mesh/mesh.hpp>
 #include <shader/shader.hpp>
@@ -13,11 +14,9 @@
 #include <texture/texture2d.hpp>
 
 // This struct is used to store the location and size of a button and the code it should execute when clicked
-struct Button {
+struct PixelRect {
     // The position (of the top-left corner) of the button and its size in pixels
     glm::vec2 position, size;
-    // The function that should be excuted when the button is clicked. It takes no arguments and returns nothing.
-    std::function<void()> action;
 
     // This function returns true if the given vector v is inside the button. Otherwise, false is returned.
     // This is used to check if the mouse is hovering over the button.
@@ -33,6 +32,19 @@ struct Button {
     }
 };
 
+// Button using normalized coordinates.
+struct Button {
+    glm::vec2 normalizedPosition, normalizedSize;
+    std::function<void()> action;
+
+    PixelRect getPixelRect(const PixelRect& menuRect) const {
+        return {
+            menuRect.position + normalizedPosition * menuRect.size,
+            normalizedSize * menuRect.size,
+        };
+    }
+};
+
 // This state shows how to use some of the abstractions we created to make a menu.
 class Menustate : public our::State {
     // A meterial holding the menu shader and the menu texture to draw
@@ -45,6 +57,31 @@ class Menustate : public our::State {
     float time;
     // An array of the button that we can interact with
     std::array<Button, 2> buttons;
+
+    static PixelRect getMenuRect(glm::ivec2 framebufferSize) {
+        glm::vec2 viewportSize(framebufferSize);
+        constexpr float menuAspectRatio = 16.0f / 9.0f;
+
+        glm::vec2 contentSize = viewportSize;
+        if (viewportSize.x / viewportSize.y > menuAspectRatio) {
+            contentSize.x = viewportSize.y * menuAspectRatio;
+        } else {
+            contentSize.y = viewportSize.x / menuAspectRatio;
+        }
+
+        return {(viewportSize - contentSize) * 0.5f, contentSize};
+    }
+
+    glm::vec2 getMousePositionInFramebuffer(glm::ivec2 framebufferSize) {
+        glm::vec2 mousePosition = getApp()->getMouse().getMousePosition();
+        glm::ivec2 windowSize = getApp()->getWindowSize();
+        if (windowSize.x <= 0 || windowSize.y <= 0) return mousePosition;
+
+        return {
+            mousePosition.x * framebufferSize.x / static_cast<float>(windowSize.x),
+            mousePosition.y * framebufferSize.y / static_cast<float>(windowSize.y),
+        };
+    }
 
     our::AudioBuffer* menuMusic = nullptr;
     our::AudioBuffer* menuSelectSound = nullptr;
@@ -112,12 +149,12 @@ class Menustate : public our::State {
         // - The argument list () which is the arguments that the lambda should receive when it is called.
         //      We leave it empty since button actions receive no input.
         // - The body {} which contains the code to be executed.
-        buttons[0].position = {830.0f, 607.0f};
-        buttons[0].size = {400.0f, 33.0f};
+        buttons[0].normalizedPosition = {0.6484375f, 0.8430556f};
+        buttons[0].normalizedSize = {0.3125f, 0.0458333f};
         buttons[0].action = [this]() { this->getApp()->changeState("play"); };
 
-        buttons[1].position = {830.0f, 644.0f};
-        buttons[1].size = {400.0f, 33.0f};
+        buttons[1].normalizedPosition = {0.6484375f, 0.8944444f};
+        buttons[1].normalizedSize = {0.3125f, 0.0458333f};
         buttons[1].action = [this]() { this->getApp()->close(); };
 
         // TODO: Maybe load them in application.cpp or serialize them from the config json
@@ -138,22 +175,27 @@ class Menustate : public our::State {
             getApp()->close();
         }
 
-        // Get a reference to the mouse object and get the current mouse position
+        glm::ivec2 size = getApp()->getFrameBufferSize();
+        PixelRect menuRect = getMenuRect(size);
+
+        // Get a reference to the mouse object and convert the current mouse position to framebuffer coordinates.
         auto& mouse = getApp()->getMouse();
-        glm::vec2 mousePosition = mouse.getMousePosition();
+        glm::vec2 mousePosition = getMousePositionInFramebuffer(size);
 
         // If the mouse left-button is just pressed, check if the mouse was inside
         // any menu button. If it was inside a menu button, run the action of the button.
         if (mouse.justPressed(0)) {
             for (auto& button : buttons) {
-                if (button.isInside(mousePosition)) button.action();
+                if (button.getPixelRect(menuRect).isInside(mousePosition)) button.action();
             }
         }
 
-        // Get the framebuffer size to set the viewport and the create the projection matrix.
-        glm::ivec2 size = getApp()->getFrameBufferSize();
         // Make sure the viewport covers the whole size of the framebuffer.
         glViewport(0, 0, size.x, size.y);
+
+        // Clear to black so any space around the aspect-preserved menu image stays black
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // The view matrix is an identity (there is no camera that moves around).
         // The projection matrix applys an orthographic projection whose size is the framebuffer size in pixels
@@ -161,16 +203,13 @@ class Menustate : public our::State {
         // Note that the top is at 0.0 and the bottom is at the framebuffer height. This allows us to consider the
         // top-left corner of the window to be the origin which makes dealing with the mouse input easier.
         glm::mat4 VP = glm::ortho(0.0f, (float)size.x, (float)size.y, 0.0f, 1.0f, -1.0f);
-        // The local to world (model) matrix of the background which is just a scaling matrix to make the menu cover the
-        // whole window. Note that we defind the scale in pixels.
-        glm::mat4 M = glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
+        // The local to world (model) matrix of the background draws the menu inside an aspect-preserved content area.
+        glm::mat4 M = menuRect.getLocalToWorld();
 
         // First, we apply the fading effect.
         time += (float)deltaTime;
         menuMaterial->tint = glm::vec4(glm::smoothstep(0.00f, 2.00f, time));
         // Then we render the menu background
-        // Notice that I don't clear the screen first, since I assume that the menu rectangle will draw over the whole
-        // window anyway.
         menuMaterial->setup();
         menuMaterial->shader->set("transform", VP * M);
         rectangle->draw();
@@ -178,7 +217,7 @@ class Menustate : public our::State {
         // Determine which button (if any) the mouse is currently over
         int currentlyHovered = -1;
         for (int i = 0; i < (int)buttons.size(); i++) {
-            if (buttons[i].isInside(mousePosition)) {
+            if (buttons[i].getPixelRect(menuRect).isInside(mousePosition)) {
                 currentlyHovered = i;
                 break;
             }
@@ -192,8 +231,9 @@ class Menustate : public our::State {
 
         // Draw the highlight rectangle over the hovered button
         if (currentlyHovered != -1) {
+            PixelRect hoveredRect = buttons[currentlyHovered].getPixelRect(menuRect);
             highlightMaterial->setup();
-            highlightMaterial->shader->set("transform", VP * buttons[currentlyHovered].getLocalToWorld());
+            highlightMaterial->shader->set("transform", VP * hoveredRect.getLocalToWorld());
             rectangle->draw();
         }
     }

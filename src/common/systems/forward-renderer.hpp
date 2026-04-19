@@ -43,6 +43,8 @@ namespace our {
         TexturedMaterial* postprocessMaterial;
         std::vector<LightRenderData> sceneLights;
 
+        void resizePostprocess(glm::ivec2 size);
+
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.
         // windowSize is the width & height of the window (in pixels).
@@ -50,7 +52,7 @@ namespace our {
         // Clean up the renderer
         void destroy();
         // This function should be called every frame to draw the given world
-        void render(World* world);
+        void render(World* world, glm::ivec2 windowSize);
     };
 
 }  // namespace our

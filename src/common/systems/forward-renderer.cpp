@@ -5,6 +5,24 @@
 
 namespace our {
 
+    void ForwardRenderer::resizePostprocess(glm::ivec2 size) {
+        if (!postprocessMaterial) return;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
+
+        colorTarget->bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTarget->getOpenGLName(), 0);
+
+        depthTarget->bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size.x, size.y, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,
+                     nullptr);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTarget->getOpenGLName(), 0);
+
+        Texture2D::unbind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
     void ForwardRenderer::initialize(glm::ivec2 windowSize, const nlohmann::json& config) {
         // First, we store the window size for later use
         this->windowSize = windowSize;
@@ -54,21 +72,8 @@ namespace our {
         // Then we check if there is a postprocessing shader in the configuration
         if (config.contains("postprocess")) {
             glGenFramebuffers(1, &postprocessFrameBuffer);
-            glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
             colorTarget = new Texture2D();
-            colorTarget->bind();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, windowSize.x, windowSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTarget->getOpenGLName(),
-                                   0);
-            colorTarget->unbind();
-
             depthTarget = new Texture2D();
-            depthTarget->bind();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, windowSize.x, windowSize.y, 0, GL_DEPTH_COMPONENT,
-                         GL_UNSIGNED_INT, nullptr);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTarget->getOpenGLName(), 0);
-            depthTarget->unbind();
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // Create a vertex array to use for drawing the texture
             glGenVertexArrays(1, &postProcessVertexArray);
@@ -94,6 +99,8 @@ namespace our {
             // The default options are fine but we don't need to interact with the depth buffer
             // so it is more performant to disable the depth mask
             postprocessMaterial->pipelineState.depthMask = false;
+
+            resizePostprocess(windowSize);
         }
     }
 
@@ -125,7 +132,13 @@ namespace our {
         }
     }
 
-    void ForwardRenderer::render(World* world) {
+    void ForwardRenderer::render(World* world, glm::ivec2 windowSize) {
+        if (windowSize.x <= 0 || windowSize.y <= 0) return;
+        if (this->windowSize != windowSize) {
+            this->windowSize = windowSize;
+            resizePostprocess(windowSize);
+        }
+
         // First of all, we search for a camera and for all the mesh renderers
         CameraComponent* camera = nullptr;
         opaqueCommands.clear();

@@ -136,8 +136,7 @@ void our::Application::configureOpenGL() {
     // This is necessary for some platforms
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    // Make window size fixed (User can't resize it)
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     // Set Number of sample used in MSAA (0 = Disabled)
     glfwWindowHint(GLFW_SAMPLES, 0);

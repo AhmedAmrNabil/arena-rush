@@ -31,10 +31,11 @@ class RendererTestState : public our::State {
 
     void onDraw(double deltaTime) override {
         // We simply call the renderer's "render" function and it should do all the rendering work
-        renderer.render(&world);
+        renderer.render(&world, getApp()->getFrameBufferSize());
     }
 
     void onDestroy() override {
+        renderer.destroy();
         world.clear();
         our::clearAllAssets();
     }
