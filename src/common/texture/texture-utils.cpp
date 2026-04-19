@@ -7,6 +7,7 @@
 
 our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size) {
     our::Texture2D* texture = new our::Texture2D();
+    texture->setSize(size.x, size.y);
     texture->bind();
     glTexStorage2D(GL_TEXTURE_2D, 1, format, size.x, size.y);
     texture->unbind();
@@ -34,6 +35,7 @@ our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool 
     }
     // Create a texture
     our::Texture2D* texture = new our::Texture2D();
+    texture->setSize(size.x, size.y);
     // Bind the texture such that we upload the image data to its storage
     texture->bind();
 
