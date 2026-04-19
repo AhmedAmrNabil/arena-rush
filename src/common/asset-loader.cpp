@@ -6,6 +6,7 @@
 #include "material/material.hpp"
 #include "mesh/mesh-utils.hpp"
 #include "mesh/mesh.hpp"
+#include "model/model.hpp"
 #include "shader/shader.hpp"
 #include "texture/sampler.hpp"
 #include "texture/texture-utils.hpp"
@@ -124,6 +125,17 @@ namespace our {
                 assets[name] = light;
             }
         }
+    }
+
+    template <>
+    void AssetLoader<our::Model>::deserialize(const nlohmann::json& data) {
+        if (data.is_object()) {
+            for (auto& [name, desc] : data.items()) {
+                auto model = new our::Model(name);
+                model->loadFromFile(desc.get<std::string>());
+                assets[name] = model;
+            }
+        }
     };
 
     void deserializeAllAssets(const nlohmann::json& assetData) {
@@ -135,6 +147,7 @@ namespace our {
         if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
         if (assetData.contains("sounds")) AssetLoader<AudioBuffer>::deserialize(assetData["sounds"]);
         if (assetData.contains("lights")) AssetLoader<our::Light>::deserialize(assetData["lights"]);
+        if (assetData.contains("models")) AssetLoader<our::Model>::deserialize(assetData["models"]);
         // setting some default assets if something is missing
         if (!AssetLoader<Sampler>::get("default")) {
             Sampler* defaultSampler = new Sampler();
@@ -149,6 +162,7 @@ namespace our {
         AssetLoader<Mesh>::clear();
         AssetLoader<Material>::clear();
         AssetLoader<AudioBuffer>::clear();
+        AssetLoader<our::Model>::clear();
     }
 
 }  // namespace our

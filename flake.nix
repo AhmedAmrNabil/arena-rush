@@ -30,6 +30,7 @@
           openal-soft
           bullet
           glfw
+          assimp
 
           # Wayland
           wayland

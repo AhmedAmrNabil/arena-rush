@@ -11,6 +11,8 @@ namespace our {
 #define ATTRIB_LOC_TEXCOORD 2
 #define ATTRIB_LOC_NORMAL 3
 #define ATTRIB_LOC_TANGENT 4
+#define ATTRIB_LOC_BONE_IDS 5
+#define ATTRIB_LOC_BONE_WEIGHTS 6
 
     class Mesh {
         // Here, we store the object names of the 3 main components of a mesh:
@@ -19,8 +21,18 @@ namespace our {
         unsigned int VAO;
         // We need to remember the number of elements that will be draw by glDrawElements
         GLsizei elementCount;
+        GLsizei vertexCount;
+        std::vector<Vertex> vertices;  // Store vertices for potential future use (e.g., collision, CPU-side processing)
+        std::vector<unsigned int> indices;  // Store indices for potential future use
 
     public:
+        GLsizei getVertexCount() const {
+            return vertexCount;
+        }
+
+        GLsizei getIndexCount() const {
+            return elementCount;
+        }
         // The constructor takes two vectors:
         // - vertices which contain the vertex data.
         // - elements which contain the indices of the vertices out of which each rectangle will be constructed.
@@ -59,6 +71,13 @@ namespace our {
                                   (void*)offsetof(Vertex, tangent));
             glEnableVertexAttribArray(ATTRIB_LOC_TANGENT);
 
+            glVertexAttribIPointer(ATTRIB_LOC_BONE_IDS, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, bone_ids));
+            glEnableVertexAttribArray(ATTRIB_LOC_BONE_IDS);
+
+            glVertexAttribPointer(ATTRIB_LOC_BONE_WEIGHTS, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                  (void*)offsetof(Vertex, weights));
+            glEnableVertexAttribArray(ATTRIB_LOC_BONE_WEIGHTS);
+
             // Generate EBO and send indices of vertices
             glGenBuffers(1, &EBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -71,6 +90,9 @@ namespace our {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
             elementCount = static_cast<GLsizei>(elements.size());
+            vertexCount = static_cast<GLsizei>(vertices.size());
+            this->vertices = vertices;
+            this->indices = elements;
         }
 
         // this function should render the mesh
@@ -84,6 +106,14 @@ namespace our {
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
             glDeleteVertexArrays(1, &VAO);
+        }
+
+        const std::vector<Vertex>& getVertices() const {
+            return vertices;
+        }
+
+        const std::vector<unsigned int>& getIndices() const {
+            return indices;
         }
 
         Mesh(Mesh const&) = delete;

@@ -1,5 +1,6 @@
 #include "forward-renderer.hpp"
 
+#include "../components/model-renderer.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 
@@ -179,6 +180,22 @@ namespace our {
                 lightData.spotAngles = light->spotAngles;
                 sceneLights.push_back(lightData);
             }
+
+            if (auto modelRenderer = entity->getComponent<ModelRendererComponent>(); modelRenderer) {
+                glm::mat4 modelMatrix = modelRenderer->getOwner()->getLocalToWorldMatrix();
+                for (MeshRendererComponent* submesh : modelRenderer->model->getSubmeshes()) {
+                    RenderCommand command;
+                    command.localToWorld = modelMatrix * submesh->transform;
+                    command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
+                    command.mesh = submesh->mesh;
+                    command.material = submesh->material;
+                    if (command.material->transparent) {
+                        transparentCommands.push_back(command);
+                    } else {
+                        opaqueCommands.push_back(command);
+                    }
+                }
+            }
         }
 
         // If there is no camera, we return (we cannot render without a camera)
@@ -244,6 +261,7 @@ namespace our {
             skyMaterial->shader->set("transform", alwaysBehindTransform * VP * model);
             skySphere->draw();
         }
+
         // draw all the transparent commands
         for (const RenderCommand& command : transparentCommands) {
             command.material->setup();

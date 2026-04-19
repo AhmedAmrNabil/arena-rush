@@ -9,5 +9,6 @@ namespace our {
         // Notice how we just get a string from the json file and pass it to the AssetLoader to get us the actual asset
         mesh = AssetLoader<Mesh>::get(data["mesh"].get<std::string>());
         material = AssetLoader<Material>::get(data["material"].get<std::string>());
+        transform = glm::mat4(1.0f);  // default value for the transform is the identity matrix
     }
 }  // namespace our

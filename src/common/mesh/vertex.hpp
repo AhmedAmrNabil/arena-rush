@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
+#define MAX_BONE_INFLUENCE 4
 namespace our {
 
     // Since we may want to store colors in bytes instead of floats for efficiency,
@@ -14,8 +15,11 @@ namespace our {
         Color color;          // The vertex color
         glm::vec2 tex_coord;  // The texture coordinates (the vertex position in the texture space)
         glm::vec3 normal;     // The surface normal at the vertex (This will be used for lighting in the final phase)
-        glm::vec3
+        glm::vec4
             tangent;  // The surface tangent at the vertex (This will be used for normal mapping in the final phase)
+        int bone_ids[MAX_BONE_INFLUENCE];  // The IDs of the bones that affect this vertex (up to 4 bones per vertex)
+        float
+            weights[MAX_BONE_INFLUENCE];  // The weights of the bones that affect this vertex (up to 4 bones per vertex)
 
         // We plan to use this as a key for a map so we need to define the equality operator
         bool operator==(const Vertex& other) const {

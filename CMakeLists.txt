@@ -31,11 +31,13 @@ option(USE_SYSTEM_LIBS "Use system-installed libraries instead of the bundled ve
 option(USE_SYSTEM_OPENAL "Use system-installed OpenAL-Soft instead of the bundled version" $ENV{USE_SYSTEM_OPENAL})
 option(USE_SYSTEM_BULLET "Use system-installed Bullet3 instead of the bundled version" $ENV{USE_SYSTEM_BULLET})
 option(USE_SYSTEM_GLFW "Use system-installed GLFW instead of the bundled version" $ENV{USE_SYSTEM_GLFW})
+option(USE_SYSTEM_ASSIMP "Use system-installed Assimp instead of the bundled version" $ENV{USE_SYSTEM_ASSIMP})
 
 if(USE_SYSTEM_LIBS)
     set(USE_SYSTEM_OPENAL ON CACHE BOOL "" FORCE)
     set(USE_SYSTEM_BULLET ON CACHE BOOL "" FORCE)
     set(USE_SYSTEM_GLFW ON CACHE BOOL "" FORCE)
+    set(USE_SYSTEM_ASSIMP ON CACHE BOOL "" FORCE)
 endif()
 
 # ---- Vendor Libraries ----
@@ -160,6 +162,29 @@ if(USE_VENDOR_OPENAL)
     add_subdirectory(vendor/openal-soft)
 endif()
 
+# ---- Assimp ----
+set(USE_VENDOR_ASSIMP ON CACHE BOOL "" FORCE)
+if(USE_SYSTEM_ASSIMP)
+    find_package(assimp QUIET)
+    if(assimp_FOUND)
+        message(STATUS "Using system-installed Assimp: ${assimp_VERSION}")
+        set(USE_VENDOR_ASSIMP OFF CACHE BOOL "" FORCE)
+    else()
+        message(STATUS "Using bundled Assimp")
+    endif()
+endif()
+
+if(USE_VENDOR_ASSIMP)
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+    add_subdirectory(vendor/assimp)
+endif()
+
 # ---- GLAD ----
 add_library(glad STATIC
     vendor/glad/src/gl.c
@@ -213,6 +238,8 @@ add_executable(${PROJECT_NAME}
 
     src/common/mesh/mesh-utils.cpp
 
+    src/common/model/model.cpp
+
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp
@@ -226,6 +253,7 @@ add_executable(${PROJECT_NAME}
 
     src/common/components/camera.cpp
     src/common/components/mesh-renderer.cpp
+    src/common/components/model-renderer.cpp
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
     src/common/components/light.cpp
@@ -264,6 +292,7 @@ target_link_libraries(${PROJECT_NAME}
         BulletCollision
         BulletSoftBody
         LinearMath
+        assimp::assimp
 )
 
 if(USE_SYSTEM_OPENAL AND OpenAL_FOUND)
@@ -275,6 +304,13 @@ else()
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
         OpenAL
+    )
+endif()
+
+if(USE_SYSTEM_ASSIMP AND assimp_FOUND)
+    target_include_directories(${PROJECT_NAME}
+        PRIVATE
+            ${assimp_INCLUDE_DIRS}
     )
 endif()
 
