@@ -94,7 +94,6 @@ namespace our {
         void setup() const override;
         void setup(const std::vector<our::LightRenderData>& lights) const;
         void deserialize(const nlohmann::json& data) override;
-        void print() const;
         virtual ~LitMaterial() = default;
     };
 
