@@ -35,7 +35,8 @@ namespace our {
             // Generate VBO and send data
             glGenBuffers(1, &VBO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), isDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(),
+                         isDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
             // Setting all the vertex attribute pointers
             glVertexAttribPointer(ATTRIB_LOC_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -80,17 +81,18 @@ namespace our {
 
         void update(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
             if (!isDynamic) return;
-            
+
             glBindVertexArray(VAO);
-            
+
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
-            
+
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(), GL_DYNAMIC_DRAW);
-            
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
+                         GL_DYNAMIC_DRAW);
+
             elementCount = static_cast<GLsizei>(elements.size());
-            
+
             glBindVertexArray(0);
         }
 

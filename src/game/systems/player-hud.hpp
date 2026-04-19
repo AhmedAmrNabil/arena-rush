@@ -18,9 +18,9 @@ namespace gameplay {
 
         our::Font testFont;
 
-        our::UIRect weaponRect     = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 20.0f}, {80.0f, 80.0f} };
-        our::UIRect healthBarRect  = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 115.0f}, {160.0f, 9.0f} };
-        our::UIRect ammoTextRect   = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-34.0f, 78.0f}, {0.0f, 0.0f} };
+        our::UIRect weaponRect = {{1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 20.0f}, {80.0f, 80.0f}};
+        our::UIRect healthBarRect = {{1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 115.0f}, {160.0f, 9.0f}};
+        our::UIRect ammoTextRect = {{1.0f, 0.0f}, {1.0f, 0.0f}, {-34.0f, 78.0f}, {0.0f, 0.0f}};
 
         float outlineThickness = 3.0f;
         float textScale = 0.3f;
@@ -34,7 +34,8 @@ namespace gameplay {
     public:
         void initialize();
         void deserialize(const nlohmann::json& data);
-        void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize, our::TextRenderer* textRenderer);
+        void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
+                    our::TextRenderer* textRenderer);
         void destroy();
     };
 

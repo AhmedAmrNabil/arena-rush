@@ -1,4 +1,5 @@
 #include "text-renderer.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace our {
@@ -21,7 +22,8 @@ namespace our {
         material->pipelineState.blending.destinationFactor = GL_ONE_MINUS_SRC_ALPHA;
     }
 
-    void TextRenderer::drawText(Font* font, const std::string& text, float startX, float startY, float scale, const glm::mat4& VP, glm::vec4 color) {
+    void TextRenderer::drawText(Font* font, const std::string& text, float startX, float startY, float scale,
+                                const glm::mat4& VP, glm::vec4 color) {
         if (!font || !font->getTexture() || text.empty()) return;
 
         std::vector<Vertex> vertices;
@@ -52,9 +54,9 @@ namespace our {
 
             // Calculate the Texture Coordinates from the BMFont Atlas
             float u0 = (float)info->x / texWidth;
-            float v0 = 1.0f - ((float)info->y / texHeight); // Top (inverted for OpenGL)
+            float v0 = 1.0f - ((float)info->y / texHeight);  // Top (inverted for OpenGL)
             float u1 = (float)(info->x + info->width) / texWidth;
-            float v1 = 1.0f - ((float)(info->y + info->height) / texHeight); // Bottom
+            float v1 = 1.0f - ((float)(info->y + info->height) / texHeight);  // Bottom
 
             // Generate the vertices for this letter
             vertices.push_back({{x0, y0, 0}, {255, 255, 255, 255}, {u0, v0}, {0, 0, 1}, {1, 0, 0}});
@@ -71,7 +73,7 @@ namespace our {
             indices.push_back(vertexOffset + 0);
 
             vertexOffset += 4;
-            cursorX += info->xadvance * scale; // Push the cursor forward for the next letter
+            cursorX += info->xadvance * scale;  // Push the cursor forward for the next letter
         }
 
         dynamicMesh->update(vertices, indices);
@@ -79,13 +81,14 @@ namespace our {
         material->texture = font->getTexture();
         material->tint = color;
         material->setup();
-        
+
         material->shader->set("transform", VP);
-        
+
         dynamicMesh->draw();
     }
 
-    void TextRenderer::drawText(Font* font, const std::string& text, UIRect rect, glm::vec2 windowSize, float scale, const glm::mat4& VP, glm::vec4 color) {
+    void TextRenderer::drawText(Font* font, const std::string& text, UIRect rect, glm::vec2 windowSize, float scale,
+                                const glm::mat4& VP, glm::vec4 color) {
         if (!font || text.empty()) return;
 
         // compute the width of the bounding box to put it into UIRect.size.x
@@ -101,17 +104,26 @@ namespace our {
                 }
             }
         }
-        
-        rect.size.x = trueTextWidth; 
-        
+
+        rect.size.x = trueTextWidth;
+
         glm::vec2 pos = rect.getScreenPosition(windowSize);
         drawText(font, text, pos.x, pos.y, scale, VP, color);
     }
 
     void TextRenderer::destroy() {
-        if (dynamicMesh) { delete dynamicMesh; dynamicMesh = nullptr; }
-        if (shader) { delete shader; shader = nullptr; }
-        if (material) { delete material; material = nullptr; }
+        if (dynamicMesh) {
+            delete dynamicMesh;
+            dynamicMesh = nullptr;
+        }
+        if (shader) {
+            delete shader;
+            shader = nullptr;
+        }
+        if (material) {
+            delete material;
+            material = nullptr;
+        }
     }
 
-}
+}  // namespace our
