@@ -1,5 +1,8 @@
 #pragma once
 
+#include <unordered_map>
+#include <vector>
+
 #include "animation.hpp"
 
 namespace our {
@@ -9,22 +12,27 @@ namespace our {
     class Animator {
         const Animation* currentAnimation;
         float currentTime;  // in ticks
-        std::vector<glm::mat4> finalBoneMatrices;
+        // there are 2 types of animations that assimp supports
+        // 1. skeletal animations that affect the bones and are used for skinning meshes
+        // 2. node animations that affect any node in the hierarchy but are not used for skinning
+        //    (eg. a whole mesh rotating as a child of a bone, or a light source attached to a bone)
+        std::vector<glm::mat4> finalBoneMatrices;                   // for bone animations
+        std::unordered_map<std::string, glm::mat4> nodeTransforms;  // for node animations
         bool loop;
 
         void computeBoneTransform(const std::vector<SkeletonNode>& nodes) {
             const Skeleton& skeleton = currentAnimation->skeleton;
             std::vector<glm::mat4> globalTransforms(nodes.size());
+            nodeTransforms.clear();
 
             for (int i = 0; i < (int)nodes.size(); i++) {
                 const auto& node = nodes[i];
 
                 // animated local transform, fallback to bind pose
                 glm::mat4 localTransform = node.localTransform;
-                BoneID id = skeleton.getBoneID(node.name);
-                if (id >= 0) {
-                    auto it = currentAnimation->bones.find(id);
-                    if (it != currentAnimation->bones.end()) localTransform = it->second.interpolate(currentTime);
+                auto it = currentAnimation->channels.find(node.name);
+                if (it != currentAnimation->channels.end()) {
+                    localTransform = it->second.interpolate(currentTime);
                 }
 
                 // accumulate from parent
@@ -33,6 +41,11 @@ namespace our {
                 else
                     globalTransforms[i] = globalTransforms[node.parentIndex] * localTransform;
 
+                // Cache for meshes
+                nodeTransforms[node.name] = globalTransforms[i];
+
+                // Cache for skeletal bones
+                BoneID id = skeleton.getBoneID(node.name);
                 if (id >= 0 && id < (BoneID)finalBoneMatrices.size())
                     finalBoneMatrices[id] = skeleton.getGlobalInverseTransform() * globalTransforms[i] *
                                             skeleton.getOffsetMatrix(node.name);
@@ -61,6 +74,12 @@ namespace our {
 
         const std::vector<glm::mat4>& getFinalBoneMatrices() const {
             return finalBoneMatrices;
+        }
+
+        const glm::mat4* getNodeTransform(const std::string& name) const {
+            auto it = nodeTransforms.find(name);
+            if (it != nodeTransforms.end()) return &it->second;
+            return nullptr;
         }
 
         bool isFinished() const {

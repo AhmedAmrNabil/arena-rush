@@ -5,12 +5,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <string>
+#include <vector>
 
 namespace our {
     using BoneID = int;
     struct BonePose {
         BoneID id;
-        glm::mat4 offsetMatrix;
+        glm::mat4 offsetMatrix;  // the inverse of the bone's bind pose transform
     };
 
     struct KeyPosition {
@@ -33,7 +34,6 @@ namespace our {
         std::vector<KeyRotation> rotations;
         std::vector<KeyScale> scales;
         std::string name;
-        BoneID id;
 
         template <typename TKey>
         static size_t findIndex(const std::vector<TKey>& keys, float animationTime) {
@@ -64,7 +64,8 @@ namespace our {
         }
 
     public:
-        BoneAnimation(const std::string& name, BoneID id, const aiNodeAnim* channel) : name(name), id(id) {
+        BoneAnimation() = default;
+        BoneAnimation(const std::string& name, BoneID id, const aiNodeAnim* channel) : name(name) {
             // Load position keyframes
             positions = loadKeys<KeyPosition>(
                 channel->mNumPositionKeys, channel->mPositionKeys,

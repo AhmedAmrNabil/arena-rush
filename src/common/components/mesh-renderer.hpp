@@ -14,6 +14,7 @@ namespace our {
         Mesh* mesh;             // The mesh that should be drawn
         Material* material;     // The material used to draw the mesh
         glm::mat4 transform;    // The transformation of the mesh relative to parent
+        std::string nodeName;   // The name of the node that owns this submesh (used for node animations)
         bool hasBones = false;  // True if this mesh has bone weights for skinning
 
         // The ID of this component type is "Mesh Renderer"

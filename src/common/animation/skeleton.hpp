@@ -57,6 +57,7 @@ namespace our {
         }
 
         // used for FBX files where the root node's transform is not identity
+        // currently its unused since our test models don't have such a case, but it's here for completeness
         void setGlobalInverseTransform(const glm::mat4& inverseTransform) {
             globalInverseTransform = inverseTransform;
         }

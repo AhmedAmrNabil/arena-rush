@@ -170,8 +170,13 @@ namespace our {
                 command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                 command.mesh = meshRenderer->mesh;
                 command.material = meshRenderer->material;
-                if (auto anim = entity->getComponent<AnimationComponent>(); anim && meshRenderer->hasBones) {
-                    command.animator = &anim->animator;
+                if (auto anim = entity->getComponent<AnimationComponent>(); anim) {
+                    if (meshRenderer->hasBones) {
+                        command.animator = &anim->animator;
+                    } else if (auto nodeTransform = anim->animator.getNodeTransform(meshRenderer->nodeName);
+                               nodeTransform) {
+                        command.localToWorld = command.localToWorld * (*nodeTransform);
+                    }
                 }
                 // if it is transparent, we add it to the transparent commands list
                 if (command.material->transparent) {
@@ -206,8 +211,13 @@ namespace our {
                     command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                     command.mesh = submesh->mesh;
                     command.material = submesh->material;
-                    if (auto anim = entity->getComponent<AnimationComponent>(); anim && submesh->hasBones) {
-                        command.animator = &anim->animator;
+                    if (auto anim = entity->getComponent<AnimationComponent>(); anim) {
+                        if (submesh->hasBones) {
+                            command.animator = &anim->animator;
+                        } else if (auto nodeTransform = anim->animator.getNodeTransform(submesh->nodeName);
+                                   nodeTransform) {
+                            command.localToWorld = modelMatrix * (*nodeTransform);
+                        }
                     }
 
                     if (modelRenderer->firstPersonOverlay) {

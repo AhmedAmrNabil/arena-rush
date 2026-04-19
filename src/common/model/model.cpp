@@ -86,6 +86,7 @@ namespace our {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             MeshRendererComponent* submesh = processMesh(mesh, scene);
             submesh->transform = globalTransform;
+            submesh->nodeName = node->mName.C_Str();
             submeshes.push_back(submesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -136,7 +137,7 @@ namespace our {
             vertices[i] = v;
         }
 
-        processVertexBoneData(vertices, mesh, scene);
+        if (mesh->HasBones()) processVertexBoneData(vertices, mesh, scene);
 
         // process indices
         for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
