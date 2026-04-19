@@ -45,7 +45,6 @@ namespace gameplay {
         weaponMaterial->pipelineState.blending.sourceFactor = GL_SRC_ALPHA;
         weaponMaterial->pipelineState.blending.destinationFactor = GL_ONE_MINUS_SRC_ALPHA;
 
-        textRenderer.initialize();
         testFont.load(fontPath, fontTexturePath);
     }
 
@@ -76,7 +75,7 @@ namespace gameplay {
         fontTexturePath = data.value("fontTexturePath", fontTexturePath);
     }
 
-    void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize) {
+    void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize, our::TextRenderer* textRenderer) {
         if (!playerEntity) return;
 
         HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
@@ -126,25 +125,27 @@ namespace gameplay {
         }
 
         // Ammo Counter
-        std::string ammoText = std::to_string(playerComp->currentAmmo) + "-" + std::to_string(playerComp->maxAmmo);
-        
-        glm::vec4 outlineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        
-        // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough :)
-        // (draws the text blackened four times to create an outline)
-        our::UIRect tr = ammoTextRect; tr.offset += glm::vec2(outlineSpread, outlineSpread);
-        textRenderer.drawText(&testFont, ammoText, tr, windowSize, textScale, orthoVP, outlineColor);
-        
-        our::UIRect bl = ammoTextRect; bl.offset += glm::vec2(-outlineSpread, -outlineSpread);
-        textRenderer.drawText(&testFont, ammoText, bl, windowSize, textScale, orthoVP, outlineColor);
-        
-        our::UIRect tl = ammoTextRect; tl.offset += glm::vec2(-outlineSpread, outlineSpread);
-        textRenderer.drawText(&testFont, ammoText, tl, windowSize, textScale, orthoVP, outlineColor);
-        
-        our::UIRect br = ammoTextRect; br.offset += glm::vec2(outlineSpread, -outlineSpread);
-        textRenderer.drawText(&testFont, ammoText, br, windowSize, textScale, orthoVP, outlineColor);
+        if (textRenderer) {
+            std::string ammoText = std::to_string(playerComp->currentAmmo) + "-" + std::to_string(playerComp->maxAmmo);
+            
+            glm::vec4 outlineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            
+            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough :)
+            // (draws the text blackened four times to create an outline)
+            our::UIRect tr = ammoTextRect; tr.offset += glm::vec2(outlineSpread, outlineSpread);
+            textRenderer->drawText(&testFont, ammoText, tr, windowSize, textScale, orthoVP, outlineColor);
+            
+            our::UIRect bl = ammoTextRect; bl.offset += glm::vec2(-outlineSpread, -outlineSpread);
+            textRenderer->drawText(&testFont, ammoText, bl, windowSize, textScale, orthoVP, outlineColor);
+            
+            our::UIRect tl = ammoTextRect; tl.offset += glm::vec2(-outlineSpread, outlineSpread);
+            textRenderer->drawText(&testFont, ammoText, tl, windowSize, textScale, orthoVP, outlineColor);
+            
+            our::UIRect br = ammoTextRect; br.offset += glm::vec2(outlineSpread, -outlineSpread);
+            textRenderer->drawText(&testFont, ammoText, br, windowSize, textScale, orthoVP, outlineColor);
 
-        textRenderer.drawText(&testFont, ammoText, ammoTextRect, windowSize, textScale, orthoVP, ammoColor);
+            textRenderer->drawText(&testFont, ammoText, ammoTextRect, windowSize, textScale, orthoVP, ammoColor);
+        }
     }
 
     void PlayerHUDSystem::destroy() {
@@ -158,7 +159,6 @@ namespace gameplay {
             delete weaponMaterial;
         }
 
-        textRenderer.destroy();
         testFont.destroy();
     }
 

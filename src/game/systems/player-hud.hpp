@@ -16,7 +16,6 @@ namespace gameplay {
         our::ShaderProgram* texturedShader = nullptr;
         our::TexturedMaterial* weaponMaterial = nullptr;
 
-        our::TextRenderer textRenderer;
         our::Font testFont;
 
         our::UIRect weaponRect     = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 20.0f}, {80.0f, 80.0f} };
@@ -35,7 +34,7 @@ namespace gameplay {
     public:
         void initialize();
         void deserialize(const nlohmann::json& data);
-        void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize);
+        void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize, our::TextRenderer* textRenderer);
         void destroy();
     };
 

@@ -27,6 +27,7 @@ class Playstate : public our::State {
     our::World world;
     our::ForwardRenderer renderer;
     our::UIRenderer uiRenderer;
+    our::TextRenderer textRenderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
 
@@ -105,6 +106,7 @@ public:
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
         uiRenderer.initialize();
+        textRenderer.initialize();
         collisionSystem.initialize();
         overlay.initialize(getApp(), &cameraController);
         if (config.contains("hud")) playerHud.deserialize(config["hud"]);
@@ -163,7 +165,7 @@ public:
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
-        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize());
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
@@ -189,6 +191,7 @@ public:
         collisionSystem.destroy();
         renderer.destroy();
         uiRenderer.destroy();
+        textRenderer.destroy();
         playerHud.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
