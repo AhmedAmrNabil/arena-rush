@@ -271,6 +271,9 @@ add_executable(${PROJECT_NAME}
     src/game/systems/player-movement-system.cpp
     src/game/systems/player-hud.cpp
 
+    src/common/text/font.cpp
+    src/common/text/text-renderer.cpp
+
     src/common/systems/forward-renderer.cpp
     src/common/systems/audio-system.cpp
 

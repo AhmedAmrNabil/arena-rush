@@ -14,13 +14,31 @@
             "postprocess": "assets/shaders/postprocess/dash-distortion.frag"
         },
         "hud": {
-            "paddingX": 20,
-            "paddingY": 10,
-            "weaponSize": 80,
-            "barWidth": 160,
-            "barHeight": 9,
-            "outlineThickness": 3,
-            "weaponIconPath": "assets/UI/GTASA_AK.png"
+            "weaponRect": {
+                "anchor": [1.0, 0.0],
+                "pivot": [1.0, 0.0],
+                "offset": [-20.0, 20.0],
+                "size": [80.0, 80.0]
+            },
+            "healthBarRect": {
+                "anchor": [1.0, 0.0],
+                "pivot": [1.0, 0.0],
+                "offset": [-20.0, 115.0],
+                "size": [160.0, 9.0]
+            },
+            "ammoTextRect": {
+                "anchor": [1.0, 0.0],
+                "pivot": [1.0, 0.0],
+                "offset": [-34.0, 78.0],
+                "size": [0.0, 0.0]
+            },
+            "textScale": 0.3,
+            "outlineSpread": 2.0,
+            "outlineThickness": 3.0,
+            "ammoColor": [0.48, 0.53, 0.62, 1.0],
+            "weaponIconPath": "assets/UI/GTASA_AK.png",
+            "fontPath": "assets/fonts/GTASA_font/GTASA_font.json",
+            "fontTexturePath": "assets/fonts/GTASA_font/GTASA_font.png"
         },
         "assets": {
             "shaders": {
@@ -272,7 +290,9 @@
                         "jumpForce": 9.0
                     },
                     {
-                        "type": "Player"
+                        "type": "Player",
+                        "currentAmmo": 30,
+                        "maxAmmo": 120
                     },
                     {
                         "type": "Health"
