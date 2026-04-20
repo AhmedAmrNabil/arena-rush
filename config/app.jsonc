@@ -11,7 +11,12 @@
     "scene": {
         "renderer": {
             "sky": "assets/textures/sky.jpg",
-            "postprocess": "assets/shaders/postprocess/dash-distortion.frag"
+            "postprocess": {
+                "fs": "assets/shaders/postprocess/dash-distortion.frag",
+                "uniforms": {
+                    "exposure": 1.0
+                }
+            }
         },
         "hud": {
             "weaponRect": {
@@ -391,7 +396,7 @@
                                     {
                                         "type": "light",
                                         "lightType": "spot",
-                                        "color": [1, 0.8, 0.6],
+                                        "color": [5, 5, 7],
                                         "attenuation": [1.0, 0.14, 0.07],
                                         "spotAngles": [15, 20]
                                     }
@@ -448,6 +453,18 @@
                         "layer": "environment",
                         "shape": "Model",
                         "model": "map"
+                    }
+                ]
+            },
+            {
+                "position": [0, 0, 0],
+                "rotation": [-70, 0, 0],
+                "scale": [100, 100, 100],
+                "components": [
+                    {
+                        "type": "light",
+                        "lightType": "directional",
+                        "color": [0.8, 0.8, 0.75]
                     }
                 ]
             }
