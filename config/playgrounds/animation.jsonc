@@ -3,15 +3,15 @@
     "window": {
         "title": "Default Game Window",
         "size": {
-            "width": 1920,
-            "height": 1080
+            "width": 1280,
+            "height": 720
         },
         "fullscreen": false
     },
     "scene": {
         "renderer": {
             "sky": "assets/textures/sky.jpg",
-            "postprocess": "assets/shaders/postprocess/vignette.frag"
+            "postprocess": "assets/shaders/postprocess/dash-distortion.frag"
         },
         "assets": {
             "shaders": {
@@ -182,10 +182,22 @@
                 "drone": "assets/gltf/mech_drone/mech_drone.glb",
                 "map": "assets/gltf/map/map.glb",
                 "gun": "assets/gltf/weapons/rifle.glb",
-                "alistar": "assets/gltf/enemies/mundo/corporate_mundo.glb"
+                "mundo": "assets/gltf/enemies/mundo/corporate_mundo.glb"
             }
         },
         "game": {
+            "enemyHealthBars": {
+                "enabled": true,
+                "maxDistance": 22.0,
+                "colors": {
+                    "low": [0.84, 0.18, 0.24, 0.96],
+                    "mid": [0.96, 0.76, 0.25, 0.96],
+                    "high": [0.28, 0.84, 0.45, 0.96],
+                    "border": [0.02, 0.03, 0.05, 0.92],
+                    "background": [0.12, 0.14, 0.18, 0.88],
+                    "highlight": [1.0, 1.0, 1.0, 0.12]
+                }
+            },
             "enemySpawner": {
                 "spawnPoints": [
                     [30.0, 0.0, 30.0],
@@ -281,15 +293,32 @@
                     },
                     {
                         "type": "Free Camera Controller",
-                        "positionSensitivity": [8.0, 0.0, 8.0],
-                        "rotationSensitivity": 0.008,
-                        "speedupFactor": 2.5,
+                        "rotationSensitivity": 0.01,
+                        "fovSensitivity": 0.3
+                    },
+                    {
+                        "type": "PlayerMovement",
+                        "walkSpeed": 8.0,
+                        "sprintMultiplier": 2.0,
+                        "crouchSpeed": 4.0,
+                        "crouchHeight": 1.0,
+                        "slideSpeedMultiplier": 1.5,
+                        "slideDuration": 0.8,
+                        "slideCooldown": 0.5,
+                        "dashDistance": 5.0,
+                        "dashCooldown": 1.0,
                         "groundLevel": 0.0,
-                        "playerHeight": 1.8
+                        "playerHeight": 2,
+                        "jumpForce": 9.0
                     },
                     {
                         "type": "Player"
                     },
+                    {
+                        "type": "Post Process Effects Component"
+                    }
+                ],
+                "children": [
                     {
                         "type": "Health",
                         "maxHealth": 100.0
@@ -301,68 +330,77 @@
                         "height": 1.8
                     },
                     {
-                        "type": "light",
-                        "lightType": "spot",
-                        "color": [3, 3, 3],
-                        "attenuation": [1.0, 0.22, 0.2],
-                        "spotAngles": [13, 20]
-                    }
-                ],
-                "children": [
-                    {
-                        "position": [1, -1, -1],
-                        "rotation": [45, 45, 0],
-                        "scale": [0.1, 0.1, 1.0],
+                        "position": [1, -1, -2],
+                        "rotation": [0, 0, 0],
+                        "scale": [0.3, 0.3, 0.3],
                         "components": [
                             {
-                                "type": "Mesh Renderer",
-                                "mesh": "cube",
-                                "material": "metal"
+                                "type": "Model Renderer",
+                                "model": "gun"
+                            }
+                        ],
+                        "children": [
+                            {
+                                "position": [0, 0, 0],
+                                "components": [
+                                    {
+                                        "type": "light",
+                                        "lightType": "spot",
+                                        "color": [1, 0.8, 0.6],
+                                        "attenuation": [1.0, 0.14, 0.07],
+                                        "spotAngles": [15, 20]
+                                    }
+                                ]
                             }
                         ]
                     }
                 ]
             },
             {
-                "name": "Ground",
-                "position": [0.0, 0.0, 0.0],
-                "rotation": [-90.0, 0.0, 0.0],
-                "scale": [120.0, 120.0, 1.0],
+                "name": "map",
+                "position": [0, 0, 0],
                 "components": [
                     {
-                        "type": "Mesh Renderer",
-                        "mesh": "plane",
-                        "material": "ground"
-                    }
-                ]
-            },
-            {
-                "position": [2, 4, -2],
-                "scale": [5, 5, 5],
-                "components": [
-                    {
-                        "type": "Mesh Renderer",
-                        "mesh": "monkey",
-                        "material": "monkey"
+                        "type": "Model Renderer",
+                        "model": "map"
                     }
                 ]
             },
             {
                 "name": "test enemy",
                 "position": [10, 0, 10],
-                "scale": [0.01, 0.01, 0.01],
+                "scale": [0.05, 0.05, 0.05],
                 "components": [
                     {
                         "type": "Model Renderer",
-                        "model": "alistar"
+                        "model": "mundo"
                     },
                     {
                         "type": "Animation",
-                        "model": "alistar",
-                        "clip": "Run01",
-                        "loop": true,
-                        "speed": 1.0,
-                        "autoplay": true
+                        "model": "mundo",
+                        "default": "idle",
+                        "clips": {
+                            "idle": {
+                                "clip": "IdleVariant1",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "walk": {
+                                "clip": "Run01",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "attack": {
+                                "clip": "Attack1",
+                                "loop": false,
+                                "speed": 1.0
+                            },
+                            "die": {
+                                "clip": "Death",
+                                "loop": false,
+                                "speed": 1.0
+                            }
+                        }
                     }
                 ]
             }

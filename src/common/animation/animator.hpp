@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -10,8 +11,9 @@ namespace our {
 #define MAX_BONES 110
 
     class Animator {
-        const Animation* currentAnimation;
+        const Animation* currentAnimation = nullptr;
         float currentTime;  // in ticks
+        float speed;        // animation speed
         // there are 2 types of animations that assimp supports
         // 1. skeletal animations that affect the bones and are used for skinning meshes
         // 2. node animations that affect any node in the hierarchy but are not used for skinning
@@ -55,15 +57,17 @@ namespace our {
     public:
         Animator() : finalBoneMatrices(MAX_BONES, glm::mat4(1.0f)) {}
 
-        void play(const Animation* anim, bool loop = true) {
+        // speed should be affected by the scale and movement speed of the real entity
+        void play(const Animation* anim, bool loop = true, float speed = 1.0f) {
             currentAnimation = anim;
             currentTime = 0.0f;
             this->loop = loop;
+            this->speed = speed;
         }
 
         void update(float deltaTime) {
             if (!currentAnimation) return;
-            currentTime += currentAnimation->ticksPerSecond * deltaTime;
+            currentTime += currentAnimation->ticksPerSecond * speed * deltaTime;
             if (loop) {
                 currentTime = std::fmod(currentTime, currentAnimation->duration);
             } else {

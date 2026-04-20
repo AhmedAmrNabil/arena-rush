@@ -7,21 +7,26 @@
 #include "model/model.hpp"
 
 namespace our {
+    struct AnimationClip {
+        std::string clip;
+        bool loop = false;
+        float speed = 1.0f;
+    };
+
     class AnimationComponent : public Component {
     public:
         Model* model;
         Animator animator;
-        std::string clip;
-        bool autoplay = false;
-        bool loop = false;
-        float speed = 1.0f;
+        std::string defaultClip;
+        // maps clip names to their corresponding animation clip data (animation name, loop, speed)
+        std::unordered_map<std::string, AnimationClip> clips;
         static std::string getID() {
             return "Animation";
         }
 
         void deserialize(const nlohmann::json& data) override;
 
-        void play(const std::string& clipName, bool loop = false);
+        void play(const std::string& clipName, float speedScale = 1.0f);
     };
 
 }  // namespace our

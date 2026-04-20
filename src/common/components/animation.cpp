@@ -13,32 +13,53 @@ namespace our {
                       << "\033[0m" << std::endl;
             return;
         }
-        autoplay = data.value("autoplay", autoplay);
-        loop = data.value("loop", loop);
-        speed = data.value("speed", speed);
-        clip = data.value("clip", "");
-        std::cout << "lodead animationComponent: " << clip << std::endl;
-        if (!clip.empty()) {
-            auto it = model->animations.find(clip);
-            if (it != model->animations.end()) {
-                if (autoplay) animator.play(&it->second, loop);
-            } else {
-                std::cerr << "\033[31mAnimation clip not found: " << clip << "\033[0m" << std::endl;
+
+        // deserializing clip:
+        if (data.contains("clips")) {
+            for (auto& [name, clipData] : data["clips"].items()) {
+                AnimationClip clip;
+
+                if (!clipData.contains("clip")) {
+                    std::cerr << "\033[31mClip missing 'clip' field: " << name << "\033[0m" << std::endl;
+                    continue;
+                }
+
+                clip.clip = clipData["clip"].get<std::string>();
+                if (clipData.contains("loop")) clip.loop = clipData["loop"].get<bool>();
+                if (clipData.contains("speed")) clip.speed = clipData["speed"].get<float>();
+                clips[name] = clip;
+                std::cout << "Loaded animation clip: " << name << " -> " << clip.clip << " (loop: " << clip.loop
+                          << ", speed: " << clip.speed << ")" << std::endl;
             }
+        }
+        // default clip is the clip that will be played when the animation component is first initialized
+        defaultClip = data.value("default", "");
+        if (!defaultClip.empty()) {
+            play(defaultClip);
         }
     }
 
-    void AnimationComponent::play(const std::string& clipName, bool loop) {
+    void AnimationComponent::play(const std::string& clipName, float speedScale) {
         if (!model) {
             std::cerr << "\033[31mCannot play animation: model is not set\033[0m" << std::endl;
             return;
         }
-        auto it = model->animations.find(clipName);
-        if (it != model->animations.end()) {
-            animator.play(&it->second, loop);
-        } else {
-            std::cerr << "\033[31mAnimation clip not found: " << clipName << "\033[0m" << std::endl;
+
+        auto clipIt = clips.find(clipName);
+        if (clipIt == clips.end()) {
+            std::cerr << "\033[31mClip not found: " << clipName << "\033[0m" << std::endl;
+            return;
         }
+        AnimationClip& clip = clipIt->second;
+        auto animIt = model->animations.find(clip.clip);
+        if (animIt == model->animations.end()) {
+            std::cerr << "\033[31mAnimation not found in model: " << clip.clip << "\033[0m" << std::endl;
+            return;
+        }
+        // speed scale is used so we can change the speed of the animation
+        // depending on the movement speed of the entity
+        // and the scale of the model (eg. a giant monster should have slower animations than a small character)
+        animator.play(&animIt->second, clip.loop, clip.speed * speedScale);
     }
 
 }  // namespace our
