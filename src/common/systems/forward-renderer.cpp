@@ -9,24 +9,6 @@
 
 namespace our {
 
-    void ForwardRenderer::resizePostprocess(glm::ivec2 size) {
-        if (!postprocessMaterial) return;
-
-        glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
-
-        colorTarget->bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTarget->getOpenGLName(), 0);
-
-        depthTarget->bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size.x, size.y, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,
-                     nullptr);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTarget->getOpenGLName(), 0);
-
-        Texture2D::unbind();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
     void ForwardRenderer::initialize(glm::ivec2 windowSize, const nlohmann::json& config) {
         // First, we store the window size for later use
         this->windowSize = windowSize;
@@ -64,9 +46,8 @@ namespace our {
 
         // Then we check if there is a postprocessing shader in the configuration
         if (config.contains("postprocess")) {
-            glGenFramebuffers(1, &postprocessFrameBuffer);
-            colorTarget = new Texture2D();
-            depthTarget = new Texture2D();
+            postprocessFrameBuffer = new Framebuffer();
+            postprocessFrameBuffer->resize(windowSize, true);
 
             // Create a vertex array to use for drawing the texture
             glGenVertexArrays(1, &postProcessVertexArray);
@@ -81,19 +62,21 @@ namespace our {
             // Create the post processing shader
             ShaderProgram* postprocessShader = new ShaderProgram();
             postprocessShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
-            postprocessShader->attach(config.value<std::string>("postprocess", ""), GL_FRAGMENT_SHADER);
+            postprocessShader->attach(config["postprocess"].value<std::string>("fs", ""), GL_FRAGMENT_SHADER);
             postprocessShader->link();
+
+            for (auto& [uniformName, uniformValue] : config["postprocess"]["uniforms"].items()) {
+                postprocessUniforms[uniformName] = uniformValue.get<float>();
+            }
 
             // Create a post processing material
             postprocessMaterial = new TexturedMaterial();
             postprocessMaterial->shader = postprocessShader;
-            postprocessMaterial->texture = colorTarget;
+            postprocessMaterial->texture = postprocessFrameBuffer->getColorTarget();
             postprocessMaterial->sampler = postprocessSampler;
             // The default options are fine but we don't need to interact with the depth buffer
             // so it is more performant to disable the depth mask
             postprocessMaterial->pipelineState.depthMask = false;
-
-            resizePostprocess(windowSize);
         }
 
         bonesUniformBuffer = new UniformBuffer(MAX_BONES * sizeof(glm::mat4), bonesBindingPoint);
@@ -110,17 +93,13 @@ namespace our {
         }
         // Delete all objects related to post processing
         if (postprocessMaterial) {
-            glDeleteFramebuffers(1, &postprocessFrameBuffer);
+            delete postprocessFrameBuffer;
             glDeleteVertexArrays(1, &postProcessVertexArray);
-            delete colorTarget;
-            delete depthTarget;
             delete postprocessMaterial->sampler;
             delete postprocessMaterial->shader;
             delete postprocessMaterial;
-            colorTarget = nullptr;
-            depthTarget = nullptr;
             postprocessMaterial = nullptr;
-            postprocessFrameBuffer = 0;
+            postprocessFrameBuffer = nullptr;
             postProcessVertexArray = 0;
         }
 
@@ -134,7 +113,7 @@ namespace our {
         if (windowSize.x <= 0 || windowSize.y <= 0) return;
         if (this->windowSize != windowSize) {
             this->windowSize = windowSize;
-            resizePostprocess(windowSize);
+            if (postprocessFrameBuffer) postprocessFrameBuffer->resize(windowSize, true);
         }
 
         // First of all, we search for a camera and for all the mesh renderers
@@ -248,7 +227,7 @@ namespace our {
 
         // If there is a postprocess material, bind the framebuffer
         if (postprocessMaterial) {
-            glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
+            postprocessFrameBuffer->bind();
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -374,7 +353,7 @@ namespace our {
 
         // If there is a postprocess material, apply postprocessing
         if (postprocessMaterial) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            Framebuffer::unbind();
             postprocessMaterial->setup();
 
             for (auto entity : world->getEntities()) {
@@ -385,6 +364,10 @@ namespace our {
                     break;  // handles gameplay driven postprocess effects, other ones (like bloom) should be handled
                             // separately outside this loop
                 }
+            }
+
+            for (auto& [uniformName, uniformValue] : postprocessUniforms) {
+                postprocessMaterial->shader->set(uniformName, uniformValue);
             }
 
             glBindVertexArray(postProcessVertexArray);

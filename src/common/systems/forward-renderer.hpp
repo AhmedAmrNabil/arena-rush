@@ -3,6 +3,7 @@
 #include <glad/gl.h>
 
 #include <algorithm>
+#include <unordered_map>
 #include <vector>
 
 #include "../asset-loader.hpp"
@@ -11,6 +12,8 @@
 #include "../ecs/world.hpp"
 #include "animation/animator.hpp"
 #include "uniform-buffer/uniform-buffer.hpp"
+#include "post-process/framebuffer.hpp"
+
 namespace our {
 
     // The render command stores command that tells the renderer that it should draw
@@ -41,14 +44,13 @@ namespace our {
         Mesh* skySphere;
         TexturedMaterial* skyMaterial;
         // Objects used for Postprocessing
-        GLuint postprocessFrameBuffer, postProcessVertexArray;
-        Texture2D *colorTarget, *depthTarget;
+        GLuint postProcessVertexArray;
+        Framebuffer* postprocessFrameBuffer;
+        std::unordered_map<std::string, float> postprocessUniforms;
         TexturedMaterial* postprocessMaterial;
         std::vector<LightRenderData> sceneLights;
         static constexpr GLuint bonesBindingPoint = 0;
         UniformBuffer* bonesUniformBuffer = nullptr;
-
-        void resizePostprocess(glm::ivec2 size);
 
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.
