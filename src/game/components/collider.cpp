@@ -1,6 +1,6 @@
 #include "collider.hpp"
 
-#include <bullet/btBulletCollisionCommon.h>
+#include <btBulletCollisionCommon.h>
 
 #include "asset-loader.hpp"
 
