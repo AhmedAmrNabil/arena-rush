@@ -3,6 +3,7 @@
 #include "audio/audio-buffer.hpp"
 #include "audio/audio-utils.hpp"
 #include "deserialize-utils.hpp"
+#include "logger.hpp"
 #include "material/material.hpp"
 #include "mesh/mesh-utils.hpp"
 #include "mesh/mesh.hpp"
@@ -28,6 +29,8 @@ namespace our {
                 shader->attach(fsPath, GL_FRAGMENT_SHADER);
                 shader->link();
                 assets[name] = shader;
+                LOG_DEBUG("AssetLoader", "Loaded shader \"%s\" with vs: \"%s\" and fs: \"%s\"", name.c_str(),
+                          vsPath.c_str(), fsPath.c_str());
             }
         }
     };
@@ -41,6 +44,7 @@ namespace our {
             for (auto& [name, desc] : data.items()) {
                 std::string path = desc.get<std::string>();
                 assets[name] = texture_utils::loadImage(path);
+                LOG_DEBUG("AssetLoader", "Loaded texture \"%s\" from path: \"%s\"", name.c_str(), path.c_str());
             }
         }
     };
@@ -59,6 +63,7 @@ namespace our {
                 auto sampler = new Sampler();
                 sampler->deserialize(desc);
                 assets[name] = sampler;
+                LOG_DEBUG("AssetLoader", "Loaded sampler \"%s\"", name.c_str());
             }
         }
     };
@@ -72,6 +77,7 @@ namespace our {
             for (auto& [name, desc] : data.items()) {
                 std::string path = desc.get<std::string>();
                 assets[name] = mesh_utils::loadOBJ(path);
+                LOG_DEBUG("AssetLoader", "Loaded mesh \"%s\" from path: \"%s\"", name.c_str(), path.c_str());
             }
         }
     };
@@ -98,6 +104,7 @@ namespace our {
                 auto material = createMaterialFromType(type);
                 material->deserialize(desc);
                 assets[name] = material;
+                LOG_DEBUG("AssetLoader", "Loaded material \"%s\" of type \"%s\"", name.c_str(), type.c_str());
             }
         }
     };
@@ -112,6 +119,7 @@ namespace our {
                 std::string path = desc.get<std::string>();
                 AudioBuffer* buffer = audio_utils::loadWAV(path);
                 if (buffer) assets[name] = buffer;
+                LOG_DEBUG("AssetLoader", "Loaded audio buffer \"%s\" from path: \"%s\"", name.c_str(), path.c_str());
             }
         }
     }
@@ -123,6 +131,7 @@ namespace our {
                 our::Light* light = new our::Light();
                 light->deserialize(desc);
                 assets[name] = light;
+                LOG_DEBUG("AssetLoader", "Loaded light \"%s\"", name.c_str());
             }
         }
     }
@@ -148,6 +157,8 @@ namespace our {
                 }
 
                 assets[name] = model;
+                LOG_DEBUG("AssetLoader", "Loaded model \"%s\" from path: \"%s\"", name.c_str(),
+                          desc.get<std::string>().c_str());
             }
         }
     };
