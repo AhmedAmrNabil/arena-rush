@@ -286,7 +286,11 @@ namespace our {
         }
 
         // render weapon at the end with depth testing cleared
+        // enable depth mask again so it actually get cleared
+        glDepthMask(GL_TRUE);
         glClear(GL_DEPTH_BUFFER_BIT);
+
+        // render weapon
         for (const RenderCommand& command : weaponCommands) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
