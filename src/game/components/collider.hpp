@@ -4,8 +4,7 @@
 #include <glm/glm.hpp>
 #include <model/model.hpp>
 
-#include "bullet/BulletCollision/CollisionShapes/btTriangleMesh.h"
-
+struct btTriangleMesh;
 namespace gameplay {
 
     enum class ColliderShape { Sphere, Capsule, Mesh };

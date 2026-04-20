@@ -1,5 +1,7 @@
 #include "collider.hpp"
 
+#include <bullet/btBulletCollisionCommon.h>
+
 #include "asset-loader.hpp"
 
 static gameplay::ColliderShape parseColliderShape(const std::string& value, gameplay::ColliderShape fallback) {
