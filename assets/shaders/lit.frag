@@ -176,7 +176,6 @@ void main() {
     }
 
     vec3 result = ambient + lighting + emission;
-    result = pow(result, vec3(1.0 / 2.2)); // before writing frag_color, apply gamma correction (assuming albedo and emission are in linear space)
 
     // alpha from albedo texture or tint
     float alpha = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).a * tint.a * fs_in.color.a : tint.a * fs_in.color.a;

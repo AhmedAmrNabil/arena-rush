@@ -3,6 +3,7 @@
 uniform sampler2D tex;
 uniform float intensity;
 uniform float damageFlash;
+uniform float exposure;
 
 in vec2 tex_coord;
 out vec4 frag_color;
@@ -44,6 +45,12 @@ void main() {
         vec3 damageColor = vec3(0.7, 0.02, 0.02);
         color = mix(color, damageColor, damageFlash * edgeMask * 0.75);
     }
+
+    color *= exposure;
+
+    // filmic tonemap + gamma in one ALU expression
+    vec3 x = max(vec3(0.0), color - 0.004);
+    color = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 
     frag_color = vec4(color, 1.0);
 }
