@@ -26,7 +26,7 @@ namespace our {
         // collision detection and other non-rendering purposes)
 
         void processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform,
-                         std::vector<SkeletonNode>& skeletonNodes, int parentIndex = -1);
+                         std::vector<SkeletonNode>* skeletonNodes, int parentIndex = -1);
         MeshRendererComponent* processMesh(aiMesh* mesh, const aiScene* scene);
         void processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
         void loadMaterialsFromScene(const aiScene* scene);

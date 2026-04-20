@@ -50,10 +50,9 @@ namespace our {
         loadMaterialsFromScene(scene);
         if (scene->HasAnimations()) {
             skeleton = new Skeleton();
-            processNode(scene->mRootNode, scene, identity, skeleton->getNodes());
+            processNode(scene->mRootNode, scene, identity, &skeleton->getNodes());
         } else {
-            std::vector<SkeletonNode> dummySkeletonNodes;  // empty vector since we won't be using it
-            processNode(scene->mRootNode, scene, identity, dummySkeletonNodes);
+            processNode(scene->mRootNode, scene, identity, nullptr);
         }
 
         for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
@@ -68,7 +67,7 @@ namespace our {
     }
 
     void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform,
-                            std::vector<SkeletonNode>& skeletonNodes, int parentIndex) {
+                            std::vector<SkeletonNode>* skeletonNodes, int parentIndex) {
         // process all the node's meshes (if any)
         aiMatrix4x4 t = node->mTransformation;
         glm::mat4 nodeTransform = aiToGlm(t);
@@ -78,9 +77,11 @@ namespace our {
         skeletonNode.name = node->mName.C_Str();
         skeletonNode.localTransform = nodeTransform;
         skeletonNode.parentIndex = parentIndex;
-
-        int currentIndex = static_cast<int>(skeletonNodes.size());
-        skeletonNodes.push_back(skeletonNode);
+        int currentIndex = -1;
+        if (skeletonNodes) {
+            currentIndex = static_cast<int>(skeletonNodes->size());
+            skeletonNodes->push_back(skeletonNode);
+        }
 
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -114,8 +115,8 @@ namespace our {
             else
                 v.color = our::Color(255, 255, 255, 255);
 
-            // Tangents and bitangents are needed for normal mapping, but not all models have them. If they don't exist
-            // we will set them to zero and the shader will handle it as if the surface is flat (facing up)
+            // Tangents and bitangents are needed for normal mapping, but not all models have them. If they don't
+            // exist we will set them to zero and the shader will handle it as if the surface is flat (facing up)
             if (mesh->mTangents && mesh->mBitangents) {
                 glm::vec3 T = aiToGlm(mesh->mTangents[i]);
                 glm::vec3 B = aiToGlm(mesh->mBitangents[i]);
