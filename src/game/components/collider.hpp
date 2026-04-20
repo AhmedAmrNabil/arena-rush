@@ -1,10 +1,13 @@
 #pragma once
 
 #include <ecs/component.hpp>
+#include <glm/glm.hpp>
+#include <model/model.hpp>
 
+struct btTriangleMesh;
 namespace gameplay {
 
-    enum class ColliderShape { Sphere, Capsule };
+    enum class ColliderShape { Sphere, Capsule, Mesh };
 
     enum CollisionLayer : short {
         LAYER_PLAYER = 1 << 0,       // bit 0:  0000 0001
@@ -21,12 +24,16 @@ namespace gameplay {
         float radius = 0.5f;
         float height = 1.0f;  // must be the total height
         bool isTrigger = false;
+        our::Mesh* mesh = nullptr;  // optional mesh for mesh colliders
+        btTriangleMesh* bulletMesh =
+            nullptr;  // owned by ColliderComponent, freed in destructor (only used if shape == Mesh)
 
         static std::string getID() {
             return "Collider";
         }
 
         void deserialize(const nlohmann::json& data) override;
+        ~ColliderComponent();
     };
 
 }  // namespace gameplay

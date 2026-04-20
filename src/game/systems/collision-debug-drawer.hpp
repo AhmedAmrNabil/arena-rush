@@ -6,6 +6,7 @@
 #include <glad/gl.h>
 
 #include <glm/glm.hpp>
+#include <mesh/mesh.hpp>
 #include <vector>
 
 namespace gameplay {
@@ -21,6 +22,7 @@ namespace gameplay {
         // ---- Manual wireframe generators (used instead of Bullet's debugDrawObject) ----
         void drawSphereWireframe(const glm::mat4& transform, float radius, const glm::vec3& color);
         void drawCapsuleWireframe(const glm::mat4& transform, float radius, float totalHeight, const glm::vec3& color);
+        void drawMeshWireframe(our::Mesh* mesh, const glm::mat4& transform, const glm::vec3& color);
 
         // ---- btIDebugDraw overrides (required by interface) ----
         void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override;
@@ -42,10 +44,21 @@ namespace gameplay {
 
         std::vector<LineVertex> lineVertices;
 
+        struct MeshDrawCommand {
+            our::Mesh* mesh;
+            glm::mat4 transform;
+            glm::vec3 color;
+        };
+        std::vector<MeshDrawCommand> meshDrawCommands;
+
         GLuint vao = 0;
         GLuint vbo = 0;
         GLuint shaderProgram = 0;
         GLint vpUniformLoc = -1;
+
+        GLuint meshShaderProgram = 0;
+        GLint meshMVPUniformLoc = -1;
+        GLint meshColorUniformLoc = -1;
 
         int debugMode = DBG_DrawWireframe;
 

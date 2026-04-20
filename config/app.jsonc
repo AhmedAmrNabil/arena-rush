@@ -315,6 +315,13 @@
                     },
                     {
                         "type": "Post Process Effects Component"
+                    },
+                    {
+                        "type": "Collider",
+                        "layer": "player",
+                        "radius": 0.45,
+                        "height": 1.8,
+                        "shape": "Capsule"
                     }
                 ],
                 "children": [
@@ -322,14 +329,6 @@
                         "type": "Health",
                         "maxHealth": 100.0
                     },
-                    {
-                        "type": "Collider",
-                        "layer": "player",
-                        "radius": 0.45,
-                        "height": 1.8
-                    }
-                ],
-                "children": [
                     {
                         "position": [1, -1, -2],
                         "rotation": [0, 0, 0],
@@ -363,6 +362,12 @@
                 "components": [
                     {
                         "type": "Model Renderer",
+                        "model": "map"
+                    },
+                    {
+                        "type": "Collider",
+                        "layer": "environment",
+                        "shape": "Model",
                         "model": "map"
                     }
                 ]
