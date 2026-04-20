@@ -217,10 +217,6 @@ void main() {
 
     vec3 result = ambient + Lo + emission;
 
-    // Clamp tone-mapping (HDR → LDR) then gamma-encode for display
-    result = clamp(ambient + Lo + emission, 0.0, 1.0);
-    result = pow(result, vec3(1.0 / 2.2));
-
     // Alpha: sample from texture if present, otherwise use tint/vertex alpha
     float alpha = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).a * tint.a * fs_in.color.a : tint.a * fs_in.color.a;
 
