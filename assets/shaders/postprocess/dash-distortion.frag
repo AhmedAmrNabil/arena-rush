@@ -2,6 +2,7 @@
 
 uniform sampler2D tex;
 uniform float intensity;
+uniform float exposure;
 
 in vec2 tex_coord;
 out vec4 frag_color;
@@ -15,7 +16,7 @@ void main() {
     // Radial Zoom Blur
     vec3 color = vec3(0.0);
     float blurStrength = intensity * 0.2;
-    for (int i = 0; i < BLUR_SAMPLES; i++) {
+    for(int i = 0; i < BLUR_SAMPLES; i++) {
         float t = float(i) / float(BLUR_SAMPLES);
         vec2 offset = dir * blurStrength * t;
         color += texture(tex, tex_coord - offset).rgb;
@@ -36,6 +37,13 @@ void main() {
     vec2 ndc = tex_coord * 2.0 - 1.0;
     float vignette = 1.0 / (1.0 + dot(ndc, ndc));
     color *= vignette;
+
+    // replace all three of your current lines with this:
+    color *= exposure;
+
+    // filmic tonemap + gamma in one ALU expression
+    vec3 x = max(vec3(0.0), color - 0.004);
+    color = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 
     frag_color = vec4(color, 1.0);
 }
