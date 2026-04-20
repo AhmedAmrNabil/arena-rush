@@ -9,6 +9,9 @@ namespace gameplay {
         int damage;
         float range;
         float fireRate;
+        int maxAmmo;
+        float reloadTime;
+        int currentAmmo;
         static std::string getID() {
             return "Weapon";
         }
