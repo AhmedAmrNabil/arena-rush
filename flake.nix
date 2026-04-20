@@ -26,6 +26,12 @@
           # Audio
           pipewire
 
+          # extra precompiled libs
+          openal-soft
+          bullet
+          glfw
+          assimp
+
           # Wayland
           wayland
           wayland-protocols
@@ -56,6 +62,7 @@
         devShells.default = pkgs.mkShell {
 
           inherit buildInputs nativeBuildInputs LD_LIBRARY_PATH;
+          USE_SYSTEM_LIBS = "ON";
 
           packages = with pkgs; [
             # helper
@@ -84,6 +91,7 @@
               "-DGLFW_BUILD_WAYLAND=1"
               "-DGLFW_BUILD_X11=1"
               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+              "-DUSE_SYSTEM_LIBS=ON"
             ];
 
             installPhase = ''

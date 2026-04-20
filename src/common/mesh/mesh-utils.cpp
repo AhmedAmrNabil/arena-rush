@@ -69,11 +69,18 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
         }
     }
 
-    // Compute tangents per triangle then average per vertex
+    // Use vec3 accumulator to avoid corrupting w during accumulation
+    std::vector<glm::vec3> tangentAccum(vertices.size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> bitangentAccum(vertices.size(), glm::vec3(0.0f));
+
     for (size_t i = 0; i < elements.size(); i += 3) {
-        Vertex& v0 = vertices[elements[i + 0]];
-        Vertex& v1 = vertices[elements[i + 1]];
-        Vertex& v2 = vertices[elements[i + 2]];
+        uint32_t i0 = elements[i + 0];
+        uint32_t i1 = elements[i + 1];
+        uint32_t i2 = elements[i + 2];
+
+        Vertex& v0 = vertices[i0];
+        Vertex& v1 = vertices[i1];
+        Vertex& v2 = vertices[i2];
 
         glm::vec3 edge1 = v1.position - v0.position;
         glm::vec3 edge2 = v2.position - v0.position;
@@ -81,26 +88,39 @@ our::Mesh* our::mesh_utils::loadOBJ(const std::string& filename) {
         glm::vec2 deltaUV2 = v2.tex_coord - v0.tex_coord;
 
         float denom = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
-        if (abs(denom) < 1e-6f) continue;  // degenerate UV, skip
+        if (abs(denom) < 1e-6f) continue;
 
         float r = 1.0f / denom;
         glm::vec3 tangent = r * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+        glm::vec3 bitangent = r * (deltaUV1.x * edge2 - deltaUV2.x * edge1);
 
-        // accumulate — average later
-        v0.tangent += tangent;
-        v1.tangent += tangent;
-        v2.tangent += tangent;
+        tangentAccum[i0] += tangent;
+        tangentAccum[i1] += tangent;
+        tangentAccum[i2] += tangent;
+        bitangentAccum[i0] += bitangent;
+        bitangentAccum[i1] += bitangent;
+        bitangentAccum[i2] += bitangent;
     }
 
-    // Normalize and orthogonalize against normal (Gram-Schmidt)
-    for (auto& v : vertices) {
-        if (glm::length(v.tangent) < 1e-6f) {
-            // fallback for vertices with no UV contribution
-            v.tangent = glm::vec3(1, 0, 0);
+    // Normalize, orthogonalize, compute handedness
+    for (size_t i = 0; i < vertices.size(); i++) {
+        Vertex& v = vertices[i];
+        const glm::vec3& T = tangentAccum[i];
+        const glm::vec3& B = bitangentAccum[i];
+        const glm::vec3& N = v.normal;
+
+        if (glm::length(T) < 1e-6f) {
+            v.tangent = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);  // fallback
             continue;
         }
-        // orthogonalize
-        v.tangent = glm::normalize(v.tangent - glm::dot(v.tangent, v.normal) * v.normal);
+
+        // Gram-Schmidt orthogonalize
+        glm::vec3 orthoT = glm::normalize(T - glm::dot(T, N) * N);
+
+        // Handedness sign
+        float sign = (glm::dot(glm::cross(N, T), B) < 0.0f) ? -1.0f : 1.0f;
+
+        v.tangent = glm::vec4(orthoT, sign);
     }
 
     return new our::Mesh(vertices, elements);

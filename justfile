@@ -4,15 +4,23 @@ dev:
 
 # Configure the project with CMake
 configure:
-    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake -S . -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_COLOR_DIAGNOSTICS=ON \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
 # Build the project using Ninja
-build: configure
+build:
+    #!/usr/bin/env bash
+    if [[ ! -f build/build.ninja || CMakeLists.txt -nt build/build.ninja ]]; then
+        echo "Configuring..."
+        just configure
+    fi
     cmake --build build -- -j$(nproc)
 
 # Runs the game using the dedicated Nvidia/AMD GPU with optional config
 [default]
-run config="": build
+run config="":
     #!/usr/bin/env bash
     if command -v nvidia-smi > /dev/null 2>&1; then
         export DRI_PRIME=1

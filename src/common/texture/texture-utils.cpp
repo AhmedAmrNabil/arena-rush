@@ -5,6 +5,21 @@
 
 #include <iostream>
 
+namespace {
+    our::Texture2D* uploadImage(unsigned char* pixels, glm::ivec2 size, bool generate_mipmap) {
+        our::Texture2D* texture = new our::Texture2D();
+        texture->bind();
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        if (generate_mipmap) {
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+
+        texture->unbind();
+        return texture;
+    }
+}  // namespace
+
 our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size) {
     our::Texture2D* texture = new our::Texture2D();
     texture->bind();
@@ -32,18 +47,25 @@ our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool 
         std::cerr << "Failed to load image: " << filename << std::endl;
         return nullptr;
     }
-    // Create a texture
-    our::Texture2D* texture = new our::Texture2D();
-    // Bind the texture such that we upload the image data to its storage
-    texture->bind();
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    if (generate_mipmap) {
-        glGenerateMipmap(GL_TEXTURE_2D);
+    Texture2D* texture = uploadImage(pixels, size, generate_mipmap);
+    stbi_image_free(pixels);
+    return texture;
+}
+
+our::Texture2D* our::texture_utils::loadImageFromMemory(const unsigned char* data, std::size_t size,
+                                                        bool generate_mipmap) {
+    glm::ivec2 imageSize;
+    int channels;
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned char* pixels =
+        stbi_load_from_memory(data, static_cast<int>(size), &imageSize.x, &imageSize.y, &channels, 4);
+    if (pixels == nullptr) {
+        std::cerr << "Failed to load image from memory buffer" << std::endl;
+        return nullptr;
     }
-
-    texture->unbind();
-
-    stbi_image_free(pixels);  // Free image data after uploading to GPU
+    Texture2D* texture = uploadImage(pixels, imageSize, generate_mipmap);
+    stbi_image_free(pixels);
     return texture;
 }

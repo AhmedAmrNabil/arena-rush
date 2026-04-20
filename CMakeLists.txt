@@ -26,45 +26,164 @@ if(UNIX AND NOT APPLE)
     find_package(OpenGL REQUIRED)
 endif()
 
+option(USE_SYSTEM_LIBS "Use system-installed libraries instead of the bundled versions" $ENV{USE_SYSTEM_LIBS})
+
+option(USE_SYSTEM_OPENAL "Use system-installed OpenAL-Soft instead of the bundled version" $ENV{USE_SYSTEM_OPENAL})
+option(USE_SYSTEM_BULLET "Use system-installed Bullet3 instead of the bundled version" $ENV{USE_SYSTEM_BULLET})
+option(USE_SYSTEM_GLFW "Use system-installed GLFW instead of the bundled version" $ENV{USE_SYSTEM_GLFW})
+option(USE_SYSTEM_ASSIMP "Use system-installed Assimp instead of the bundled version" $ENV{USE_SYSTEM_ASSIMP})
+
+if(USE_SYSTEM_LIBS)
+    set(USE_SYSTEM_OPENAL ON CACHE BOOL "" FORCE)
+    set(USE_SYSTEM_BULLET ON CACHE BOOL "" FORCE)
+    set(USE_SYSTEM_GLFW ON CACHE BOOL "" FORCE)
+    set(USE_SYSTEM_ASSIMP ON CACHE BOOL "" FORCE)
+endif()
+
 # ---- Vendor Libraries ----
 # ---- GLFW ----
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
+set(USE_VENDOR_GLFW ON CACHE BOOL "" FORCE)
 
-if(UNIX AND NOT APPLE AND NOT DEFINED GLFW_BUILD_WAYLAND)
-    find_program(GLFW_WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
-    find_package(PkgConfig QUIET)
-
-    if(PkgConfig_FOUND)
-        pkg_check_modules(GLFW_WAYLAND_DEPS QUIET
-            wayland-client
-            wayland-cursor
-            wayland-egl
-            xkbcommon
-        )
-    endif()
-
-    if(GLFW_WAYLAND_SCANNER_EXECUTABLE AND GLFW_WAYLAND_DEPS_FOUND)
-        set(GLFW_BUILD_WAYLAND ON CACHE BOOL "Build support for Wayland")
+if (USE_SYSTEM_GLFW)
+    find_package(glfw3 QUIET)
+    if(glfw3_FOUND)
+        message(STATUS "Using system-installed GLFW: ${glfw3_VERSION}")
+        set(USE_VENDOR_GLFW OFF CACHE BOOL "" FORCE)
     else()
-        set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Build support for Wayland")
-
-        if(NOT GLFW_WAYLAND_SCANNER_EXECUTABLE)
-            set(_glfw_wayland_reason "missing wayland-scanner")
-        elseif(NOT PkgConfig_FOUND)
-            set(_glfw_wayland_reason "pkg-config is unavailable")
-        else()
-            set(_glfw_wayland_reason "missing Wayland development packages")
-        endif()
-
-        message(STATUS "Disabling GLFW Wayland (${_glfw_wayland_reason})")
+        message(STATUS "Using bundled GLFW")
     endif()
 endif()
 
-add_subdirectory(vendor/glfw)
+if(USE_VENDOR_GLFW)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
+
+    if(UNIX AND NOT APPLE AND NOT DEFINED GLFW_BUILD_WAYLAND)
+        find_program(GLFW_WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
+        find_package(PkgConfig QUIET)
+
+        if(PkgConfig_FOUND)
+            pkg_check_modules(GLFW_WAYLAND_DEPS QUIET
+                wayland-client
+                wayland-cursor
+                wayland-egl
+                xkbcommon
+            )
+        endif()
+
+        if(GLFW_WAYLAND_SCANNER_EXECUTABLE AND GLFW_WAYLAND_DEPS_FOUND)
+            set(GLFW_BUILD_WAYLAND ON CACHE BOOL "Build support for Wayland")
+        else()
+            set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Build support for Wayland")
+
+            if(NOT GLFW_WAYLAND_SCANNER_EXECUTABLE)
+                set(_glfw_wayland_reason "missing wayland-scanner")
+            elseif(NOT PkgConfig_FOUND)
+                set(_glfw_wayland_reason "pkg-config is unavailable")
+            else()
+                set(_glfw_wayland_reason "missing Wayland development packages")
+            endif()
+
+            message(STATUS "Disabling GLFW Wayland (${_glfw_wayland_reason})")
+        endif()
+    endif()
+    add_subdirectory(vendor/glfw)
+endif()
+
+
+# ---- BULLET3 ----
+set(USE_VENDOR_BULLET ON CACHE BOOL "" FORCE)
+if (USE_SYSTEM_BULLET)
+    find_package(Bullet QUIET)
+    if(Bullet_FOUND)
+        message(STATUS "Using system-installed Bullet: ${Bullet_VERSION}")
+        set(USE_BUILD_BULLET OFF CACHE BOOL "" FORCE)
+    else()
+        message(STATUS "Using bundled Bullet3")
+    endif()
+endif()
+
+if(USE_VENDOR_BULLET)
+    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+    set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+    set(BUILD_BULLET3 ON CACHE BOOL "" FORCE)
+    add_subdirectory(vendor/bullet3)
+endif()
+
+# --- OpenAL-Soft ----
+set(USE_VENDOR_OPENAL ON CACHE BOOL "" FORCE)
+
+if(USE_SYSTEM_OPENAL)
+    find_package(OpenAL QUIET)
+    if (OpenAL_FOUND)
+        message(STATUS "Using system-installed OpenAL: ${OpenAL_VERSION}")
+        set(USE_VENDOR_OPENAL OFF CACHE BOOL "" FORCE)
+    else()
+        message(STATUS "Using bundled OpenAL-Soft")
+    endif()
+endif()
+
+if(USE_VENDOR_OPENAL)
+    set(ALSOFT_ENABLE_MODULES OFF CACHE BOOL "" FORCE)
+    set(LIBTYPE STATIC CACHE STRING "" FORCE)
+    set(ALSOFT_EMBED_HRTF_DATA ON CACHE BOOL "" FORCE)
+    set(ALSOFT_EAX ON CACHE BOOL "" FORCE)
+    set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
+    set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
+    set(ALSOFT_INSTALL_CONFIG OFF CACHE BOOL "" FORCE)
+    set(ALSOFT_INSTALL OFF CACHE BOOL "" FORCE)
+    if(WIN32)
+        set(ALSOFT_BACKEND_WASAPI ON CACHE BOOL "" FORCE)
+        set(ALSOFT_BACKEND_DSOUND OFF CACHE BOOL "" FORCE)
+    endif()
+    if (UNIX AND NOT APPLE)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(PIPEWIRE libpipewire-0.3>=0.3.23 QUIET)
+        pkg_check_modules(PULSEAUDIO libpulse QUIET)
+        pkg_check_modules(ALSA alsa QUIET)
+        if(PIPEWIRE_FOUND)
+            set(ALSOFT_BACKEND_PIPEWIRE ON CACHE BOOL "" FORCE)
+        elseif(PULSEAUDIO_FOUND)
+            set(ALSOFT_BACKEND_PULSEAUDIO ON CACHE BOOL "" FORCE)
+        elseif(ALSA_FOUND)
+            set(ALSOFT_BACKEND_ALSA ON CACHE BOOL "" FORCE)
+        else()
+            message(FATAL_ERROR "No suitable audio backend found for OpenAL-Soft. Please install PipeWire, PulseAudio, or ALSA development packages.")
+        endif()
+    endif()
+
+    add_subdirectory(vendor/openal-soft)
+endif()
+
+# ---- Assimp ----
+set(USE_VENDOR_ASSIMP ON CACHE BOOL "" FORCE)
+if(USE_SYSTEM_ASSIMP)
+    find_package(assimp QUIET)
+    if(assimp_FOUND)
+        message(STATUS "Using system-installed Assimp: ${assimp_VERSION}")
+        set(USE_VENDOR_ASSIMP OFF CACHE BOOL "" FORCE)
+    else()
+        message(STATUS "Using bundled Assimp")
+    endif()
+endif()
+
+if(USE_VENDOR_ASSIMP)
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+    add_subdirectory(vendor/assimp)
+endif()
 
 # ---- GLAD ----
 add_library(glad STATIC
@@ -73,30 +192,6 @@ add_library(glad STATIC
 target_include_directories(glad
     PUBLIC vendor/glad/include
 )
-
-# ---- BULLET3 ----
-set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
-set(BUILD_BULLET3 ON CACHE BOOL "" FORCE)
-add_subdirectory(vendor/bullet3)
-
-# --- OpenAL-Soft ----
-set(ALSOFT_ENABLE_MODULES OFF CACHE BOOL "" FORCE)
-set(LIBTYPE STATIC CACHE STRING "" FORCE)
-set(ALSOFT_EMBED_HRTF_DATA ON CACHE BOOL "" FORCE)
-set(ALSOFT_EAX ON CACHE BOOL "" FORCE)
-set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
-set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
-set(ALSOFT_INSTALL_CONFIG OFF CACHE BOOL "" FORCE)
-set(ALSOFT_INSTALL OFF CACHE BOOL "" FORCE)
-set(ALSOFT_BACKEND_WASAPI ON CACHE BOOL "" FORCE)
-set(ALSOFT_BACKEND_DSOUND OFF CACHE BOOL "" FORCE)
-
-add_subdirectory(vendor/openal-soft)
 
 # ---- GLM (Header-only) ----
 add_library(glm INTERFACE)
@@ -143,6 +238,8 @@ add_executable(${PROJECT_NAME}
 
     src/common/mesh/mesh-utils.cpp
 
+    src/common/model/model.cpp
+
     src/common/texture/sampler.cpp
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp
@@ -156,6 +253,7 @@ add_executable(${PROJECT_NAME}
 
     src/common/components/camera.cpp
     src/common/components/mesh-renderer.cpp
+    src/common/components/model-renderer.cpp
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
     src/common/components/light.cpp
@@ -167,6 +265,8 @@ add_executable(${PROJECT_NAME}
     src/game/game-registration.cpp
     src/game/systems/collision-system.cpp
     src/game/systems/collision-debug-drawer.cpp
+    src/game/components/player-movement.cpp
+    src/game/systems/player-movement-system.cpp
 
     src/common/systems/forward-renderer.cpp
     src/common/systems/audio-system.cpp
@@ -194,8 +294,27 @@ target_link_libraries(${PROJECT_NAME}
         BulletCollision
         BulletSoftBody
         LinearMath
-        OpenAL
+        assimp::assimp
 )
+
+if(USE_SYSTEM_OPENAL AND OpenAL_FOUND)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            OpenAL::OpenAL
+    )
+else()
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        OpenAL
+    )
+endif()
+
+if(USE_SYSTEM_ASSIMP AND assimp_FOUND)
+    target_include_directories(${PROJECT_NAME}
+        PRIVATE
+            ${assimp_INCLUDE_DIRS}
+    )
+endif()
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
@@ -203,8 +322,7 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin
 )
 
 install(TARGETS ${PROJECT_NAME}

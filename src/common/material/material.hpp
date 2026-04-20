@@ -59,11 +59,23 @@ namespace our {
         virtual ~TexturedMaterial() = default;
     };
 
+    struct TextureMask {
+        uint8_t hasAlbedo : 1;
+        uint8_t hasMetallic : 1;
+        uint8_t hasRoughness : 1;
+        uint8_t hasNormal : 1;
+        uint8_t hasAmbientOcclusion : 1;
+        uint8_t hasMetalnessRoughness : 1;
+        uint8_t hasEmissive : 1;
+    };
     class LitMaterial : public TintedMaterial {
     public:
         Texture2D* textureAlbedo = nullptr;
         Texture2D* textureMetallic = nullptr;
         Texture2D* textureRoughness = nullptr;
+        // some GLTF models have metalness and roughness on the same texture
+        // one in each channel so we use it instead of two separate textures if it exists
+        Texture2D* textureMetalnessRoughness = nullptr;
         Texture2D* textureNormal = nullptr;
         Texture2D* textureAmbientOcclusion = nullptr;
         Texture2D* textureEmissive = nullptr;
@@ -74,6 +86,7 @@ namespace our {
         float roughness = 0.2f;
         float ambientOcclusion = 1.0f;
         glm::vec3 emission = glm::vec3(0.0, 0.0, 0.0);
+        TextureMask mask = {0};
 
         Sampler* sampler;
 
