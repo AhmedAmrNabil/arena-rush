@@ -65,7 +65,7 @@ namespace gameplay {
 #endif
 
         // Entity-Bullet mappings
-        std::unordered_map<our::Entity*, btCollisionObject*> entityToBullet;
+        inline static std::unordered_map<our::Entity*, btCollisionObject*> entityToBullet;
         std::unordered_map<btCollisionShape*, std::uint16_t> ownedShapes;
         std::unordered_map<std::string, btCollisionShape*> shapesCache;
 
@@ -91,6 +91,8 @@ namespace gameplay {
         std::vector<our::Entity*> overlapSphere(const glm::vec3& center, float radius, short targetLayer);
 
         const std::vector<CollisionEvent>& getCollisions() const;
+
+        static float getOriginEntityHeight(const our::Entity* entity);
 
 #ifdef COLLISION_DEBUG_DRAW
         /// Call after the main renderer finishes to overlay collision wireframes.

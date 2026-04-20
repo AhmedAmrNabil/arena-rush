@@ -385,6 +385,34 @@ namespace gameplay {
         return frameCollisions;
     }
 
+    // Get the height of the entity from its origin point.
+    float CollisionSystem::getOriginEntityHeight(const our::Entity* entity) {
+        btCollisionObject* obj = entityToBullet.at(const_cast<our::Entity*>(entity));
+        if (!obj) return 0.0f;
+
+        btCollisionShape* shape = obj->getCollisionShape();
+
+        switch (shape->getShapeType()) {
+            case SPHERE_SHAPE_PROXYTYPE: {
+                const btSphereShape* sphere = static_cast<const btSphereShape*>(shape);
+                return sphere->getRadius();  // radius as height (from origin)
+            }
+            case BOX_SHAPE_PROXYTYPE: {
+                const btBoxShape* box = static_cast<const btBoxShape*>(shape);
+                btVector3 halfExtents = box->getHalfExtentsWithMargin();
+                return halfExtents.getY();  // half Y extent as height (from origin)
+            }
+            case CAPSULE_SHAPE_PROXYTYPE: {
+                const btCapsuleShape* capsule = static_cast<const btCapsuleShape*>(shape);
+                float radius = capsule->getRadius();
+                float halfHeight = capsule->getHalfHeight();
+                return halfHeight + radius;  // cylinder half height + 1 hemisphere (from origin)
+            }
+        }
+
+        return 0.0f;
+    }
+
 #ifdef COLLISION_DEBUG_DRAW
     // Returns a debug color based on the collision layer of the entity
     static glm::vec3 getLayerColor(our::Entity* entity) {

@@ -42,16 +42,6 @@ namespace gameplay {
             }
         }
 
-        static float estimateBarHeight(const our::Entity* entity, const ColliderComponent* collider) {
-            float scaleHeight = std::max(std::abs(entity->localTransform.scale.y) * 1.2f, 1.0f);
-            if (!collider) return scaleHeight;
-
-            float colliderHeight = collider->radius * 2.0f;
-            if (collider->shape == ColliderShape::Capsule) colliderHeight = std::max(colliderHeight, collider->height);
-
-            return std::max(colliderHeight, scaleHeight);
-        }
-
     public:
         void deserialize(const nlohmann::json& sceneConfig) {
             if (!(sceneConfig.contains("game") && sceneConfig["game"].contains("enemyHealthBars"))) return;
@@ -103,8 +93,7 @@ namespace gameplay {
 
                 if (!(visibleWhenDamaged || visibleWhenClose)) continue;
 
-                ColliderComponent* collider = entity->getComponent<ColliderComponent>();
-                float barHeightOffset = estimateBarHeight(entity, collider) + 0.35f;
+                float barHeightOffset = CollisionSystem::getOriginEntityHeight(entity) + 0.35f;
 
                 glm::vec3 barWorldPos = glm::vec3(localToWorld * glm::vec4(0.0f, barHeightOffset, 0.0f, 1.0f));
                 our::ScreenPoint screen = our::UIRenderer::worldToScreen(barWorldPos, viewProj, framebufferSize);
