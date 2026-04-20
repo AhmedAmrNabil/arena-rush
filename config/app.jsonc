@@ -337,6 +337,14 @@
                             {
                                 "type": "Model Renderer",
                                 "model": "gun"
+                            },
+                            {
+                                "type": "Weapon",
+                                "damage": 25.0,
+                                "range": 100.0,
+                                "fireRate": 0.15,
+                                "maxAmmo": 30,
+                                "reloadTime": 1.5
                             }
                         ],
                         "children": [
