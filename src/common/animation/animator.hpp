@@ -83,7 +83,7 @@ namespace our {
         }
 
         bool isFinished() const {
-            return currentAnimation && currentTime >= currentAnimation->duration;
+            return currentAnimation && currentTime >= currentAnimation->duration && !loop;
         }
     };
 }  // namespace our
