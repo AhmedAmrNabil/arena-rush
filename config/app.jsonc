@@ -237,9 +237,8 @@
                             {
                                 "type": "Collider",
                                 "layer": "enemy",
-                                "shape": "Capsule",
-                                "radius": 0.5,
-                                "height": 1.5
+                                "shape": "Box",
+                                "size": [1.0, 1.0, 1.0]
                             }
                         ]
                     },
@@ -328,9 +327,7 @@
                         "layer": "player",
                         "radius": 0.45,
                         "height": 1.8
-                    }
-                ],
-                "children": [
+                    },
                     {
                         "position": [1, -1, -2],
                         "rotation": [0, 0, 0],
