@@ -30,6 +30,24 @@ static inline glm::vec3 worldToLocal(const our::Entity* entity, glm::vec3 worldV
     return worldVector;  // if no parent then local and world are the same
 }
 
+static inline std::string getShapeKey(gameplay::ColliderComponent* collider, our::Entity* entity) {
+    std::string shapeKey = std::string("");
+
+    // Shape
+    shapeKey += std::to_string(static_cast<int>(collider->shape));
+
+    // r_h_extents
+    shapeKey += "_" + std::to_string(collider->radius) + "_" + std::to_string(collider->height) + "_HalfExtents_" +
+                std::to_string(collider->halfExtents[0]) + "_" + std::to_string(collider->halfExtents[1]) + "_" +
+                std::to_string(collider->halfExtents[2]);
+
+    // Scale_x_y_z
+    shapeKey += "_Scale_" + std::to_string(entity->localTransform.scale.x) + "_" +
+                std::to_string(entity->localTransform.scale.y) + "_" + std::to_string(entity->localTransform.scale.z);
+
+    return shapeKey;
+}
+
 static btTransform entityToBtTransform(our::Entity* entity) {
     glm::mat4 m = entity->getLocalToWorldMatrix();
 
@@ -276,12 +294,7 @@ namespace gameplay {
         btCollisionShape* shape = nullptr;
 
         // Shape_r_h_HalfExtents_x_y_z_Scale_x_y_z
-        std::string shapeKey =
-            std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) + "_" +
-            std::to_string(collider->height) + "_HalfExtents_" + std::to_string(collider->halfExtents[0]) + "_" +
-            std::to_string(collider->halfExtents[1]) + "_" + std::to_string(collider->halfExtents[2]) + "_Scale_" +
-            std::to_string(entity->localTransform.scale.x) + "_" + std::to_string(entity->localTransform.scale.y) +
-            "_" + std::to_string(entity->localTransform.scale.z);
+        std::string shapeKey = getShapeKey(collider, entity);
         if (shapesCache.find(shapeKey) != shapesCache.end()) {
             ownedShapes[shapesCache[shapeKey]]++;
             shape = shapesCache[shapeKey];

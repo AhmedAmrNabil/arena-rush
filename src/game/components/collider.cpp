@@ -1,5 +1,7 @@
 #include "collider.hpp"
 
+#include "deserialize-utils.hpp"
+
 static gameplay::ColliderShape parseColliderShape(const std::string& value, gameplay::ColliderShape fallback) {
     if (value == "Sphere") return gameplay::ColliderShape::Sphere;
     if (value == "Capsule") return gameplay::ColliderShape::Capsule;
@@ -27,10 +29,7 @@ namespace gameplay {
         std::string stringLayer = data.value("layer", "");
         layer = layerStringToGroup(stringLayer);
 
-        std::vector<float> extents = data.value("size", std::vector<float>{0.5f, 0.5f, 0.5f});
-        if (extents.size() == 3) {
-            halfExtents = glm::vec3(extents[0], extents[1], extents[2]);
-        }
+        halfExtents = data.value("size", glm::vec3(0.5f));
     }
 
 }  // namespace gameplay
