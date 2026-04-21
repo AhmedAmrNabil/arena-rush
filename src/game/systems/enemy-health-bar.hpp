@@ -2,11 +2,14 @@
 
 #include <algorithm>
 #include <application.hpp>
+#include <components/mesh-renderer.hpp>
+#include <components/model-renderer.hpp>
 #include <cmath>
 #include <deserialize-utils.hpp>
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>
+#include <limits>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -31,6 +34,12 @@ namespace gameplay {
             glm::vec4 highlightColor = {1.0f, 1.0f, 1.0f, 0.12f};
         } config;
 
+        struct LocalBounds {
+            glm::vec3 min = glm::vec3(0.0f);
+            glm::vec3 max = glm::vec3(0.0f);
+            bool valid = false;
+        };
+
         static void deserializeColor(const nlohmann::json& colorConfig, const char* key, glm::vec4& color) {
             if (!(colorConfig.contains(key) && colorConfig[key].is_array())) return;
 
@@ -42,7 +51,7 @@ namespace gameplay {
             }
         }
 
-        static float estimateBarHeight(const our::Entity* entity, const ColliderComponent* collider) {
+        static float estimateBarHeight(our::Entity* entity, const ColliderComponent* collider) {
             float scaleHeight = std::max(std::abs(entity->localTransform.scale.y) * 1.2f, 1.0f);
             if (!collider) return scaleHeight;
 
@@ -50,6 +59,63 @@ namespace gameplay {
             if (collider->shape == ColliderShape::Capsule) colliderHeight = std::max(colliderHeight, collider->height);
 
             return std::max(colliderHeight, scaleHeight);
+        }
+
+        static LocalBounds computeBoundsFromMesh(const our::Mesh* mesh) {
+            LocalBounds bounds;
+            if (!mesh) return bounds;
+
+            const auto& vertices = mesh->getVertices();
+            if (vertices.empty()) return bounds;
+
+            glm::vec3 minPoint(std::numeric_limits<float>::max());
+            glm::vec3 maxPoint(std::numeric_limits<float>::lowest());
+            for (const auto& vertex : vertices) {
+                minPoint = glm::min(minPoint, vertex.position);
+                maxPoint = glm::max(maxPoint, vertex.position);
+            }
+
+            bounds.min = minPoint;
+            bounds.max = maxPoint;
+            bounds.valid = true;
+            return bounds;
+        }
+
+        static LocalBounds getVisualBounds(our::Entity* entity, const ColliderComponent* collider) {
+            if (!entity) return {};
+
+            if (auto* modelRenderer = entity->getComponent<our::ModelRendererComponent>();
+                modelRenderer && modelRenderer->model) {
+                LocalBounds bounds = computeBoundsFromMesh(modelRenderer->model->getCombinedMesh());
+                if (bounds.valid) return bounds;
+            }
+
+            if (auto* meshRenderer = entity->getComponent<our::MeshRendererComponent>(); meshRenderer) {
+                LocalBounds bounds = computeBoundsFromMesh(meshRenderer->mesh);
+                if (bounds.valid) return bounds;
+            }
+
+            if (collider && collider->mesh) {
+                LocalBounds bounds = computeBoundsFromMesh(collider->mesh);
+                if (bounds.valid) return bounds;
+            }
+
+            return {};
+        }
+
+        static glm::vec3 estimateBarLocalAnchor(our::Entity* entity, const ColliderComponent* collider) {
+            LocalBounds bounds = getVisualBounds(entity, collider);
+            if (bounds.valid) {
+                float height = std::max(bounds.max.y - bounds.min.y, 0.0f);
+                float verticalPadding = std::max(height * 0.08f, 0.15f);
+                return {
+                    (bounds.min.x + bounds.max.x) * 0.5f,
+                    bounds.max.y + verticalPadding,
+                    (bounds.min.z + bounds.max.z) * 0.5f,
+                };
+            }
+
+            return {0.0f, estimateBarHeight(entity, collider) + 0.35f, 0.0f};
         }
 
     public:
@@ -104,9 +170,8 @@ namespace gameplay {
                 if (!(visibleWhenDamaged || visibleWhenClose)) continue;
 
                 ColliderComponent* collider = entity->getComponent<ColliderComponent>();
-                float barHeightOffset = estimateBarHeight(entity, collider) + 0.35f;
-
-                glm::vec3 barWorldPos = glm::vec3(localToWorld * glm::vec4(0.0f, barHeightOffset, 0.0f, 1.0f));
+                glm::vec3 barLocalAnchor = estimateBarLocalAnchor(entity, collider);
+                glm::vec3 barWorldPos = glm::vec3(localToWorld * glm::vec4(barLocalAnchor, 1.0f));
                 our::ScreenPoint screen = our::UIRenderer::worldToScreen(barWorldPos, viewProj, framebufferSize);
                 if (!screen.visible) continue;
 

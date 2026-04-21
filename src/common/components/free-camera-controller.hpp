@@ -7,7 +7,6 @@
 namespace our {
 
     // This component denotes that the FreeCameraControllerSystem will move the owning entity using user inputs.
-    // It will also control the camera field of view accroding to the scrolling of the mouse wheel
     // This component is added as a slightly complex example for how use the ECS framework to implement logic.
     // For more information, see "common/systems/free-camera-controller.hpp"
     // For a more simple example of how to use the ECS framework, see "movement.hpp"
@@ -15,7 +14,10 @@ namespace our {
     public:
         // The senstivity paramter defined sensitive the camera rotation & fov is to the mouse moves and wheel scrolling
         float rotationSensitivity = 0.01f;  // The angle change per pixel of mouse movement
-        float fovSensitivity = 0.3f;        // The fov angle change per unit of mouse wheel scrolling
+
+        // Aim-down-sight
+        float aimFovY = glm::radians(30.0f);
+        float aimSpeed = 8.0f;
 
         // The ID of this component type is "Free Camera Controller"
         static std::string getID() {
