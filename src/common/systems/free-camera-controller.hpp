@@ -18,6 +18,9 @@ namespace our {
     class FreeCameraControllerSystem {
         Application* app;           // The application in which the state runs
         bool mouse_locked = false;  // Is the mouse locked
+        float baseFov = 0.0f;
+        bool aiming = false;
+        float currentAimSpeed = 8.0f;
 
     public:
         // When a state enters, it should call this function and give it the pointer to the application
@@ -26,6 +29,8 @@ namespace our {
             app->getMouse().lockMouse(app->getWindow());
             app->getMouse().enable(app->getWindow());
             mouse_locked = true;
+            aiming = false;
+            baseFov = 0.0f;
         }
 
         // This should be called every frame to update all entities containing a FreeCameraControllerComponent
@@ -63,11 +68,23 @@ namespace our {
             // extremely long time.
             rotation.y = glm::wrapAngle(rotation.y);
 
-            // We update the camera fov based on the mouse wheel scrolling amount
-            float fov = camera->fovY + app->getMouse().getScrollOffset().y * controller->fovSensitivity;
-            fov = glm::clamp(fov, glm::pi<float>() * 0.01f,
-                             glm::pi<float>() * 0.99f);  // We keep the fov in the range 0.01*PI to 0.99*PI
-            camera->fovY = fov;
+            if (baseFov <= 0.0f) baseFov = camera->fovY;
+
+            bool wantsAim = app->getMouse().isPressed(GLFW_MOUSE_BUTTON_RIGHT);
+
+            aiming = wantsAim;
+
+            currentAimSpeed = controller->aimSpeed;
+            float targetFov = aiming ? controller->aimFovY : baseFov;
+            camera->fovY = glm::mix(camera->fovY, targetFov, glm::clamp(controller->aimSpeed * deltaTime, 0.0f, 1.0f));
+        }
+
+        bool isAiming() const {
+            return aiming;
+        }
+
+        float getAimSpeed() const {
+            return currentAimSpeed;
         }
 
         // When the state exits, it should call this function to ensure the mouse is unlocked

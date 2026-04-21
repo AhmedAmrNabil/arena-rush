@@ -7,14 +7,17 @@
 #include <ecs/world.hpp>
 #include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
+#include <systems/crosshair-renderer.hpp>
 #include <systems/enemy-ai.hpp>
 #include <systems/enemy-health-bar.hpp>
 #include <systems/enemy-spawner.hpp>
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
+#include <systems/health-system.hpp>
 #include <systems/movement.hpp>
 #include <systems/player-movement-system.hpp>
 #include <systems/post-process-effects-system.hpp>
+#include <systems/projectile-system.hpp>
 #include <systems/ui-renderer.hpp>
 
 // This state shows how to use the ECS framework and deserialization.
@@ -24,8 +27,9 @@ class Playstate : public our::State {
     our::UIRenderer uiRenderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
-    ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
+
     gameplay::CollisionSystem collisionSystem;
+    gameplay::HealthSystem healthSystem;
     our::Entity* playerEntity = nullptr;
     our::CameraComponent* activeCamera = nullptr;
     gameplay::EnemyAISystem enemyAI;
@@ -33,6 +37,8 @@ class Playstate : public our::State {
     gameplay::EnemyHealthBarSystem enemyHealthBars;
     gameplay::PlayerMovementSystem playerMovement;
     gameplay::PostProcessEffectsSystem postProcessEffects;
+    gameplay::CrosshairRenderer crosshair;
+    float aimBlend = 0.0f;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -101,28 +107,65 @@ class Playstate : public our::State {
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
         enemyHealthBars.deserialize(config);
+        crosshair.deserialize(config);
     }
 
     void onDraw(double deltaTime) override {
         float dt = static_cast<float>(deltaTime);
 
-        movementSystem.update(&world, dt);
-        cameraController.update(&world, dt);
-        // Here, we just run a bunch of systems to control the world logic
+        gameplay::ProjectileSystem::tickWeaponCooldowns(&world, dt);
+
+        // Movement / Camera / Audio
         playerMovement.update(&world, dt, getApp());
         movementSystem.update(&world, dt);
         cameraController.update(&world, dt);
         postProcessEffects.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
-        enemyAI.update(&world, playerEntity, dt);
+        // Spawning / AI
         enemySpawner.update(&world, dt);
+        enemyAI.update(&world, playerEntity, getApp(), dt);
 
+        // Fire
+        auto& mouse = getApp()->getMouse();
+        if (playerEntity && mouse.justPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            glm::mat4 playerM = playerEntity->getLocalToWorldMatrix();
+            glm::vec3 cameraPos = glm::vec3(playerM[3]);
+            glm::vec3 forward = glm::normalize(glm::vec3(playerM * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+
+            constexpr float aimDistance = 500.0f;
+            gameplay::HitInfo aimHit = collisionSystem.raycast(
+                gameplay::Ray{cameraPos, forward}, aimDistance,
+                gameplay::CollisionLayer::LAYER_ENVIRONMENT | gameplay::CollisionLayer::LAYER_ENEMY);
+            glm::vec3 aimPoint = aimHit.hit ? aimHit.point : (cameraPos + forward * aimDistance);
+
+            // compute muzzle origin and direct the bullet from muzzle toward the aim point
+            gameplay::WeaponComponent* weapon = playerEntity->getComponent<gameplay::WeaponComponent>();
+            glm::vec3 muzzleOrigin = glm::vec3(playerM * glm::vec4(weapon ? weapon->muzzleOffset : glm::vec3(0), 1.0f));
+            glm::vec3 aimDir = glm::normalize(aimPoint - muzzleOrigin);
+
+            gameplay::ProjectileSystem::fire(&world, getApp(), playerEntity, aimDir,
+                                             gameplay::CollisionLayer::LAYER_PLAYER);
+        }
+
+        // Collision / Projectile
         collisionSystem.update(&world);
+        gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
+
+        // Death
+        bool playerDied = healthSystem.update(&world, dt);
+        if (playerDied) getApp()->changeState("menu");
+        world.deleteMarkedEntities();
 
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera);
+
+        // HUD
+        float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
+        float aimSpeed = cameraController.getAimSpeed();
+        aimBlend = glm::mix(aimBlend, aimTarget, glm::clamp(aimSpeed * dt, 0.0f, 1.0f));
+        crosshair.render(getApp(), uiRenderer, aimBlend);
 
 #ifdef COLLISION_DEBUG_DRAW
         // Toggle debug draw with F3
@@ -148,14 +191,6 @@ class Playstate : public our::State {
             // If the escape  key is pressed in this frame, go to the play state
             getApp()->changeState("menu");
         }
-        // clang-format off
-        if (keyboard.justPressed(GLFW_KEY_R)) {
-            if (!getApp()->getAudioSystem().isPlaying(reloadSource)) { // TODO: remove when implementing a proper weapon/player system
-                reloadSource = getApp()->getAudioSystem().playSound2D(
-                    our::AssetLoader<our::AudioBuffer>::get("gun-reload"), 1.0f, 1.0f, false);
-            }
-        }
-        // clang-format on
     }
 
     void onDestroy() override {
