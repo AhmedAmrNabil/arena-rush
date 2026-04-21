@@ -46,7 +46,7 @@ uniform float alphaThreshold;
 uniform vec4 tint;
 
 // ── Lights ───────────────────────────────────────────────────────────
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 24
 
 #define LIGHT_DIRECTIONAL 0
 #define LIGHT_POINT       1
