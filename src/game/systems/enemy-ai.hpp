@@ -86,7 +86,7 @@ namespace gameplay {
                                 glm::vec3(enemyEntity->getLocalToWorldMatrix() * glm::vec4(weapon->muzzleOffset, 1.0f));
 
                             ProjectileSystem::fire(world, app, enemyEntity, playerPos - muzzleWorld,
-                                             CollisionLayer::LAYER_ENEMY);
+                                                   CollisionLayer::LAYER_ENEMY);
                         }
                     }
 
