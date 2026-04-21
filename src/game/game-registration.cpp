@@ -8,7 +8,7 @@
 #include "components/player-movement.hpp"
 #include "components/player.hpp"
 #include "components/post-process-effects.hpp"
-
+#include "components/weapon.hpp"
 namespace gameplay {
 
     void registerGameComponents() {
@@ -21,6 +21,7 @@ namespace gameplay {
         our::ComponentRegistry::registerType<PlayerComponent>();
         our::ComponentRegistry::registerType<PlayerMovementComponent>();
         our::ComponentRegistry::registerType<our::PostProcessEffectsComponent>();
+        our::ComponentRegistry::registerType<WeaponComponent>();
 
         initialized = true;
     }

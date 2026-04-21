@@ -322,13 +322,13 @@
                         "radius": 0.45,
                         "height": 1.8,
                         "shape": "Capsule"
-                    }
-                ],
-                "children": [
+                    },
                     {
                         "type": "Health",
                         "maxHealth": 100.0
-                    },
+                    }
+                ],
+                "children": [
                     {
                         "position": [1, -1, -2],
                         "rotation": [0, 0, 0],
@@ -337,6 +337,14 @@
                             {
                                 "type": "Model Renderer",
                                 "model": "gun"
+                            },
+                            {
+                                "type": "Weapon",
+                                "damage": 25.0,
+                                "range": 100.0,
+                                "fireRate": 0.15,
+                                "maxAmmo": 30,
+                                "reloadTime": 1.5
                             }
                         ],
                         "children": [
