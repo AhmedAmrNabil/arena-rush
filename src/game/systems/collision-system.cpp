@@ -56,13 +56,13 @@ namespace gameplay {
     inline short getMaskForLayer(short group) {
         switch (group) {
             case LAYER_PLAYER:
-                return LAYER_ENEMY | LAYER_ENVIRONMENT | LAYER_TRIGGER;
+                return LAYER_ENEMY | LAYER_ENVIRONMENT | LAYER_TRIGGER | LAYER_PROJECTILE;
             case LAYER_ENEMY:
                 return LAYER_PLAYER | LAYER_PROJECTILE | LAYER_ENVIRONMENT;
             case LAYER_ENVIRONMENT:
                 return LAYER_PLAYER | LAYER_ENEMY | LAYER_PROJECTILE;
             case LAYER_PROJECTILE:
-                return LAYER_ENEMY | LAYER_ENVIRONMENT;
+                return LAYER_PLAYER | LAYER_ENEMY | LAYER_ENVIRONMENT;
             case LAYER_TRIGGER:
                 return LAYER_PLAYER;
             default:
