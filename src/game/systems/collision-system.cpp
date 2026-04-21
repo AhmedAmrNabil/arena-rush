@@ -82,6 +82,9 @@ namespace gameplay {
         // the default constraint solver
         collisionWorld = new btCollisionWorld(dispatcher, broadphase, collisionConfiguration);
 
+        // register GImpact algorithm for mesh collisions
+        btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
+
 #ifdef COLLISION_DEBUG_DRAW
         debugDrawer = new CollisionDebugDrawer();
         debugDrawer->initialize();
@@ -124,6 +127,27 @@ namespace gameplay {
         collisionConfiguration = nullptr;
 
         frameCollisions.clear();
+    }
+
+    void CollisionSystem::handleCollisions(CollisionEvent event) {
+        auto* colliderA = event.entityA->getComponent<ColliderComponent>();
+        auto* colliderB = event.entityB->getComponent<ColliderComponent>();
+
+        if (!colliderA || !colliderB) return;
+        if (colliderA->isTrigger || colliderB->isTrigger) return;
+
+        // clang-format off
+        // push back logic (don't push environments)
+        const float SKIN_WIDTH = 0.01f; // a small extra distance to prevent sticking
+        if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
+            event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * (event.penetrationDepth + SKIN_WIDTH));
+        } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
+            event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * (event.penetrationDepth + SKIN_WIDTH));
+        } else {
+            event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * ((event.penetrationDepth + SKIN_WIDTH) / 2.0f));
+            event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * ((event.penetrationDepth + SKIN_WIDTH) / 2.0f));
+        }
+        // clang-format on
     }
 
     void CollisionSystem::update(our::World* world) {
@@ -195,26 +219,9 @@ namespace gameplay {
                 frameCollisions.push_back(event);
             }
         }
-        // apply pushback for non-trigger collisions
+
         for (const CollisionEvent& event : frameCollisions) {
-            // discard the trigger collisions since they don't need pushback
-            auto* colliderA = event.entityA->getComponent<ColliderComponent>();
-            auto* colliderB = event.entityB->getComponent<ColliderComponent>();
-
-            if (!colliderA || !colliderB) continue;
-            if (colliderA->isTrigger || colliderB->isTrigger) continue;
-
-            // clang-format off
-            // push back logic (don't push environments)
-            if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * event.penetrationDepth);
-            } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * event.penetrationDepth);
-            } else {  // this may be edited or removed later
-                event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * (event.penetrationDepth / 2.0f));
-                event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * (event.penetrationDepth / 2.0f));
-            }
-            // clang-format on
+            handleCollisions(event);
         }
     }
 
@@ -308,10 +315,13 @@ namespace gameplay {
                             const glm::vec3& v2 = vertices[indices[i + 2]].position;
                             collider->bulletMesh->addTriangle(glmToBtVec3(v0), glmToBtVec3(v1), glmToBtVec3(v2));
                         }
-                        shape = new btBvhTriangleMeshShape(collider->bulletMesh, true);
+
+                        btGImpactMeshShape* gimpactShape = new btGImpactMeshShape(collider->bulletMesh);
+                        gimpactShape->updateBound();
+                        shape = gimpactShape;
                     } else {
-                        std::cerr << "\033[31mCollider mesh is null for entity " << entity->name
-                                  << ". Defaulting to sphere shape.\033[0m" << std::endl;
+                        std::cerr << "[Collision] Collider mesh is null for entity " << entity->name
+                                  << ". Defaulting to sphere shape." << std::endl;
                         shape = new btSphereShape(collider->radius);
                     }
                     break;

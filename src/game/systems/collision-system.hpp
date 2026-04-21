@@ -1,5 +1,8 @@
 #pragma once
 
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#include <BulletCollision/Gimpact/btGImpactShape.h>
+
 #include <components/collider.hpp>
 #include <cstdint>
 #include <ecs/entity.hpp>
@@ -11,14 +14,16 @@
 
 #include "collision-debug-drawer.hpp"
 
-// Forward declaration. So that we don't include Bullet headers here, instead include in .cpp file to reduce compilation
-// time for files that include this header
+// Forward declaration. So that we don't include Bullet headers here, instead include in .cpp file to reduce
+// compilation time for files that include this header
 class btCollisionWorld;
 class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
 class btDbvtBroadphase;
 class btCollisionObject;
 class btCollisionShape;
+class btGImpactCollisionAlgorithm;
+class btGImpactShape;
 
 #ifdef COLLISION_DEBUG_DRAW
 class CollisionDebugDrawer;
@@ -76,6 +81,8 @@ namespace gameplay {
         void addEntity(our::Entity* entity);
         void removeEntity(our::Entity* entity);
         void syncTransform(our::Entity* entity);
+
+        void handleCollisions(CollisionEvent event);
 
     public:
         void initialize();
