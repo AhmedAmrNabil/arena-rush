@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <asset-loader.hpp>
-#include <components/mesh-renderer.hpp>
+#include <components/model-renderer.hpp>
 #include <deserialize-utils.hpp>
 #include <ecs/world.hpp>
 #include <glm/trigonometric.hpp>
@@ -14,15 +14,15 @@
 #include "../components/collider.hpp"
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
+#include "../components/weapon.hpp"
 
 namespace gameplay {
 
     struct EnemyTemplateConfig {
         std::string name = "Enemy";
-        std::string mesh = "monster";
-        std::string material = "monster";
+        std::string model = "monster";
         glm::vec3 rotationDegrees = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 scale = glm::vec3(0.45f);
+        glm::vec3 scale = glm::vec3(0.012f);
         nlohmann::json components = nlohmann::json::array({
             {{"type", "Enemy"},
              {"enemyType", "Brute"},
@@ -64,7 +64,7 @@ namespace gameplay {
                 if (!enemy) continue;
 
                 HealthComponent* health = entity->getComponent<HealthComponent>();
-                if (!(health && health->isDead)) alive++;
+                if (health && !health->isDead) alive++;
             }
 
             return alive;
@@ -73,9 +73,7 @@ namespace gameplay {
         void spawnEnemyAt(our::World* world, const EnemyTemplateConfig& config, const glm::vec3& position) const {
             if (!world) return;
 
-            our::Mesh* mesh = our::AssetLoader<our::Mesh>::get(config.mesh);
-            our::Material* material = our::AssetLoader<our::Material>::get(config.material);
-            if (!(mesh && material)) return;
+            our::Model* model = our::AssetLoader<our::Model>::get(config.model);
 
             our::Entity* enemyEntity = world->add();
             enemyEntity->name = config.name;
@@ -83,9 +81,8 @@ namespace gameplay {
             enemyEntity->localTransform.rotation = glm::radians(config.rotationDegrees);
             enemyEntity->localTransform.scale = config.scale;
 
-            our::MeshRendererComponent* rendererComponent = enemyEntity->addComponent<our::MeshRendererComponent>();
-            rendererComponent->mesh = mesh;
-            rendererComponent->material = material;
+            our::ModelRendererComponent* rendererComponent = enemyEntity->addComponent<our::ModelRendererComponent>();
+            rendererComponent->model = model;
 
             for (const nlohmann::json& componentConfig : config.components) {
                 if (!componentConfig.is_object()) continue;
@@ -100,6 +97,9 @@ namespace gameplay {
                 } else if (type == "Collider") {
                     ColliderComponent* collider = enemyEntity->addComponent<ColliderComponent>();
                     collider->deserialize(componentConfig);
+                } else if (type == "Weapon") {
+                    WeaponComponent* weapon = enemyEntity->addComponent<WeaponComponent>();
+                    weapon->deserialize(componentConfig);
                 }
             }
         }
@@ -134,8 +134,7 @@ namespace gameplay {
 
                     EnemyTemplateConfig enemyTemplate;
                     enemyTemplate.name = enemyConfig.value("name", enemyTemplate.name);
-                    enemyTemplate.mesh = enemyConfig.value("mesh", enemyTemplate.mesh);
-                    enemyTemplate.material = enemyConfig.value("material", enemyTemplate.material);
+                    enemyTemplate.model = enemyConfig.value("model", enemyTemplate.model);
                     enemyTemplate.rotationDegrees = enemyConfig.value("rotation", enemyTemplate.rotationDegrees);
                     enemyTemplate.scale = enemyConfig.value("scale", enemyTemplate.scale);
 
