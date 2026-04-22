@@ -70,9 +70,7 @@ namespace our {
 
             if (baseFov <= 0.0f) baseFov = camera->fovY;
 
-            bool wantsAim = app->getMouse().isPressed(GLFW_MOUSE_BUTTON_RIGHT);
-
-            aiming = wantsAim;
+            aiming = app->getMouse().isPressed(GLFW_MOUSE_BUTTON_RIGHT);
 
             currentAimSpeed = controller->aimSpeed;
             float targetFov = aiming ? controller->aimFovY : baseFov;
