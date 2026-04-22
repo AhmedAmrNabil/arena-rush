@@ -294,6 +294,26 @@ namespace gameplay {
         return results;
     }
 
+    Aabb CollisionSystem::getWorldAabb(const our::Entity* entity) const {
+        Aabb bounds;
+        if (!entity) return bounds;
+
+        auto it = entityToBullet.find(const_cast<our::Entity*>(entity));
+        if (it == entityToBullet.end()) return bounds;
+
+        btCollisionObject* obj = it->second;
+        if (!(obj && obj->getCollisionShape())) return bounds;
+
+        btVector3 minPoint;
+        btVector3 maxPoint;
+        obj->getCollisionShape()->getAabb(entityToBtTransform(const_cast<our::Entity*>(entity)), minPoint, maxPoint);
+
+        bounds.min = btToGlmVec3(minPoint);
+        bounds.max = btToGlmVec3(maxPoint);
+        bounds.valid = true;
+        return bounds;
+    }
+
     void CollisionSystem::addEntity(our::Entity* entity) {
         auto* collider = entity->getComponent<ColliderComponent>();
         if (!collider) return;

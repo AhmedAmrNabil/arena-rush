@@ -49,6 +49,12 @@ namespace gameplay {
         float penetrationDepth = 0.0f;  // how much the two colliders are penetrating each other
     };
 
+    struct Aabb {
+        glm::vec3 min = glm::vec3(0.0f);
+        glm::vec3 max = glm::vec3(0.0f);
+        bool valid = false;
+    };
+
     short getMaskForLayer(short group);
 
     class CollisionSystem {
@@ -91,6 +97,8 @@ namespace gameplay {
 
         // On-demand overlap sphere function that can be used outside of the update loop
         std::vector<our::Entity*> overlapSphere(const glm::vec3& center, float radius, short targetLayer);
+
+        Aabb getWorldAabb(const our::Entity* entity) const;
 
         const std::vector<CollisionEvent>& getCollisions() const;
 
