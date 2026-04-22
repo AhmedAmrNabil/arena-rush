@@ -298,7 +298,8 @@
                         "components": [
                             {
                                 "type": "Model Renderer",
-                                "model": "gun"
+                                "model": "gun",
+                                "firstPersonOverlay": true
                             }
                         ],
                         "children": [
