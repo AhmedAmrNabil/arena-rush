@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
+
 #include <algorithm>
 #include <application.hpp>
 #include <asset-loader.hpp>
@@ -82,6 +84,29 @@ namespace gameplay {
             return true;
         }
 
+        static bool handlePlayerFire(our::World* world, our::Application* app, const CollisionSystem& collisions,
+                                     our::Entity* playerEntity) {
+            if (!world || !app || !playerEntity) return false;
+            if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+
+            glm::mat4 playerM = playerEntity->getLocalToWorldMatrix();
+            glm::vec3 cameraPos = glm::vec3(playerM[3]);
+            glm::vec3 forward = glm::normalize(glm::vec3(playerM * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+
+            constexpr float aimDistance = 500.0f;
+            HitInfo aimHit = collisions.raycast(Ray{cameraPos, forward}, aimDistance,
+                                                CollisionLayer::LAYER_ENVIRONMENT | CollisionLayer::LAYER_ENEMY);
+            glm::vec3 aimPoint = aimHit.hit ? aimHit.point : (cameraPos + forward * aimDistance);
+
+            WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
+            glm::vec3 muzzleOrigin =
+                glm::vec3(playerM * glm::vec4(weapon ? weapon->muzzleOffset : glm::vec3(0.0f), 1.0f));
+            glm::vec3 aimVector = aimPoint - muzzleOrigin;
+            if (glm::dot(aimVector, aimVector) <= 0.000001f) aimVector = forward;
+
+            return fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER);
+        }
+
         static void update(our::World* world, const CollisionSystem& collisions, float deltaTime) {
             if (!world || deltaTime <= 0.0f) return;
 
@@ -110,9 +135,8 @@ namespace gameplay {
                     HitInfo hit = collisions.raycast(Ray{oldPos, dir}, moveDistance + extra, hitMask);
 
                     if (hit.hit && hit.entity) {
-                        if (HealthComponent* health = hit.entity->getComponent<HealthComponent>();
-                            health && !health->isDead)
-                            health->takeDamage(proj->damage);
+                        HealthComponent* health = hit.entity->getComponent<HealthComponent>();
+                        if (health && !health->isDead) health->takeDamage(proj->damage);
 
                         entity->localTransform.position = hit.point;
                         proj->lifetime = 0.0f;

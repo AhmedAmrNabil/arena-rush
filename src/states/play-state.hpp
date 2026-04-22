@@ -127,26 +127,7 @@ class Playstate : public our::State {
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
 
-        // Fire
-        auto& mouse = getApp()->getMouse();
-        if (playerEntity && mouse.justPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-            glm::mat4 playerM = playerEntity->getLocalToWorldMatrix();
-            glm::vec3 cameraPos = glm::vec3(playerM[3]);
-            glm::vec3 forward = glm::normalize(glm::vec3(playerM * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
-
-            constexpr float aimDistance = 500.0f;
-            gameplay::HitInfo aimHit = collisionSystem.raycast(
-                gameplay::Ray{cameraPos, forward}, aimDistance,
-                gameplay::CollisionLayer::LAYER_ENVIRONMENT | gameplay::CollisionLayer::LAYER_ENEMY);
-            glm::vec3 aimPoint = aimHit.hit ? aimHit.point : (cameraPos + forward * aimDistance);
-
-            gameplay::WeaponComponent* weapon = playerEntity->getComponent<gameplay::WeaponComponent>();
-            glm::vec3 muzzleOrigin = glm::vec3(playerM * glm::vec4(weapon ? weapon->muzzleOffset : glm::vec3(0), 1.0f));
-            glm::vec3 aimDir = glm::normalize(aimPoint - muzzleOrigin);
-
-            gameplay::ProjectileSystem::fire(&world, getApp(), playerEntity, aimDir,
-                                             gameplay::CollisionLayer::LAYER_PLAYER);
-        }
+        gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
 
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
@@ -160,7 +141,7 @@ class Playstate : public our::State {
 
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
-        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera);
+        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
