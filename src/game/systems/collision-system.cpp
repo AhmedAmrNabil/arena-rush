@@ -10,6 +10,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "components/player.hpp"
+
 #ifdef COLLISION_DEBUG_DRAW
 #include "collision-debug-drawer.hpp"
 #endif
@@ -50,6 +52,21 @@ static btTransform entityToBtTransform(our::Entity* entity) {
     btTransform t;
     t.setOrigin(btVector3(pos.x, pos.y, pos.z));
     t.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
+    return t;
+}
+
+static btTransform entityToBtTransformYawOnly(our::Entity* entity) {
+    glm::mat4 m = entity->getLocalToWorldMatrix();
+    glm::vec3 pos = glm::vec3(m[3]);
+
+    // Extract yaw from the forward vector projected onto XZ plane
+    glm::vec3 forward = glm::normalize(glm::vec3(m[2]));  // local -Z in world space
+    float yaw = atan2(forward.x, forward.z);              // yaw angle from forward direction
+
+    btTransform t;
+    t.setIdentity();
+    t.setOrigin(btVector3(pos.x, pos.y, pos.z));
+    t.setRotation(btQuaternion(btVector3(0, 1, 0), yaw));  // only rotate around Y
     return t;
 }
 
@@ -336,7 +353,14 @@ namespace gameplay {
         // Create the collision object
         btCollisionObject* obj = new btCollisionObject();
         obj->setCollisionShape(shape);
-        obj->setWorldTransform(entityToBtTransform(entity));
+
+        auto* player = entity->getComponent<PlayerComponent>();
+        if (player) {
+            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
+        } else {
+            obj->setWorldTransform(entityToBtTransform(entity));
+        }
+
         obj->setUserPointer(entity);  // so we can go back to the entity
 
         if (collider->layer == CollisionLayer::LAYER_ENVIRONMENT) {
@@ -390,7 +414,15 @@ namespace gameplay {
 
         if (!obj) return;
 
-        obj->setWorldTransform(entityToBtTransform(entity));
+        auto* player = entity->getComponent<PlayerComponent>();
+
+        if (player) {
+            // for players, we only update the yaw rotation to prevent them from tipping over when walking on slopes or
+            // getting hit by hazards. This is a common technique in character controllers to improve stability.
+            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
+        } else {
+            obj->setWorldTransform(entityToBtTransform(entity));
+        }
 
         // Update the broadphase AABB so Bullet uses the new position for collision detection
         collisionWorld->updateSingleAabb(obj);
