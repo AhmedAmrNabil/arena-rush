@@ -1,5 +1,7 @@
 #include "player-movement-system.hpp"
 
+#include "collision-system.hpp"
+
 namespace gameplay {
 
     void PlayerMovementSystem::handleSlidingAndCrouching(PlayerMovementComponent* movement, our::Keyboard& keyboard,

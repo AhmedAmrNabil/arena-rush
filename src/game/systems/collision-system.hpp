@@ -1,8 +1,5 @@
 #pragma once
 
-#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
-#include <BulletCollision/Gimpact/btGImpactShape.h>
-
 #include <components/collider.hpp>
 #include <cstdint>
 #include <ecs/entity.hpp>
@@ -22,8 +19,6 @@ class btCollisionDispatcher;
 class btDbvtBroadphase;
 class btCollisionObject;
 class btCollisionShape;
-class btGImpactCollisionAlgorithm;
-class btGImpactShape;
 
 #ifdef COLLISION_DEBUG_DRAW
 class CollisionDebugDrawer;

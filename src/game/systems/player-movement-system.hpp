@@ -6,9 +6,8 @@
 #include <glm/glm.hpp>
 #include <input/keyboard.hpp>
 
-#include "systems/collision-system.hpp"
-
 namespace gameplay {
+    class CollisionSystem;  // forward declaration
 
     // Handles all player movement (walking, sprinting, sliding, dashing)
     // operates on the entity with player movement and camera components

@@ -1,5 +1,7 @@
 #include "collision-system.hpp"
 
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#include <BulletCollision/Gimpact/btGImpactShape.h>
 #include <btBulletCollisionCommon.h>
 
 #include <components/collider.hpp>
