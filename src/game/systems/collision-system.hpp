@@ -19,6 +19,7 @@ class btCollisionDispatcher;
 class btDbvtBroadphase;
 class btCollisionObject;
 class btCollisionShape;
+class btTriangleMesh;
 
 #ifdef COLLISION_DEBUG_DRAW
 class CollisionDebugDrawer;
@@ -74,6 +75,7 @@ namespace gameplay {
         std::unordered_map<our::Entity*, btCollisionObject*> entityToBullet;
         std::unordered_map<btCollisionShape*, std::uint16_t> ownedShapes;
         std::unordered_map<std::string, btCollisionShape*> shapesCache;
+        std::unordered_map<std::string, btTriangleMesh*> meshDataCache;
 
         // Frame results
         std::vector<CollisionEvent> frameCollisions;

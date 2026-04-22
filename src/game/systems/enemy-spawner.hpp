@@ -97,6 +97,7 @@ namespace gameplay {
                 } else if (type == "Collider") {
                     ColliderComponent* collider = enemyEntity->addComponent<ColliderComponent>();
                     collider->deserialize(componentConfig);
+                    collider->shapeCacheId = std::string("enemy:") + config.name + ":" + config.model;
                 } else if (type == "Weapon") {
                     WeaponComponent* weapon = enemyEntity->addComponent<WeaponComponent>();
                     weapon->deserialize(componentConfig);

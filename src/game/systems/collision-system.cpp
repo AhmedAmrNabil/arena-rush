@@ -55,6 +55,12 @@ static btTransform entityToBtTransform(our::Entity* entity) {
     return t;
 }
 
+static std::string makeShapeScaleSuffix(const glm::vec3& scale) {
+    std::string out;
+    out = "_Scale_" + std::to_string(scale.x) + "_" + std::to_string(scale.y) + "_" + std::to_string(scale.z);
+    return out;
+}
+
 static btTransform entityToBtTransformYawOnly(our::Entity* entity) {
     glm::mat4 m = entity->getLocalToWorldMatrix();
     glm::vec3 pos = glm::vec3(m[3]);
@@ -134,6 +140,11 @@ namespace gameplay {
         }
         ownedShapes.clear();
         shapesCache.clear();
+
+        for (auto& [key, mesh] : meshDataCache) {
+            delete mesh;
+        }
+        meshDataCache.clear();
 
         // delete bullet internals
         delete collisionWorld;
@@ -321,14 +332,19 @@ namespace gameplay {
         // Create or reuse collision shape based on collider data
         btCollisionShape* shape = nullptr;
 
-        // Shape_r_h_Scale_x_y_z
-        std::string shapeKey =
-            std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) + "_" +
-            std::to_string(collider->height) + "_Scale_" + std::to_string(entity->localTransform.scale.x) + "_" +
-            std::to_string(entity->localTransform.scale.y) + "_" + std::to_string(entity->localTransform.scale.z);
+        std::string shapeKey;
+        const std::string scaleSuffix = makeShapeScaleSuffix(entity->localTransform.scale);
+        if (!collider->shapeCacheId.empty()) {
+            shapeKey = std::string("ID_") + collider->shapeCacheId + scaleSuffix;
+        } else {
+            shapeKey = std::to_string(static_cast<int>(collider->shape)) + "_" + std::to_string(collider->radius) +
+                       "_" + std::to_string(collider->height) + scaleSuffix;
+        }
+
         if (shapesCache.find(shapeKey) != shapesCache.end()) {
             ownedShapes[shapesCache[shapeKey]]++;
             shape = shapesCache[shapeKey];
+            std::cout << "Cache hit for shape " << shapeKey << std::endl;
         } else {
             // Create new shape and cache it
             switch (collider->shape) {
@@ -343,21 +359,19 @@ namespace gameplay {
                 }
                 case ColliderShape::Mesh:
                     if (collider->mesh) {
-                        collider->bulletMesh = new btTriangleMesh();
+                        btTriangleMesh* triMesh = new btTriangleMesh();
                         const std::vector<our::Vertex>& vertices = collider->mesh->getVertices();
                         const std::vector<unsigned int>& indices = collider->mesh->getIndices();
-                        collider->bulletMesh->preallocateVertices(vertices.size());
-                        collider->bulletMesh->preallocateIndices(indices.size());
+                        triMesh->preallocateVertices(vertices.size());
+                        triMesh->preallocateIndices(indices.size());
                         for (size_t i = 0; i < indices.size(); i += 3) {
                             const glm::vec3& v0 = vertices[indices[i]].position;
                             const glm::vec3& v1 = vertices[indices[i + 1]].position;
                             const glm::vec3& v2 = vertices[indices[i + 2]].position;
-                            collider->bulletMesh->addTriangle(glmToBtVec3(v0), glmToBtVec3(v1), glmToBtVec3(v2));
+                            triMesh->addTriangle(glmToBtVec3(v0), glmToBtVec3(v1), glmToBtVec3(v2));
                         }
-
-                        btGImpactMeshShape* gimpactShape = new btGImpactMeshShape(collider->bulletMesh);
-                        gimpactShape->updateBound();
-                        shape = gimpactShape;
+                        shape = new btBvhTriangleMeshShape(triMesh, true);
+                        meshDataCache[shapeKey] = triMesh;
                     } else {
                         std::cerr << "[Collision] Collider mesh is null for entity " << entity->name
                                   << ". Defaulting to sphere shape." << std::endl;
@@ -415,6 +429,12 @@ namespace gameplay {
                 // Erase it from the cache
                 for (auto it = shapesCache.begin(); it != shapesCache.end(); ++it) {
                     if (it->second == shape) {
+                        auto meshIt = meshDataCache.find(it->first);
+                        if (meshIt != meshDataCache.end()) {
+                            delete meshIt->second;
+                            meshDataCache.erase(meshIt);
+                        }
+
                         shapesCache.erase(it);
                         break;
                     }

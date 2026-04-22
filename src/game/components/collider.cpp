@@ -52,10 +52,4 @@ namespace gameplay {
         }
     }
 
-    ColliderComponent::~ColliderComponent() {
-        if (shape == ColliderShape::Mesh && bulletMesh) {
-            delete bulletMesh;
-        }
-    }
-
 }  // namespace gameplay

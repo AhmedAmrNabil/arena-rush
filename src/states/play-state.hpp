@@ -128,7 +128,6 @@ class Playstate : public our::State {
         collisionSystem.update(&world);
 
         gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
-
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
         // Death / effects / audio
