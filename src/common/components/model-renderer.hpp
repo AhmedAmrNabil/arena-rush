@@ -9,7 +9,8 @@ namespace our {
 
     class ModelRendererComponent : public Component {
     public:
-        Model* model;  // The model that should be drawn
+        Model* model;                     // The model that should be drawn
+        bool firstPersonOverlay = false;  // Render on top of the world as a first-person weapon/view model
 
         // The ID of this component type is "Model Renderer"
         static std::string getID() {

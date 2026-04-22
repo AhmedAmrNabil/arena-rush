@@ -16,6 +16,7 @@
 #include "../components/collider.hpp"
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
+#include "collision-system.hpp"
 
 namespace gameplay {
 
@@ -42,7 +43,9 @@ namespace gameplay {
             }
         }
 
-        static float estimateBarHeight(const our::Entity* entity, const ColliderComponent* collider) {
+        static float estimateBarHeight(our::Entity* entity, const ColliderComponent* collider) {
+            if (!entity) return 1.0f;
+
             float scaleHeight = std::max(std::abs(entity->localTransform.scale.y) * 1.2f, 1.0f);
             if (!collider) return scaleHeight;
 
@@ -50,6 +53,28 @@ namespace gameplay {
             if (collider->shape == ColliderShape::Capsule) colliderHeight = std::max(colliderHeight, collider->height);
 
             return std::max(colliderHeight, scaleHeight);
+        }
+
+        static glm::vec3 estimateBarWorldAnchor(our::Entity* entity, const CollisionSystem& collisions) {
+            glm::vec3 entityWorldPos =
+                entity ? glm::vec3(entity->getLocalToWorldMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
+                       : glm::vec3(0.0f);
+
+            Aabb bounds = collisions.getWorldAabb(entity);
+            if (bounds.valid) {
+                float height = std::max(bounds.max.y - bounds.min.y, 0.0f);
+                float verticalPadding = std::max(height * 0.08f, 0.15f);
+                return {
+                    entityWorldPos.x,
+                    bounds.max.y + verticalPadding,
+                    entityWorldPos.z,
+                };
+            }
+
+            ColliderComponent* collider = entity ? entity->getComponent<ColliderComponent>() : nullptr;
+            glm::vec3 fallbackLocalAnchor = {0.0f, estimateBarHeight(entity, collider) + 0.35f, 0.0f};
+            return entity ? glm::vec3(entity->getLocalToWorldMatrix() * glm::vec4(fallbackLocalAnchor, 1.0f))
+                          : glm::vec3(0.0f);
         }
 
     public:
@@ -76,7 +101,7 @@ namespace gameplay {
         }
 
         void render(our::World* world, our::Application* app, const our::UIRenderer& ui,
-                    const our::CameraComponent* camera) const {
+                    const our::CameraComponent* camera, const CollisionSystem& collisions) const {
             if (!(config.enabled && world && app && camera)) return;
 
             glm::ivec2 framebufferSize = app->getFrameBufferSize();
@@ -103,10 +128,7 @@ namespace gameplay {
 
                 if (!(visibleWhenDamaged || visibleWhenClose)) continue;
 
-                ColliderComponent* collider = entity->getComponent<ColliderComponent>();
-                float barHeightOffset = estimateBarHeight(entity, collider) + 0.35f;
-
-                glm::vec3 barWorldPos = glm::vec3(localToWorld * glm::vec4(0.0f, barHeightOffset, 0.0f, 1.0f));
+                glm::vec3 barWorldPos = estimateBarWorldAnchor(entity, collisions);
                 our::ScreenPoint screen = our::UIRenderer::worldToScreen(barWorldPos, viewProj, framebufferSize);
                 if (!screen.visible) continue;
 

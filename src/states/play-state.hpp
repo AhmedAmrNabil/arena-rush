@@ -7,14 +7,17 @@
 #include <ecs/world.hpp>
 #include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
+#include <systems/crosshair-renderer.hpp>
 #include <systems/enemy-ai.hpp>
 #include <systems/enemy-health-bar.hpp>
 #include <systems/enemy-spawner.hpp>
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
+#include <systems/health-system.hpp>
 #include <systems/movement.hpp>
 #include <systems/player-movement-system.hpp>
 #include <systems/post-process-effects-system.hpp>
+#include <systems/projectile-system.hpp>
 #include <systems/ui-renderer.hpp>
 
 // This state shows how to use the ECS framework and deserialization.
@@ -24,8 +27,9 @@ class Playstate : public our::State {
     our::UIRenderer uiRenderer;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
-    ALuint reloadSource = 0;  // TODO: remove when implementing a proper weapon/player system
+
     gameplay::CollisionSystem collisionSystem;
+    gameplay::HealthSystem healthSystem;
     our::Entity* playerEntity = nullptr;
     our::CameraComponent* activeCamera = nullptr;
     gameplay::EnemyAISystem enemyAI;
@@ -33,6 +37,8 @@ class Playstate : public our::State {
     gameplay::EnemyHealthBarSystem enemyHealthBars;
     gameplay::PlayerMovementSystem playerMovement;
     gameplay::PostProcessEffectsSystem postProcessEffects;
+    gameplay::CrosshairRenderer crosshair;
+    float aimBlend = 0.0f;
 
     void displayFPS() const {
         // Pin a transparent overlay window to the top-left corner
@@ -101,27 +107,46 @@ class Playstate : public our::State {
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
         enemyHealthBars.deserialize(config);
+        crosshair.deserialize(config);
     }
 
     void onDraw(double deltaTime) override {
         float dt = static_cast<float>(deltaTime);
 
+        gameplay::ProjectileSystem::tickWeaponCooldowns(&world, dt);
+
+        // Movement / Camera
         cameraController.update(&world, dt);
         playerMovement.update(&world, dt, getApp(), &collisionSystem);
-
-        enemyAI.update(&world, playerEntity, dt);
-        enemySpawner.update(&world, dt);
-
         movementSystem.update(&world, dt);
 
+        // Spawning / AI
+        enemySpawner.update(&world, dt);
+        enemyAI.update(&world, playerEntity, getApp(), dt);
+
+        // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
+
+        gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
+        gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
+
+        // Death / effects / audio
+        bool playerDied = healthSystem.update(&world, dt);
+        if (playerDied) getApp()->changeState("menu");
+        world.deleteMarkedEntities();
 
         postProcessEffects.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
-        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera);
+        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
+
+        // HUD
+        float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
+        float aimSpeed = cameraController.getAimSpeed();
+        aimBlend = glm::mix(aimBlend, aimTarget, glm::clamp(aimSpeed * dt, 0.0f, 1.0f));
+        crosshair.render(getApp(), uiRenderer, aimBlend);
 
 #ifdef COLLISION_DEBUG_DRAW
         // Toggle debug draw with F3
@@ -147,14 +172,6 @@ class Playstate : public our::State {
             // If the escape  key is pressed in this frame, go to the play state
             getApp()->changeState("menu");
         }
-        // clang-format off
-        if (keyboard.justPressed(GLFW_KEY_R)) {
-            if (!getApp()->getAudioSystem().isPlaying(reloadSource)) { // TODO: remove when implementing a proper weapon/player system
-                reloadSource = getApp()->getAudioSystem().playSound2D(
-                    our::AssetLoader<our::AudioBuffer>::get("gun-reload"), 1.0f, 1.0f, false);
-            }
-        }
-        // clang-format on
     }
 
     void onDestroy() override {

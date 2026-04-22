@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include <application.hpp>
 #include <cmath>
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
@@ -12,6 +13,8 @@
 
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
+#include "../components/weapon.hpp"
+#include "projectile-system.hpp"
 
 namespace gameplay {
 
@@ -43,8 +46,8 @@ namespace gameplay {
         }
 
     public:
-        void update(our::World* world, our::Entity* playerEntity, float deltaTime) {
-            if (!world || !playerEntity || deltaTime <= 0.0f) return;
+        void update(our::World* world, our::Entity* playerEntity, our::Application* app, float deltaTime) {
+            if (!world || !playerEntity || !app || deltaTime <= 0.0f) return;
 
             glm::vec3 playerPos = glm::vec3(playerEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
             float t = static_cast<float>(glfwGetTime());
@@ -55,8 +58,6 @@ namespace gameplay {
 
                 HealthComponent* health = enemyEntity->getComponent<HealthComponent>();
                 if (health && health->isDead) continue;
-
-                enemy->attackTimer = glm::max(0.0f, enemy->attackTimer - deltaTime);
 
                 glm::vec3 enemyPos = glm::vec3(enemyEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
                 glm::vec3 toPlayer = playerPos - enemyPos;
@@ -77,9 +78,15 @@ namespace gameplay {
                         movementSpeed = enemy->moveSpeed;
                     }
 
-                    // should attack here
-                    if (inAttackRange && enemy->attackTimer <= 0.0f) {
-                        enemy->attackTimer = enemy->attackCooldown;
+                    // fire at player
+                    if (inAttackRange) {
+                        if (WeaponComponent* weapon = enemyEntity->getComponent<WeaponComponent>()) {
+                            glm::vec3 muzzleWorld =
+                                glm::vec3(enemyEntity->getLocalToWorldMatrix() * glm::vec4(weapon->muzzleOffset, 1.0f));
+
+                            ProjectileSystem::fire(world, app, enemyEntity, playerPos - muzzleWorld,
+                                                   CollisionLayer::LAYER_ENEMY);
+                        }
                     }
 
                     if (!enemy->hoverOriginSet) {
