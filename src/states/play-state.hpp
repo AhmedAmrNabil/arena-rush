@@ -126,6 +126,9 @@ class Playstate : public our::State {
         enemySpawner.update(&world, dt);
         enemyAI.update(&world, playerEntity, getApp(), dt);
 
+        // Refresh Bullet state before any on-demand raycasts (aiming, projectile traces).
+        collisionSystem.update(&world);
+
         // Fire
         auto& mouse = getApp()->getMouse();
         if (playerEntity && mouse.justPressed(GLFW_MOUSE_BUTTON_LEFT)) {
@@ -148,8 +151,7 @@ class Playstate : public our::State {
                                              gameplay::CollisionLayer::LAYER_PLAYER);
         }
 
-        // Collision / Projectile
-        collisionSystem.update(&world);
+        // Projectile
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
         // Death

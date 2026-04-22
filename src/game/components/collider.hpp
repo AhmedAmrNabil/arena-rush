@@ -20,20 +20,18 @@ namespace gameplay {
     class ColliderComponent : public our::Component {
     public:
         ColliderShape shape = ColliderShape::Sphere;
+        std::string shapeCacheId;  // explicit key to reuse Bullet shapes across similar entities
         CollisionLayer layer = CollisionLayer::LAYER_ENVIRONMENT;
         float radius = 0.5f;
         float height = 1.0f;  // must be the total height
         bool isTrigger = false;
         our::Mesh* mesh = nullptr;  // optional mesh for mesh colliders
-        btTriangleMesh* bulletMesh =
-            nullptr;  // owned by ColliderComponent, freed in destructor (only used if shape == Mesh)
 
         static std::string getID() {
             return "Collider";
         }
 
         void deserialize(const nlohmann::json& data) override;
-        ~ColliderComponent();
     };
 
 }  // namespace gameplay
