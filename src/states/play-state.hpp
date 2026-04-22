@@ -106,19 +106,18 @@ class Playstate : public our::State {
     void onDraw(double deltaTime) override {
         float dt = static_cast<float>(deltaTime);
 
-        movementSystem.update(&world, dt);
         cameraController.update(&world, dt);
-        // Here, we just run a bunch of systems to control the world logic
-        playerMovement.update(&world, dt, getApp());
-        movementSystem.update(&world, dt);
-        cameraController.update(&world, dt);
-        postProcessEffects.update(&world, dt);
-        getApp()->getAudioSystem().update(&world);
+        playerMovement.update(&world, dt, getApp(), &collisionSystem);
 
         enemyAI.update(&world, playerEntity, dt);
         enemySpawner.update(&world, dt);
 
+        movementSystem.update(&world, dt);
+
         collisionSystem.update(&world);
+
+        postProcessEffects.update(&world, dt);
+        getApp()->getAudioSystem().update(&world);
 
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());

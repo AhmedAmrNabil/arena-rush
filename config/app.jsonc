@@ -292,7 +292,7 @@
                     },
                     {
                         "type": "Free Camera Controller",
-                        "rotationSensitivity": 0.01,
+                        "rotationSensitivity": 0.003,
                         "fovSensitivity": 0.3
                     },
                     {

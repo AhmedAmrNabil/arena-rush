@@ -1,5 +1,7 @@
 #include "collision-system.hpp"
 
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#include <BulletCollision/Gimpact/btGImpactShape.h>
 #include <btBulletCollisionCommon.h>
 
 #include <components/collider.hpp>
@@ -7,6 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "components/player.hpp"
 
 #ifdef COLLISION_DEBUG_DRAW
 #include "collision-debug-drawer.hpp"
@@ -51,6 +55,21 @@ static btTransform entityToBtTransform(our::Entity* entity) {
     return t;
 }
 
+static btTransform entityToBtTransformYawOnly(our::Entity* entity) {
+    glm::mat4 m = entity->getLocalToWorldMatrix();
+    glm::vec3 pos = glm::vec3(m[3]);
+
+    // Extract yaw from the forward vector projected onto XZ plane
+    glm::vec3 forward = glm::normalize(glm::vec3(m[2]));  // local -Z in world space
+    float yaw = atan2(forward.x, forward.z);              // yaw angle from forward direction
+
+    btTransform t;
+    t.setIdentity();
+    t.setOrigin(btVector3(pos.x, pos.y, pos.z));
+    t.setRotation(btQuaternion(btVector3(0, 1, 0), yaw));  // only rotate around Y
+    return t;
+}
+
 namespace gameplay {
 
     inline short getMaskForLayer(short group) {
@@ -81,6 +100,9 @@ namespace gameplay {
 
         // the default constraint solver
         collisionWorld = new btCollisionWorld(dispatcher, broadphase, collisionConfiguration);
+
+        // register GImpact algorithm for mesh collisions
+        btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
 
 #ifdef COLLISION_DEBUG_DRAW
         debugDrawer = new CollisionDebugDrawer();
@@ -124,6 +146,27 @@ namespace gameplay {
         collisionConfiguration = nullptr;
 
         frameCollisions.clear();
+    }
+
+    void CollisionSystem::handleCollisions(const CollisionEvent& event) {
+        auto* colliderA = event.entityA->getComponent<ColliderComponent>();
+        auto* colliderB = event.entityB->getComponent<ColliderComponent>();
+
+        if (!colliderA || !colliderB) return;
+        if (colliderA->isTrigger || colliderB->isTrigger) return;
+
+        // clang-format off
+        // push back logic (don't push environments)
+        const float SKIN_WIDTH = 0.01f; // a small extra distance to prevent sticking
+        if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
+            event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * (event.penetrationDepth + SKIN_WIDTH));
+        } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
+            event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * (event.penetrationDepth + SKIN_WIDTH));
+        } else {
+            event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * ((event.penetrationDepth + SKIN_WIDTH) / 2.0f));
+            event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * ((event.penetrationDepth + SKIN_WIDTH) / 2.0f));
+        }
+        // clang-format on
     }
 
     void CollisionSystem::update(our::World* world) {
@@ -195,26 +238,9 @@ namespace gameplay {
                 frameCollisions.push_back(event);
             }
         }
-        // apply pushback for non-trigger collisions
+
         for (const CollisionEvent& event : frameCollisions) {
-            // discard the trigger collisions since they don't need pushback
-            auto* colliderA = event.entityA->getComponent<ColliderComponent>();
-            auto* colliderB = event.entityB->getComponent<ColliderComponent>();
-
-            if (!colliderA || !colliderB) continue;
-            if (colliderA->isTrigger || colliderB->isTrigger) continue;
-
-            // clang-format off
-            // push back logic (don't push environments)
-            if (colliderA->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * event.penetrationDepth);
-            } else if (colliderB->layer == CollisionLayer::LAYER_ENVIRONMENT) {
-                event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * event.penetrationDepth);
-            } else {  // this may be edited or removed later
-                event.entityA->localTransform.position += worldToLocal(event.entityA, event.normal * (event.penetrationDepth / 2.0f));
-                event.entityB->localTransform.position -= worldToLocal(event.entityB, event.normal * (event.penetrationDepth / 2.0f));
-            }
-            // clang-format on
+            handleCollisions(event);
         }
     }
 
@@ -308,10 +334,13 @@ namespace gameplay {
                             const glm::vec3& v2 = vertices[indices[i + 2]].position;
                             collider->bulletMesh->addTriangle(glmToBtVec3(v0), glmToBtVec3(v1), glmToBtVec3(v2));
                         }
-                        shape = new btBvhTriangleMeshShape(collider->bulletMesh, true);
+
+                        btGImpactMeshShape* gimpactShape = new btGImpactMeshShape(collider->bulletMesh);
+                        gimpactShape->updateBound();
+                        shape = gimpactShape;
                     } else {
-                        std::cerr << "\033[31mCollider mesh is null for entity " << entity->name
-                                  << ". Defaulting to sphere shape.\033[0m" << std::endl;
+                        std::cerr << "[Collision] Collider mesh is null for entity " << entity->name
+                                  << ". Defaulting to sphere shape." << std::endl;
                         shape = new btSphereShape(collider->radius);
                     }
                     break;
@@ -324,7 +353,14 @@ namespace gameplay {
         // Create the collision object
         btCollisionObject* obj = new btCollisionObject();
         obj->setCollisionShape(shape);
-        obj->setWorldTransform(entityToBtTransform(entity));
+
+        auto* player = entity->getComponent<PlayerComponent>();
+        if (player) {
+            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
+        } else {
+            obj->setWorldTransform(entityToBtTransform(entity));
+        }
+
         obj->setUserPointer(entity);  // so we can go back to the entity
 
         if (collider->layer == CollisionLayer::LAYER_ENVIRONMENT) {
@@ -378,7 +414,15 @@ namespace gameplay {
 
         if (!obj) return;
 
-        obj->setWorldTransform(entityToBtTransform(entity));
+        auto* player = entity->getComponent<PlayerComponent>();
+
+        if (player) {
+            // for players, we only update the yaw rotation to prevent them from tipping over when walking on slopes or
+            // getting hit by hazards. This is a common technique in character controllers to improve stability.
+            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
+        } else {
+            obj->setWorldTransform(entityToBtTransform(entity));
+        }
 
         // Update the broadphase AABB so Bullet uses the new position for collision detection
         collisionWorld->updateSingleAabb(obj);

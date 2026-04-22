@@ -1,5 +1,7 @@
 #include "player-movement-system.hpp"
 
+#include "collision-system.hpp"
+
 namespace gameplay {
 
     void PlayerMovementSystem::handleSlidingAndCrouching(PlayerMovementComponent* movement, our::Keyboard& keyboard,
@@ -86,8 +88,11 @@ namespace gameplay {
             playerPosition.y += movement->verticalVelocity * deltaTime;
 
             // jumping always goes back to standing height
-            float minY = movement->verticalVelocity < 0 ? movement->groundLevel + movement->playerHeight
-                                                        : movement->groundLevel + movement->crouchHeight;
+            float minY = movement->groundLevel + movement->playerHeight;
+            if (movement->verticalVelocity >= 0) {
+                minY = movement->groundLevel + movement->crouchHeight;
+            }
+
             if (playerPosition.y <= minY) {
                 playerPosition.y = minY;
                 movement->verticalVelocity = 0.0f;
@@ -107,7 +112,27 @@ namespace gameplay {
         }
     }
 
-    void PlayerMovementSystem::update(our::World* world, float deltaTime, our::Application* app) {
+    float PlayerMovementSystem::getGroundHeight(const glm::vec3& position) {
+        // clang-format off
+        if (!collisionSystem) return 0.0f;
+
+        // raycast downwards to find ground height
+        Ray ray;
+        ray.origin = position + glm::vec3(0, 0.5f, 0);  // start the ray a bit above the player's feet to avoid immediately hitting the ground
+        ray.direction = glm::vec3(0, -1, 0);
+
+        float maxDistance = 50.0f;  // maximum distance to check for ground below
+        HitInfo hit = collisionSystem->raycast(ray, maxDistance, CollisionLayer::LAYER_ENVIRONMENT);
+
+        if (hit.hit) return hit.point.y; // return the y-coordinate of the ground
+        return 0.0f;  // default to 0 ground
+        // clang-format on
+    }
+
+    void PlayerMovementSystem::update(our::World* world, float deltaTime, our::Application* app,
+                                      CollisionSystem* collisionSystem) {
+        this->collisionSystem = collisionSystem;
+
         PlayerMovementComponent* movement = nullptr;
         for (our::Entity* entity : world->getEntities()) {
             movement = entity->getComponent<PlayerMovementComponent>();
@@ -118,6 +143,9 @@ namespace gameplay {
 
         our::Entity* playerEntity = movement->getOwner();
         glm::vec3& playerPosition = playerEntity->localTransform.position;
+
+        float groundHeight = getGroundHeight(playerPosition);
+        movement->groundLevel = groundHeight;
 
         our::Keyboard& keyboard = app->getKeyboard();
         movement->dashTriggeredThisFrame = false;
