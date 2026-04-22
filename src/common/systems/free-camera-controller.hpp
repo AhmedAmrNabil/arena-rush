@@ -73,7 +73,15 @@ namespace our {
             aiming = app->getMouse().isPressed(GLFW_MOUSE_BUTTON_RIGHT);
 
             currentAimSpeed = controller->aimSpeed;
-            float targetFov = aiming ? controller->aimFovY : baseFov;
+            float targetFov;
+            if (aiming) {
+                targetFov = controller->aimFovY;
+                controller->rotationSensitivity =
+                    controller->baseRotationSensitivity * controller->aimSensitivityMultiplier;
+            } else {
+                targetFov = baseFov;
+                controller->rotationSensitivity = controller->baseRotationSensitivity;
+            }
             camera->fovY = glm::mix(camera->fovY, targetFov, glm::clamp(controller->aimSpeed * deltaTime, 0.0f, 1.0f));
         }
 
