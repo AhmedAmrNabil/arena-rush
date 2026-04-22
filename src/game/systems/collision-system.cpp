@@ -344,7 +344,6 @@ namespace gameplay {
         if (shapesCache.find(shapeKey) != shapesCache.end()) {
             ownedShapes[shapesCache[shapeKey]]++;
             shape = shapesCache[shapeKey];
-            std::cout << "Cache hit for shape " << shapeKey << std::endl;
         } else {
             // Create new shape and cache it
             switch (collider->shape) {
