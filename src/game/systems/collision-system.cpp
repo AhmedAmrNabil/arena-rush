@@ -131,7 +131,7 @@ namespace gameplay {
         frameCollisions.clear();
     }
 
-    void CollisionSystem::handleCollisions(CollisionEvent event) {
+    void CollisionSystem::handleCollisions(const CollisionEvent& event) {
         auto* colliderA = event.entityA->getComponent<ColliderComponent>();
         auto* colliderB = event.entityB->getComponent<ColliderComponent>();
 

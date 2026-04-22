@@ -77,7 +77,7 @@ namespace gameplay {
         void removeEntity(our::Entity* entity);
         void syncTransform(our::Entity* entity);
 
-        void handleCollisions(CollisionEvent event);
+        void handleCollisions(const CollisionEvent& event);
 
     public:
         void initialize();
