@@ -9,7 +9,6 @@ namespace gameplay {
         maxHealth = data.value("maxHealth", maxHealth);
         currentHealth = data.contains("currentHealth") ? data["currentHealth"].get<float>() : maxHealth;
         damageRevealTimer = data.value("damageRevealTimer", damageRevealTimer);
-        isDead = data.value("isDead", isDead);
     }
 
     float HealthComponent::takeDamage(float amount) {
