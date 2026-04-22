@@ -7,6 +7,7 @@
 
 #include "game/game-registration.hpp"
 #include "states/entity-test-state.hpp"
+#include "states/loading-state.hpp"
 #include "states/material-test-state.hpp"
 #include "states/menu-state.hpp"
 #include "states/mesh-test-state.hpp"
@@ -44,6 +45,7 @@ int main(int argc, char** argv) {
 
     // Register all the states of the project in the application
     app.registerState<Menustate>("menu");
+    app.registerState<LoadingPlayState>("loading-play");
     app.registerState<Playstate>("play");
     app.registerState<ShaderTestState>("shader-test");
     app.registerState<MeshTestState>("mesh-test");
@@ -56,7 +58,9 @@ int main(int argc, char** argv) {
     app.registerState<RendererTestState>("renderer-test");
     // Then choose the state to run based on the option "start-scene" in the config
     if (app_config.contains(std::string{"start-scene"})) {
-        app.changeState(app_config["start-scene"].get<std::string>());
+        std::string start_scene = app_config["start-scene"].get<std::string>();
+        if (start_scene == "play") start_scene = "loading-play";
+        app.changeState(start_scene);
     }
 
     // Finally run the application

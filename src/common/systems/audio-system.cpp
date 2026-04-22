@@ -203,6 +203,24 @@ namespace our {
         checkALError("Stopping sound");
     }
 
+    void AudioSystem::pauseAll() {
+        for (ALuint source : sourcePool) {
+            ALint state;
+            alGetSourcei(source, AL_SOURCE_STATE, &state);
+            if (state == AL_PLAYING) alSourcePause(source);
+        }
+        checkALError("Pausing all sounds");
+    }
+
+    void AudioSystem::resumeAll() {
+        for (ALuint source : sourcePool) {
+            ALint state;
+            alGetSourcei(source, AL_SOURCE_STATE, &state);
+            if (state == AL_PAUSED) alSourcePlay(source);
+        }
+        checkALError("Resuming all sounds");
+    }
+
     void AudioSystem::stopAll() {
         for (ALuint source : sourcePool) {
             alSourceStop(source);
