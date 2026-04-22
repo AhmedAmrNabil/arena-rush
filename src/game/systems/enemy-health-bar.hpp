@@ -57,7 +57,8 @@ namespace gameplay {
 
         static glm::vec3 estimateBarWorldAnchor(our::Entity* entity, const CollisionSystem& collisions) {
             glm::vec3 entityWorldPos =
-                entity ? glm::vec3(entity->getLocalToWorldMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) : glm::vec3(0.0f);
+                entity ? glm::vec3(entity->getLocalToWorldMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
+                       : glm::vec3(0.0f);
 
             Aabb bounds = collisions.getWorldAabb(entity);
             if (bounds.valid) {
