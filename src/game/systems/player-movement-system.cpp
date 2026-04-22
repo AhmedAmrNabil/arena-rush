@@ -112,6 +112,8 @@ namespace gameplay {
 
     float PlayerMovementSystem::getGroundHeight(const glm::vec3& position) {
         // clang-format off
+        if (!collisionSystem) return 0.0f;
+
         // raycast downwards to find ground height
         Ray ray;
         ray.origin = position + glm::vec3(0, 0.5f, 0);  // start the ray a bit above the player's feet to avoid immediately hitting the ground
@@ -127,7 +129,7 @@ namespace gameplay {
 
     void PlayerMovementSystem::update(our::World* world, float deltaTime, our::Application* app,
                                       CollisionSystem* collisionSystem) {
-        if (!this->collisionSystem) this->collisionSystem = collisionSystem;
+        this->collisionSystem = collisionSystem;
 
         PlayerMovementComponent* movement = nullptr;
         for (our::Entity* entity : world->getEntities()) {
