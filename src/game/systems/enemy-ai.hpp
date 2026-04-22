@@ -11,7 +11,6 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/trigonometric.hpp>
 
-#include "../components/collider.hpp"
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
 #include "../components/weapon.hpp"
