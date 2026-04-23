@@ -7,7 +7,18 @@
             "browse": {
                 "path": ["${workspaceFolder}/src", "${workspaceFolder}/vendor"]
             },
-            "defines": ["COLLISION_DEBUG_DRAW"]
+            "defines": ["COLLISION_DEBUG_DRAW"],
+            "includePath": [
+                "src/common",
+                "src/game",
+                "src/states",
+                "vendor/bullet3/src",
+                "vendor/imgui",
+                "vendor/imgui/imgui_impl",
+                "vendor/glad/include",
+                "vendor/glm",
+                "vendor/utils"
+            ]
         }
     ],
     "version": 4
