@@ -35,6 +35,7 @@ namespace our {
         Texture2D* loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type);
         void generateCombinedMesh();  // will be used for collision detection and other non-rendering purposes
         void setVertexBoneData(Vertex& vertex, BoneID boneID, float weight);
+        void loadAnimationsFromScene(const aiScene* scene, const std::unordered_set<std::string>& animationNames);
 
     public:
         // maps animation names to their corresponding Animation objects
@@ -58,7 +59,7 @@ namespace our {
 
         ~Model();
 
-        void loadFromFile(const std::string& path);
+        void loadFromFile(const std::string& path, const std::unordered_set<std::string>& animationNames = {});
     };
 
 }  // namespace our

@@ -180,9 +180,15 @@
             },
             "models": {
                 "drone": "assets/gltf/mech_drone/mech_drone.glb",
-                "map": "assets/gltf/map/map.glb",
+                "map": {
+                    "path": "assets/gltf/map/map.glb",
+                    "animations": ["ufo_01"]
+                },
                 "gun": "assets/gltf/weapons/rifle.glb",
-                "mundo": "assets/gltf/enemies/mundo.glb"
+                "mundo": {
+                    "path": "assets/gltf/enemies/mundo.glb",
+                    "animations": ["IdleVariant1", "Run01", "Attack1", "Death"]
+                }
             }
         },
         "game": {
@@ -493,7 +499,7 @@
                     }
                 ]
             },
-             {
+            {
                 "name": "test enemy3",
                 "position": [8, 0, 16],
                 "scale": [0.01, 0.01, 0.01],

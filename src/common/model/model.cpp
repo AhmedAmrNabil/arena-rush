@@ -14,7 +14,7 @@
 
 namespace our {
 
-    void Model::loadFromFile(const std::string& path) {
+    void Model::loadFromFile(const std::string& path, const std::unordered_set<std::string>& animationNames) {
         std::cout << "Loading model from file: " << path << std::endl;
         Assimp::Importer importer;
         const aiScene* scene =
@@ -52,7 +52,7 @@ namespace our {
 
         if (scene->HasAnimations()) {
             skeleton = new Skeleton();
-            loadAnimationsFromScene(scene);
+            loadAnimationsFromScene(scene, animationNames);
             processNode(scene->mRootNode, scene, identity, &skeleton->getNodes());
         } else {
             processNode(scene->mRootNode, scene, identity, nullptr);
@@ -186,6 +186,25 @@ namespace our {
             }
             animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
             std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
+        }
+    }
+
+    void Model::loadAnimationsFromScene(const aiScene* scene, const std::unordered_set<std::string>& nameFilter) {
+        // if none specified, load all animations
+        const bool isEmpty = nameFilter.empty();
+        for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
+            aiAnimation* aiAnim = scene->mAnimations[i];
+            std::string animName = aiAnim->mName.C_Str();
+
+            if (animName.empty()) animName = "Anim_" + std::to_string(i);
+
+            if (isEmpty || nameFilter.count(animName)) {
+                auto [it, inserted] = animations.emplace(animName, Animation(aiAnim, *skeleton));
+                if (!inserted)
+                    std::cerr << "[Model] Duplicate animation skipped: \"" << animName << "\"\n";
+                else
+                    std::cout << "Loaded animation: \"" << animName << "\"\n";
+            }
         }
     }
 
