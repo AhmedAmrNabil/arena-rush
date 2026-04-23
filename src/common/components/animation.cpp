@@ -62,4 +62,27 @@ namespace our {
         animator.play(&animIt->second, clip.loop, clip.speed * speedScale);
     }
 
+    void AnimationComponent::playDuration(const std::string& clipName, float duration) {
+        if (!model) {
+            std::cerr << "\033[31mCannot play animation: model is not set\033[0m" << std::endl;
+            return;
+        }
+
+        auto clipIt = clips.find(clipName);
+        if (clipIt == clips.end()) {
+            std::cerr << "\033[31mClip not found: " << clipName << "\033[0m" << std::endl;
+            return;
+        }
+        AnimationClip& clip = clipIt->second;
+        auto animIt = model->animations.find(clip.clip);
+        if (animIt == model->animations.end()) {
+            std::cerr << "\033[31mAnimation not found in model: " << clip.clip << "\033[0m" << std::endl;
+            return;
+        }
+        float originalSpeed = clip.speed;
+        float animDuration = animIt->second.duration / animIt->second.ticksPerSecond;
+        float speedScale = animDuration > 0.0f ? animDuration / duration : 1.0f;
+        animator.play(&animIt->second, false, originalSpeed * speedScale);
+    }
+
 }  // namespace our

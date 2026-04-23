@@ -27,6 +27,7 @@ namespace our {
         void deserialize(const nlohmann::json& data) override;
 
         void play(const std::string& clipName, float speedScale = 1.0f);
+        void playDuration(const std::string& clipName, float duration);
     };
 
 }  // namespace our
