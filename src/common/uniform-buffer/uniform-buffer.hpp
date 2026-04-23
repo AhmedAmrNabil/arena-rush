@@ -11,6 +11,7 @@ namespace our {
 
     public:
         UniformBuffer(GLsizeiptr size, GLuint bindingPoint) {
+            assert(size > 0 && "UniformBuffer size must be positive");
             glGenBuffers(1, &name);
             glBindBuffer(GL_UNIFORM_BUFFER, name);
             glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
@@ -30,6 +31,11 @@ namespace our {
         }
         // make sure to bind the uniform buffer before calling this function
         void update(const void* data, GLsizeiptr size, GLintptr offset = 0) const {
+            // Guard against negative values (GLsizeiptr/GLintptr are signed)
+            assert(size > 0 && "Update size must be positive");
+            assert(offset >= 0 && "Update offset must be non-negative");
+            assert(offset <= bufferSize - size && "Update region [offset, offset+size) exceeds buffer bounds");
+            assert(data != nullptr && "Update data pointer must not be null");
             glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
         }
 
