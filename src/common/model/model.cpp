@@ -52,6 +52,7 @@ namespace our {
 
         if (scene->HasAnimations()) {
             skeleton = new Skeleton();
+            skeleton->setGlobalInverseTransform(glm::inverse(aiToGlm(scene->mRootNode->mTransformation)));
             loadAnimationsFromScene(scene, animationNames);
             processNode(scene->mRootNode, scene, identity, &skeleton->getNodes());
         } else {
