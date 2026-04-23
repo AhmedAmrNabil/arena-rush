@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -26,6 +27,7 @@ namespace our {
             const Skeleton& skeleton = currentAnimation->skeleton;
             std::vector<glm::mat4> globalTransforms(nodes.size());
             nodeTransforms.clear();
+            glm::mat4 globalInverse = skeleton.getGlobalInverseTransform();
 
             for (int i = 0; i < (int)nodes.size(); i++) {
                 const auto& node = nodes[i];
@@ -49,8 +51,7 @@ namespace our {
                 // Cache for skeletal bones
                 BoneID id = skeleton.getBoneID(node.name);
                 if (id >= 0 && id < (BoneID)finalBoneMatrices.size())
-                    finalBoneMatrices[id] = skeleton.getGlobalInverseTransform() * globalTransforms[i] *
-                                            skeleton.getOffsetMatrix(node.name);
+                    finalBoneMatrices[id] = globalInverse * globalTransforms[i] * skeleton.getOffsetMatrix(node.name);
             }
         }
 
