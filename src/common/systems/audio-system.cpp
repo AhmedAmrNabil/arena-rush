@@ -217,15 +217,32 @@ namespace our {
     }
 
     ALuint AudioSystem::findAvailableSource() {
-        for (ALuint source : sourcePool) {
+        size_t poolSize = sourcePool.size();
+        for (size_t i = 0; i < poolSize; ++i) {
+            // Start searching from the last used index to distribute usage more evenly
+            size_t index = (nextSourceIndex + i) % poolSize;
+            ALuint source = sourcePool[index];
+
             ALint state;
             alGetSourcei(source, AL_SOURCE_STATE, &state);
             if (state == AL_STOPPED || state == AL_INITIAL) {
+                nextSourceIndex = (index + 1) % poolSize;  // Update next index for the following search
                 return source;
             }
         }
 
-        return 0;  // None found
+        ALuint hijackedSource = sourcePool[nextSourceIndex];
+        ALint state;
+        alGetSourcei(hijackedSource, AL_SOURCE_STATE, &state);
+
+        if (state == AL_PLAYING) {
+            alSourceStop(hijackedSource);
+        }
+
+        // Forcefully stop the old sound so OpenAL accepts the new buffer cleanly
+        nextSourceIndex = (nextSourceIndex + 1) % poolSize;
+
+        return hijackedSource;
     }
 
 }  // namespace our
