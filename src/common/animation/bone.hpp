@@ -37,11 +37,13 @@ namespace our {
 
         template <typename TKey>
         static size_t findIndex(const std::vector<TKey>& keys, float animationTime) {
+            if (keys.size() < 2) return 0;
             for (size_t i = 0; i < keys.size() - 1; ++i)
                 if (animationTime < keys[i + 1].time) return i;
             return keys.size() - 2;
         }
 
+        // make sure that the vector is not empty before calling this function
         template <typename TKey, typename TGet, typename TInterp>
         static auto interpolateKeys(const std::vector<TKey>& keys, float animationTime, TInterp interp, TGet getValue) {
             if (keys.size() == 1) return getValue(keys[0]);
@@ -49,7 +51,9 @@ namespace our {
 
             size_t i0 = findIndex(keys, animationTime);
             size_t i1 = i0 + 1;
-            float factor = (animationTime - keys[i0].time) / (keys[i1].time - keys[i0].time);
+            float dt = keys[i1].time - keys[i0].time;
+            if (dt == 0.0f) return getValue(keys[i0]);  // avoid division by zero
+            float factor = (animationTime - keys[i0].time) / dt;
             return interp(getValue(keys[i0]), getValue(keys[i1]), factor);
         }
 
@@ -81,15 +85,25 @@ namespace our {
         }
 
         glm::mat4 interpolate(float animationTime) const {
-            glm::vec3 interpolatedPosition = interpolateKeys(
-                positions, animationTime, [](auto a, auto b, float f) { return glm::mix(a, b, f); },
-                [](const KeyPosition& k) { return k.position; });
-            glm::quat interpolatedRotation = interpolateKeys(
-                rotations, animationTime, [](auto a, auto b, float f) { return glm::slerp(a, b, f); },
-                [](const KeyRotation& k) { return k.rotation; });
-            glm::vec3 interpolatedScale = interpolateKeys(
-                scales, animationTime, [](auto a, auto b, float f) { return glm::mix(a, b, f); },
-                [](const KeyScale& k) { return k.scale; });
+            glm::vec3 interpolatedPosition =
+                positions.empty()
+                    ? glm::vec3(0.0f)
+                    : interpolateKeys(
+                          positions, animationTime, [](auto a, auto b, float f) { return glm::mix(a, b, f); },
+                          [](const KeyPosition& k) { return k.position; });
+
+            glm::quat interpolatedRotation =
+                rotations.empty()
+                    ? glm::quat(1.0f, 0.0f, 0.0f, 0.0f)  // identity quaternion
+                    : interpolateKeys(
+                          rotations, animationTime, [](auto a, auto b, float f) { return glm::slerp(a, b, f); },
+                          [](const KeyRotation& k) { return k.rotation; });
+
+            glm::vec3 interpolatedScale =
+                scales.empty() ? glm::vec3(1.0f)  // identity scale
+                               : interpolateKeys(
+                                     scales, animationTime, [](auto a, auto b, float f) { return glm::mix(a, b, f); },
+                                     [](const KeyScale& k) { return k.scale; });
 
             return glm::translate(glm::mat4(1.0f), interpolatedPosition) * glm::toMat4(interpolatedRotation) *
                    glm::scale(glm::mat4(1.0f), interpolatedScale);
