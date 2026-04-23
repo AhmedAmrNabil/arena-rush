@@ -142,7 +142,7 @@ namespace our {
             vertices[i] = v;
         }
 
-        if (mesh->HasBones()) processVertexBoneData(vertices, mesh, scene);
+        if (mesh->HasBones()) processVertexBoneData(vertices, mesh);
 
         // process indices
         for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
@@ -404,7 +404,7 @@ namespace our {
                   << " bone influences. Extra influences will be ignored." << std::endl;
     }
 
-    void Model::processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene) {
+    void Model::processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh) {
         if (!skeleton) return;  // if the model has no animations, we won't have a skeleton to store the bone data in
         for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
             aiBone* bone = mesh->mBones[boneIndex];

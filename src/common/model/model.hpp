@@ -28,7 +28,7 @@ namespace our {
         void processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform,
                          std::vector<SkeletonNode>* skeletonNodes, int parentIndex = -1);
         MeshRendererComponent* processMesh(aiMesh* mesh, const aiScene* scene);
-        void processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
+        void processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh);
         void loadMaterialsFromScene(const aiScene* scene);
         void loadAnimationsFromScene(const aiScene* scene);
         LitMaterial* loadMaterial(const aiScene* scene, const aiMaterial* mat);
