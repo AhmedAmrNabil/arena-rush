@@ -15,9 +15,9 @@ namespace our {
 
     class AnimationComponent : public Component {
     public:
-        Model* model;
+        Model* model = nullptr;
         Animator animator;
-        std::string defaultClip;
+        std::string defaultClip = "";
         // maps clip names to their corresponding animation clip data (animation name, loop, speed)
         std::unordered_map<std::string, AnimationClip> clips;
         static std::string getID() {
