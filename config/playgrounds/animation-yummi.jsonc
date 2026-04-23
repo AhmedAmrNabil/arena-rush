@@ -212,72 +212,7 @@
                 "spawnInterval": 2.0,
                 "initialSpawnCount": 4,
                 "maxAliveEnemies": 12,
-                "enemies": [
-                    {
-                        "name": "Monster",
-                        "mesh": "cube",
-                        "material": "monster",
-                        "rotation": [0.0, 0.0, 0.0],
-                        "scale": [0.65, 0.65, 0.65],
-                        "components": [
-                            {
-                                "type": "Enemy",
-                                "enemyType": "Brute",
-                                "moveSpeed": 3.8,
-                                "turnSpeed": 5.5,
-                                "aggroRange": 120.0,
-                                "attackRange": 2.0,
-                                "attackDamage": 10.0,
-                                "attackCooldown": 1.2,
-                                "scoreValue": 100
-                            },
-                            {
-                                "type": "Health",
-                                "maxHealth": 60.0
-                            },
-                            {
-                                "type": "Collider",
-                                "layer": "enemy",
-                                "shape": "Capsule",
-                                "radius": 0.5,
-                                "height": 1.5
-                            }
-                        ]
-                    },
-                    {
-                        "name": "Drone",
-                        "mesh": "cube",
-                        "material": "drone",
-                        "rotation": [0.0, 0.0, 0.0],
-                        "scale": [1.2, 1.2, 1.2],
-                        "components": [
-                            {
-                                "type": "Enemy",
-                                "enemyType": "Flyer",
-                                "moveSpeed": 3.4,
-                                "turnSpeed": 6.0,
-                                "aggroRange": 120.0,
-                                "attackRange": 12.0,
-                                "preferredDistance": 9.0,
-                                "attackDamage": 8.0,
-                                "attackCooldown": 2.0,
-                                "hoverFrequency": 2.3,
-                                "hoverAmplitude": 0.4,
-                                "baseHeight": 5.0,
-                                "scoreValue": 150
-                            },
-                            {
-                                "type": "Health",
-                                "maxHealth": 35.0
-                            },
-                            {
-                                "type": "Collider",
-                                "layer": "enemy",
-                                "radius": 0.8
-                            }
-                        ]
-                    }
-                ]
+                "enemies": []
             }
         },
         "world": [

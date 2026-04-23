@@ -200,6 +200,9 @@ namespace our {
             }
 
             if (auto modelRenderer = entity->getComponent<ModelRendererComponent>(); modelRenderer) {
+                if (!modelRenderer->model) {
+                    continue;  // model failed to load, skip rendering
+                }
                 glm::mat4 modelMatrix = modelRenderer->getOwner()->getLocalToWorldMatrix();
                 for (MeshRendererComponent* submesh : modelRenderer->model->getSubmeshes()) {
                     RenderCommand command;
