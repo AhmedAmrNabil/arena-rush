@@ -32,6 +32,10 @@ namespace our {
         void update(const void* data, GLsizeiptr size, GLintptr offset = 0) const {
             glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
         }
+
+        // disable copying
+        UniformBuffer(const UniformBuffer&) = delete;
+        UniformBuffer& operator=(const UniformBuffer&) = delete;
     };
 
 }  // namespace our
