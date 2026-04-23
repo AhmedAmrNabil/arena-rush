@@ -2,8 +2,6 @@
 
 #include <glad/gl.h>
 
-#include <iostream>
-
 #include "vertex.hpp"
 
 namespace our {
