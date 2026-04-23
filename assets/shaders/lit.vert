@@ -16,7 +16,7 @@ out Varyings {
     mat3 TBN;
 } vs_out;
 
-#define MAX_BONES 110
+#define MAX_BONES 128
 uniform mat4 transform;
 uniform mat4 model;
 layout(std140) uniform Bones {

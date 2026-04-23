@@ -10,7 +10,8 @@
 
 namespace our {
 
-#define MAX_BONES 110
+    inline static constexpr size_t MAX_BONES =
+        128;  // maximum number of bones supported by the shader, must match the shader's definition
 
     class Animator {
         const Animation* currentAnimation = nullptr;
