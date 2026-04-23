@@ -43,6 +43,12 @@ namespace our {
         // On-demand function to stop a specific sound source
         void stopSound(ALuint source);
 
+        // Pause all currently playing sounds without detaching their buffers.
+        void pauseAll();
+
+        // Resume any sounds that were paused.
+        void resumeAll();
+
         // On-demand function to stop all sounds
         void stopAll();
 
