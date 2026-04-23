@@ -107,10 +107,6 @@ namespace our {
         }
 
         bonesUniformBuffer = new UniformBuffer(MAX_BONES * sizeof(glm::mat4), bonesBindingPoint);
-        // glGenBuffers(1, &bonesUniformBuffer);
-        // glBindBuffer(GL_UNIFORM_BUFFER, bonesUniformBuffer);
-        // glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * MAX_BONES, nullptr, GL_DYNAMIC_DRAW);
-        // glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
     void ForwardRenderer::destroy() {
@@ -140,9 +136,9 @@ namespace our {
             postProcessVertexArray = 0;
         }
 
-        if (bonesUniformBuffer != 0) {
+        if (bonesUniformBuffer) {
             delete bonesUniformBuffer;
-            bonesUniformBuffer = 0;
+            bonesUniformBuffer = nullptr;
         }
     }
 
@@ -275,10 +271,6 @@ namespace our {
             if (command.animator) {
                 command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
                 const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
-                // glBindBuffer(GL_UNIFORM_BUFFER, bonesUniformBuffer);
-                // glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4) * boneMatrices.size(), boneMatrices.data());
-                // glBindBufferBase(GL_UNIFORM_BUFFER, bonesBindingPoint, bonesUniformBuffer);
-                // glBindBuffer(GL_UNIFORM_BUFFER, 0);
                 bonesUniformBuffer->bind();
                 bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
                 command.material->shader->set("hasBones", 1);
