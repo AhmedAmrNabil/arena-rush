@@ -50,11 +50,16 @@ namespace gameplay {
             if (!world || !playerEntity || !app || deltaTime <= 0.0f) return;
 
             glm::vec3 playerPos = glm::vec3(playerEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
+            HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
+            if (playerHealth && playerHealth->isDead) return;
+
             float t = static_cast<float>(glfwGetTime());
 
             for (our::Entity* enemyEntity : world->getEntities()) {
                 EnemyComponent* enemy = enemyEntity->getComponent<EnemyComponent>();
                 if (!enemy) continue;
+
+                enemy->attackTimer = glm::max(0.0f, enemy->attackTimer - deltaTime);
 
                 HealthComponent* health = enemyEntity->getComponent<HealthComponent>();
                 if (health && health->isDead) continue;
@@ -101,6 +106,11 @@ namespace gameplay {
                     if (inAggroRange) movementSpeed = inAttackRange ? 0.0f : enemy->moveSpeed;
 
                     if (inAggroRange && !inAttackRange) movementDirection = toPlayerDirection;
+
+                    if (inAttackRange && playerHealth && enemy->attackTimer <= 0.0f) {
+                        playerHealth->takeDamage(enemy->attackDamage);
+                        enemy->attackTimer = enemy->attackCooldown;
+                    }
                 }
 
                 faceThePlayer(enemyEntity, toPlayerDirection, enemy->turnSpeed * deltaTime);
