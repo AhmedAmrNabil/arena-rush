@@ -3,8 +3,8 @@
     "window": {
         "title": "Default Game Window",
         "size": {
-            "width": 1280,
-            "height": 720
+            "width": 1920,
+            "height": 1080
         },
         "fullscreen": false
     },
@@ -182,7 +182,7 @@
                 "drone": "assets/gltf/mech_drone/mech_drone.glb",
                 "map": "assets/gltf/map/map.glb",
                 "gun": "assets/gltf/weapons/rifle.glb",
-                "mundo": "assets/gltf/enemies/mundo/corporate_mundo.glb"
+                "mundo": "assets/gltf/enemies/mundo.glb"
             }
         },
         "game": {
@@ -359,17 +359,30 @@
             {
                 "name": "map",
                 "position": [0, 0, 0],
+                "scale": [1, 1, 1],
                 "components": [
                     {
                         "type": "Model Renderer",
                         "model": "map"
+                    },
+                    {
+                        "type": "Animation",
+                        "model": "map",
+                        "default": "idle",
+                        "clips": {
+                            "idle": {
+                                "clip": "ufo_01",
+                                "loop": true,
+                                "speed": 1.0
+                            }
+                        }
                     }
                 ]
             },
             {
                 "name": "test enemy",
-                "position": [10, 0, 10],
-                "scale": [0.05, 0.05, 0.05],
+                "position": [2, 0, 16],
+                "scale": [0.01, 0.01, 0.01],
                 "components": [
                     {
                         "type": "Model Renderer",
@@ -379,6 +392,119 @@
                         "type": "Animation",
                         "model": "mundo",
                         "default": "idle",
+                        "clips": {
+                            "idle": {
+                                "clip": "IdleVariant1",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "walk": {
+                                "clip": "Run01",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "attack": {
+                                "clip": "Attack1",
+                                "loop": false,
+                                "speed": 1.0
+                            },
+                            "die": {
+                                "clip": "Death",
+                                "loop": false,
+                                "speed": 1.0
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "test enemy2",
+                "position": [4, 0, 16],
+                "scale": [0.01, 0.01, 0.01],
+                "components": [
+                    {
+                        "type": "Model Renderer",
+                        "model": "mundo"
+                    },
+                    {
+                        "type": "Animation",
+                        "model": "mundo",
+                        "default": "walk",
+                        "clips": {
+                            "idle": {
+                                "clip": "IdleVariant1",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "walk": {
+                                "clip": "Run01",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "attack": {
+                                "clip": "Attack1",
+                                "loop": false,
+                                "speed": 1.0
+                            },
+                            "die": {
+                                "clip": "Death",
+                                "loop": false,
+                                "speed": 1.0
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "test enemy3",
+                "position": [6, 0, 16],
+                "scale": [0.01, 0.01, 0.01],
+                "components": [
+                    {
+                        "type": "Model Renderer",
+                        "model": "mundo"
+                    },
+                    {
+                        "type": "Animation",
+                        "model": "mundo",
+                        "default": "attack",
+                        "clips": {
+                            "idle": {
+                                "clip": "IdleVariant1",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "walk": {
+                                "clip": "Run01",
+                                "loop": true,
+                                "speed": 1.0
+                            },
+                            "attack": {
+                                "clip": "Attack1",
+                                "loop": false,
+                                "speed": 1.0
+                            },
+                            "die": {
+                                "clip": "Death",
+                                "loop": false,
+                                "speed": 1.0
+                            }
+                        }
+                    }
+                ]
+            },
+             {
+                "name": "test enemy3",
+                "position": [8, 0, 16],
+                "scale": [0.01, 0.01, 0.01],
+                "components": [
+                    {
+                        "type": "Model Renderer",
+                        "model": "mundo"
+                    },
+                    {
+                        "type": "Animation",
+                        "model": "mundo",
                         "clips": {
                             "idle": {
                                 "clip": "IdleVariant1",
