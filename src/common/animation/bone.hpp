@@ -65,7 +65,7 @@ namespace our {
 
     public:
         BoneAnimation() = default;
-        BoneAnimation(const std::string& name, BoneID id, const aiNodeAnim* channel) : name(name) {
+        BoneAnimation(const std::string& name, const aiNodeAnim* channel) : name(name) {
             // Load position keyframes
             positions = loadKeys<KeyPosition>(
                 channel->mNumPositionKeys, channel->mPositionKeys,

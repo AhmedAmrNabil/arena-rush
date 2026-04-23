@@ -30,7 +30,7 @@ namespace our {
             for (unsigned int i = 0; i < anim->mNumChannels; i++) {
                 aiNodeAnim* channel = anim->mChannels[i];
                 std::string nodeName = channel->mNodeName.C_Str();
-                channels[nodeName] = BoneAnimation(nodeName, skeleton.getBoneID(nodeName), channel);
+                channels[nodeName] = BoneAnimation(nodeName, channel);
             }
         }
         BoneAnimation& findBone(const std::string& name) {
