@@ -260,6 +260,7 @@ namespace our {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Animator* lastUploadedAnimator = nullptr;
         // draw all opaque objects first
         for (const RenderCommand& command : opaqueCommands) {
             command.material->setup();
@@ -273,9 +274,14 @@ namespace our {
             }
             if (command.animator) {
                 command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
-                bonesUniformBuffer->bind();
-                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
+                // to optimize performance, we only update the bone matrices uniform buffer
+                // if the animator is different from the last drawn command's animator
+                if (command.animator != lastUploadedAnimator) {
+                    const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
+                    bonesUniformBuffer->bind();
+                    bonesUniformBuffer->update(boneMatrices);
+                    lastUploadedAnimator = command.animator;
+                }
                 command.material->shader->set("hasBones", 1);
             } else {
                 command.material->shader->set("hasBones", 0);

@@ -29,6 +29,12 @@ namespace our {
         void unbind() const {
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
+
+        template <typename T>
+        void update(const std::vector<T>& data, GLintptr offset = 0) const {
+            update(data.data(), sizeof(T) * data.size(), offset);
+        }
+
         // make sure to bind the uniform buffer before calling this function
         void update(const void* data, GLsizeiptr size, GLintptr offset = 0) const {
             // Guard against negative values (GLsizeiptr/GLintptr are signed)
