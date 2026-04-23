@@ -49,21 +49,15 @@ namespace our {
 
         glm::mat4 identity(1.0f);
         loadMaterialsFromScene(scene);
+
         if (scene->HasAnimations()) {
             skeleton = new Skeleton();
+            loadAnimationsFromScene(scene);
             processNode(scene->mRootNode, scene, identity, &skeleton->getNodes());
         } else {
             processNode(scene->mRootNode, scene, identity, nullptr);
         }
 
-        for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
-            std::string animName = scene->mAnimations[i]->mName.C_Str();
-            if (animName.empty()) {
-                animName = "Anim_" + std::to_string(i);
-            }
-            animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
-            std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
-        }
         generateCombinedMesh();
     }
 
@@ -74,13 +68,14 @@ namespace our {
         glm::mat4 nodeTransform = aiToGlm(t);
         glm::mat4 globalTransform = parentTransform * nodeTransform;
 
-        SkeletonNode skeletonNode;
-        skeletonNode.name = node->mName.C_Str();
-        skeletonNode.localTransform = nodeTransform;
-        skeletonNode.parentIndex = parentIndex;
         int currentIndex = -1;
         if (skeletonNodes) {
             currentIndex = static_cast<int>(skeletonNodes->size());
+
+            SkeletonNode skeletonNode;
+            skeletonNode.name = node->mName.C_Str();
+            skeletonNode.localTransform = nodeTransform;
+            skeletonNode.parentIndex = parentIndex;
             skeletonNodes->push_back(skeletonNode);
         }
 
@@ -88,6 +83,14 @@ namespace our {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             MeshRendererComponent* submesh = processMesh(mesh, scene);
             submesh->transform = globalTransform;
+            // this is a fix for model that is exported for directX where the coordinate system is left-handed, we can
+            // detect that by checking if the transform has a negative scale (which is equivalent to a negative
+            // determinant) and if so we flip the winding order of the triangles by applying a negative scale on the X
+            // axis and also update the face culling mode to front face = CW instead of CCW
+            if (glm::determinant(globalTransform) < 0.0f) {
+                submesh->material->pipelineState.faceCulling.frontFace = GL_CW;
+                submesh->transform = globalTransform * glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 1.0f));
+            }
             submesh->nodeName = node->mName.C_Str();
             submeshes.push_back(submesh);
         }
@@ -172,6 +175,17 @@ namespace our {
             if (material) {
                 AssetLoader<Material>::add(name, material);
             }
+        }
+    }
+
+    void Model::loadAnimationsFromScene(const aiScene* scene) {
+        for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
+            std::string animName = scene->mAnimations[i]->mName.C_Str();
+            if (animName.empty()) {
+                animName = "Anim_" + std::to_string(i);
+            }
+            animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
+            std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
         }
     }
 

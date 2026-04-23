@@ -30,6 +30,7 @@ namespace our {
         MeshRendererComponent* processMesh(aiMesh* mesh, const aiScene* scene);
         void processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
         void loadMaterialsFromScene(const aiScene* scene);
+        void loadAnimationsFromScene(const aiScene* scene);
         LitMaterial* loadMaterial(const aiScene* scene, const aiMaterial* mat);
         Texture2D* loadTextureFromMaterial(const aiScene* scene, const aiMaterial* mat, aiTextureType type);
         void generateCombinedMesh();  // will be used for collision detection and other non-rendering purposes
