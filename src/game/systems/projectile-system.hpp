@@ -78,8 +78,12 @@ namespace gameplay {
             weapon->timer = weapon->cooldown;
 
             if (!weapon->fireSound.empty())
-                if (our::AudioBuffer* buffer = our::AssetLoader<our::AudioBuffer>::get(weapon->fireSound))
-                    app->getAudioSystem().playSound(buffer, origin, 1.0f, 1.0f, false, 6.0f, 60.0f);
+                if (our::AudioBuffer* buffer = our::AssetLoader<our::AudioBuffer>::get(weapon->fireSound)) {
+                    if (shooterLayer == CollisionLayer::LAYER_PLAYER)
+                        app->getAudioSystem().playSound2D(buffer, 1.0f, 1.0f, false);
+                    else
+                        app->getAudioSystem().playSound(buffer, origin, 0.5f, 1.0f, false, 6.0f, 60.0f);
+                }
 
             return true;
         }

@@ -51,6 +51,7 @@ namespace our {
         ALCcontext* context = nullptr;
         static constexpr int SOURCE_POOL_SIZE = 32;  // Maximum number of simultaneous sounds
         std::vector<ALuint> sourcePool;              // Pool of available AL sources
+        size_t nextSourceIndex = 0;
 
         ALuint findAvailableSource();
 
