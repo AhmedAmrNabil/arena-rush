@@ -43,7 +43,7 @@
             },
             "sounds": {
                 "gunshot-player": "assets/sounds/gun_shot.wav",
-                "gunshot-enemy": "assets/sounds/gun_shot_2.wav"
+                "gunshot-enemy": "assets/sounds/drone_gun_shot.wav"
             },
             "samplers": {
                 "default": {},
