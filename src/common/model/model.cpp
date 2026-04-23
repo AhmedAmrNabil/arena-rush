@@ -25,8 +25,11 @@ namespace our {
                                   aiProcess_GenSmoothNormals |  // better than GenNormals, uses smoothing angles
 
                                   // Optimization
-                                  aiProcess_OptimizeMeshes |        // reduce draw calls
-                                  aiProcess_ImproveCacheLocality |  // better GPU cache usage
+                                  aiProcess_JoinIdenticalVertices |  // combine vertices that are identical in position,
+                                                                     // normal, tex coords, and color
+                                  aiProcess_OptimizeMeshes |         // reduce draw calls
+                                  aiProcess_OptimizeGraph |          // optimize node hierarchy
+                                  aiProcess_ImproveCacheLocality |   // better GPU cache usage
 
                                   // Skeletal
                                   aiProcess_LimitBoneWeights |      // limit to 4 weights per vertex (GPU standard)
@@ -34,8 +37,6 @@ namespace our {
                                   aiProcess_GlobalScale |  // fixes scale differences between formats (FBX vs GLTF)
 
                                   // Correctness
-                                  aiProcess_ValidateDataStructure |                      // debug: catch malformed files
-                                  aiProcess_FindInvalidData |                            // remove degenerate geometry
                                   aiProcess_GenUVCoords | aiProcess_TransformUVCoords |  // convert to proper UV range
                                   aiProcess_SortByPType);
 
