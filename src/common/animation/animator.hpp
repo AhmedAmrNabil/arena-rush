@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>  // for std::fmod
 #include <glm/glm.hpp>
 #include <queue>
 #include <unordered_map>
