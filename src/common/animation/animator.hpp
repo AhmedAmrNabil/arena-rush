@@ -91,7 +91,7 @@ namespace our {
         }
 
         bool isFinished() const {
-            return (currentAnimation && currentTime >= currentAnimation->duration) || loop;
+            return currentAnimation && currentTime >= currentAnimation->duration && !loop;
         }
 
         const std::string getCurrentAnimationName() const {
