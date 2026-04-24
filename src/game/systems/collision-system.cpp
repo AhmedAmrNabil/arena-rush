@@ -83,7 +83,7 @@ namespace gameplay {
             case LAYER_PLAYER:
                 return LAYER_ENEMY | LAYER_ENVIRONMENT | LAYER_TRIGGER | LAYER_PROJECTILE;
             case LAYER_ENEMY:
-                return LAYER_PLAYER | LAYER_PROJECTILE | LAYER_ENVIRONMENT;
+                return LAYER_PLAYER | LAYER_PROJECTILE | LAYER_ENVIRONMENT | LAYER_ENEMY;
             case LAYER_ENVIRONMENT:
                 return LAYER_PLAYER | LAYER_ENEMY | LAYER_PROJECTILE;
             case LAYER_PROJECTILE:

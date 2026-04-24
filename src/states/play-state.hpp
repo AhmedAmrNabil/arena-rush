@@ -136,7 +136,7 @@ public:
 
         // Spawning / AI
         enemySpawner.update(&world, dt);
-        enemyAI.update(&world, playerEntity, getApp(), dt);
+        enemyAI.update(&world, playerEntity, getApp(), dt, &collisionSystem);
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
