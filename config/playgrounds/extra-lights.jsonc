@@ -1,608 +1,618 @@
 {
-  "start-scene": "menu",
-  "window": {
-    "title": "Default Game Window",
-    "size": {
-      "width": 1920,
-      "height": 1080
+    "start-scene": "menu",
+    "window": {
+        "title": "Default Game Window",
+        "size": {
+            "width": 1920,
+            "height": 1080
+        },
+        "fullscreen": false
     },
-    "fullscreen": false
-  },
-  "scene": {
-    "renderer": {
-      "sky": "assets/textures/sky.jpg",
-      "postprocess": {
-        "fs": "assets/shaders/postprocess/dash-distortion.frag",
-        "uniforms": {
-          "exposure": 1.0
-        }
-      }
-    },
-    "assets": {
-      "shaders": {
-        "tinted": {
-          "vs": "assets/shaders/tinted.vert",
-          "fs": "assets/shaders/tinted.frag"
-        },
-        "textured": {
-          "vs": "assets/shaders/textured.vert",
-          "fs": "assets/shaders/textured.frag"
-        },
-        "lit": {
-          "vs": "assets/shaders/lit.vert",
-          "fs": "assets/shaders/lit.frag"
-        }
-      },
-      "textures": {
-        "moon": "assets/textures/moon.jpg",
-        "grass": "assets/textures/grass_ground_d.jpg",
-        "wood": "assets/textures/wood.jpg",
-        "glass": "assets/textures/glass-panels.png",
-        "monkey": "assets/textures/monkey.png"
-      },
-      "meshes": {
-        "cube": "assets/models/cube.obj",
-        "monkey": "assets/models/monkey.obj",
-        "plane": "assets/models/plane.obj",
-        "sphere": "assets/models/sphere.obj"
-      },
-      "samplers": {
-        "default": {},
-        "pixelated": {
-          "MAG_FILTER": "GL_NEAREST"
-        },
-        "ground_tiled": {
-          "MIN_FILTER": "GL_LINEAR_MIPMAP_LINEAR",
-          "MAG_FILTER": "GL_LINEAR",
-          "WRAP_S": "GL_REPEAT",
-          "WRAP_T": "GL_REPEAT",
-          "MAX_ANISOTROPY": 16.0
-        }
-      },
-      "materials": {
-        "ground": {
-          "type": "textured",
-          "shader": "textured",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
-            },
-            "depthTesting": {
-              "enabled": true
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg",
+            "postprocess": {
+                "fs": "assets/shaders/postprocess/dash-distortion.frag",
+                "uniforms": {
+                    "exposure": 1.0
+                }
             }
-          },
-          "tint": [1.0, 1.0, 1.0, 1.0],
-          "texture": "grass",
-          "sampler": "ground_tiled",
-          "uvScale": [96.0, 96.0]
         },
-        "drone": {
-          "type": "tinted",
-          "shader": "tinted",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                },
+                "textured": {
+                    "vs": "assets/shaders/textured.vert",
+                    "fs": "assets/shaders/textured.frag"
+                },
+                "lit": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
+                }
             },
-            "depthTesting": {
-              "enabled": true
+            "textures": {
+                "moon": "assets/textures/moon.jpg",
+                "grass": "assets/textures/grass_ground_d.jpg",
+                "wood": "assets/textures/wood.jpg",
+                "glass": "assets/textures/glass-panels.png",
+                "monkey": "assets/textures/monkey.png"
+            },
+            "meshes": {
+                "cube": "assets/models/cube.obj",
+                "monkey": "assets/models/monkey.obj",
+                "plane": "assets/models/plane.obj",
+                "sphere": "assets/models/sphere.obj"
+            },
+            "samplers": {
+                "default": {},
+                "pixelated": {
+                    "MAG_FILTER": "GL_NEAREST"
+                },
+                "ground_tiled": {
+                    "MIN_FILTER": "GL_LINEAR_MIPMAP_LINEAR",
+                    "MAG_FILTER": "GL_LINEAR",
+                    "WRAP_S": "GL_REPEAT",
+                    "WRAP_T": "GL_REPEAT",
+                    "MAX_ANISOTROPY": 16.0
+                }
+            },
+            "materials": {
+                "ground": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "grass",
+                    "sampler": "ground_tiled",
+                    "uvScale": [96.0, 96.0]
+                },
+                "drone": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [0.85, 0.9, 1.0, 1.0]
+                },
+                "monster": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0]
+                },
+                "metal": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [0.45, 0.4, 0.5, 1.0]
+                },
+                "glass": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        },
+                        "blending": {
+                            "enabled": true,
+                            "sourceFactor": "GL_SRC_ALPHA",
+                            "destinationFactor": "GL_ONE_MINUS_SRC_ALPHA"
+                        },
+                        "depthMask": false
+                    },
+                    "transparent": true,
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "glass",
+                    "sampler": "pixelated"
+                },
+                "grass": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "grass",
+                    "sampler": "default"
+                },
+                "monkey": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "textureAlbedo": "monkey",
+                    "sampler": "default"
+                },
+                "moon": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "texture": "moon",
+                    "sampler": "default"
+                }
+            },
+            "models": {
+                "drone": "assets/gltf/drone/arcade_corki.glb",
+                "map": "assets/gltf/map/map.glb",
+                "gun": "assets/gltf/weapons/rifle.glb",
+                "monster": "assets/gltf/monster/drmundo.glb"
             }
-          },
-          "tint": [0.85, 0.9, 1.0, 1.0]
         },
-        "monster": {
-          "type": "tinted",
-          "shader": "tinted",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
+        "game": {
+            "enemyHealthBars": {
+                "enabled": true,
+                "maxDistance": 22.0,
+                "colors": {
+                    "low": [0.84, 0.18, 0.24, 0.96],
+                    "mid": [0.96, 0.76, 0.25, 0.96],
+                    "high": [0.28, 0.84, 0.45, 0.96],
+                    "border": [0.02, 0.03, 0.05, 0.92],
+                    "background": [0.12, 0.14, 0.18, 0.88],
+                    "highlight": [1.0, 1.0, 1.0, 0.12]
+                }
             },
-            "depthTesting": {
-              "enabled": true
+            "enemySpawner": {
+                "spawnPoints": [
+                    [30.0, 0.0, 30.0],
+                    [-30.0, 0.0, 30.0],
+                    [30.0, 0.0, -30.0],
+                    [-30.0, 0.0, -30.0],
+                    [42.0, 0.0, 0.0],
+                    [-42.0, 0.0, 0.0],
+                    [0.0, 0.0, 42.0],
+                    [0.0, 0.0, -42.0]
+                ],
+                "spawnInterval": 2.0,
+                "initialSpawnCount": 4,
+                "maxAliveEnemies": 12,
+                "enemies": [
+                    {
+                        "name": "Monster",
+                        "model": "monster",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [0.008, 0.008, 0.008],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Brute",
+                                "moveSpeed": 3.8,
+                                "turnSpeed": 5.5,
+                                "aggroRange": 120.0,
+                                "attackRange": 2.5,
+                                "attackDamage": 10.0,
+                                "attackCooldown": 0.3,
+                                "scoreValue": 100
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 60.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "shape": "Model",
+                                "model": "monster"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Drone",
+                        "model": "drone",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [0.008, 0.008, 0.008],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Flyer",
+                                "moveSpeed": 3.4,
+                                "turnSpeed": 6.0,
+                                "aggroRange": 120.0,
+                                "attackRange": 12.0,
+                                "preferredDistance": 9.0,
+                                "attackDamage": 8.0,
+                                "attackCooldown": 2.0,
+                                "hoverFrequency": 2.3,
+                                "hoverAmplitude": 0.4,
+                                "baseHeight": 5.0,
+                                "scoreValue": 150
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 35.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "shape": "Model",
+                                "model": "drone"
+                            },
+                            {
+                                "type": "Weapon",
+                                "cooldown": 1.8,
+                                "bulletSpeed": 22.0,
+                                "bulletDamage": 8.0,
+                                "bulletLifetime": 4.0,
+                                "bulletScale": 0.2,
+                                "muzzleOffset": [0.0, 0.0, -0.8],
+                                "fireSound": "gunshot-enemy"
+                            }
+                        ]
+                    }
+                ]
             }
-          },
-          "tint": [1.0, 1.0, 1.0, 1.0]
         },
-        "metal": {
-          "type": "tinted",
-          "shader": "tinted",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
+        "world": [
+            {
+                "name": "Player Camera",
+                "position": [0.0, 1.8, 14.0],
+                "components": [
+                    {
+                        "type": "Camera",
+                        "fovY": 60,
+                        "near": 0.1,
+                        "far": 500.0
+                    },
+                    {
+                        "type": "Free Camera Controller",
+                        "rotationSensitivity": 0.01,
+                        "fovSensitivity": 0.3
+                    },
+                    {
+                        "type": "PlayerMovement",
+                        "walkSpeed": 8.0,
+                        "sprintMultiplier": 2.0,
+                        "crouchSpeed": 4.0,
+                        "crouchHeight": 1.0,
+                        "slideSpeedMultiplier": 1.5,
+                        "slideDuration": 0.8,
+                        "slideCooldown": 0.5,
+                        "dashDistance": 5.0,
+                        "dashCooldown": 1.0,
+                        "groundLevel": 0.0,
+                        "playerHeight": 2,
+                        "jumpForce": 9.0
+                    },
+                    {
+                        "type": "Player"
+                    },
+                    {
+                        "type": "Post Process Effects Component"
+                    },
+                    {
+                        "type": "Collider",
+                        "layer": "player",
+                        "radius": 0.45,
+                        "height": 1.8,
+                        "shape": "Capsule"
+                    }
+                ],
+                "children": [
+                    {
+                        "type": "Health",
+                        "maxHealth": 100.0
+                    },
+                    {
+                        "position": [1, -1, -2],
+                        "rotation": [0, 0, 0],
+                        "scale": [0.3, 0.3, 0.3],
+                        "components": [
+                            {
+                                "type": "Model Renderer",
+                                "model": "gun",
+                                 "firstPersonOverlay": true
+                            }
+                        ],
+                        "children": []
+                    }
+                ]
             },
-            "depthTesting": {
-              "enabled": true
+            {
+                "name": "map",
+                "position": [0, 0, 0],
+                "components": [
+                    {
+                        "type": "Model Renderer",
+                        "model": "map"
+                    },
+                    {
+                        "type": "Collider",
+                        "layer": "environment",
+                        "shape": "Model",
+                        "model": "map"
+                    }
+                ],
+                "children": [
+                    {
+                        "position": [16.544, 4, 7.8],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [16.544, 4.1, -4.1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [16.544, 4.1, -16.17],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [29.645, 4.1, -16.17],
+                        "rotation": [0, 0, 0],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [29.645, 4.1, -4.1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [29.645, 4.1, 7.8],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-1.6, 46, 0],
+                        "rotation": [-90, 0, 0],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "spot",
+                                "color": [1, 8, 2],
+                                "attenuation": [1.0, 0.045, 0.0075],
+                                "spotAngles": [15, 25]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [7.02, 4.1, -21.625],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-33.123, 4.1, 22.255],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-35.035, 6.55, -5.565],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-45.035, 6.55, -5.565],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-55.285, 6.55, -5.565],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-35.035, 6.55, -14.575],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-45.035, 6.55, -14.575],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-55.275, 6.55, -14.575],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-3.225, 4.1, -21.625],
+                        "scale": [1, 1, 1],
+                        "rotation": [-90, 0, 0],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [7.02, 4.1, -30.606],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [2.977, 4.1, -30.606],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [45.159, 8.1, -0.987],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [45.159, 8.1, -9.237],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    }
+                ]
             }
-          },
-          "tint": [0.45, 0.4, 0.5, 1.0]
-        },
-        "glass": {
-          "type": "textured",
-          "shader": "textured",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
-            },
-            "depthTesting": {
-              "enabled": true
-            },
-            "blending": {
-              "enabled": true,
-              "sourceFactor": "GL_SRC_ALPHA",
-              "destinationFactor": "GL_ONE_MINUS_SRC_ALPHA"
-            },
-            "depthMask": false
-          },
-          "transparent": true,
-          "tint": [1.0, 1.0, 1.0, 1.0],
-          "texture": "glass",
-          "sampler": "pixelated"
-        },
-        "grass": {
-          "type": "textured",
-          "shader": "textured",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
-            },
-            "depthTesting": {
-              "enabled": true
-            }
-          },
-          "tint": [1.0, 1.0, 1.0, 1.0],
-          "texture": "grass",
-          "sampler": "default"
-        },
-        "monkey": {
-          "type": "lit",
-          "shader": "lit",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
-            },
-            "depthTesting": {
-              "enabled": true
-            }
-          },
-          "tint": [1, 1, 1, 1],
-          "textureAlbedo": "monkey",
-          "sampler": "default"
-        },
-        "moon": {
-          "type": "textured",
-          "shader": "textured",
-          "pipelineState": {
-            "faceCulling": {
-              "enabled": false
-            },
-            "depthTesting": {
-              "enabled": true
-            }
-          },
-          "tint": [1.0, 1.0, 1.0, 1.0],
-          "texture": "moon",
-          "sampler": "default"
-        }
-      },
-      "models": {
-        "drone": "assets/gltf/mech_drone/mech_drone.glb",
-        "map": "assets/gltf/map/map.glb",
-        "gun": "assets/gltf/weapons/rifle.glb"
-      }
-    },
-    "game": {
-      "enemyHealthBars": {
-        "enabled": true,
-        "maxDistance": 22.0,
-        "colors": {
-          "low": [0.84, 0.18, 0.24, 0.96],
-          "mid": [0.96, 0.76, 0.25, 0.96],
-          "high": [0.28, 0.84, 0.45, 0.96],
-          "border": [0.02, 0.03, 0.05, 0.92],
-          "background": [0.12, 0.14, 0.18, 0.88],
-          "highlight": [1.0, 1.0, 1.0, 0.12]
-        }
-      },
-      "enemySpawner": {
-        "spawnPoints": [
-          [30.0, 0.0, 30.0],
-          [-30.0, 0.0, 30.0],
-          [30.0, 0.0, -30.0],
-          [-30.0, 0.0, -30.0],
-          [42.0, 0.0, 0.0],
-          [-42.0, 0.0, 0.0],
-          [0.0, 0.0, 42.0],
-          [0.0, 0.0, -42.0]
-        ],
-        "spawnInterval": 2.0,
-        "initialSpawnCount": 4,
-        "maxAliveEnemies": 12,
-        "enemies": [
-          {
-            "name": "Monster",
-            "mesh": "cube",
-            "material": "monster",
-            "rotation": [0.0, 0.0, 0.0],
-            "scale": [0.65, 0.65, 0.65],
-            "components": [
-              {
-                "type": "Enemy",
-                "enemyType": "Brute",
-                "moveSpeed": 3.8,
-                "turnSpeed": 5.5,
-                "aggroRange": 120.0,
-                "attackRange": 2.0,
-                "attackDamage": 10.0,
-                "attackCooldown": 1.2,
-                "scoreValue": 100
-              },
-              {
-                "type": "Health",
-                "maxHealth": 60.0
-              },
-              {
-                "type": "Collider",
-                "layer": "enemy",
-                "shape": "Capsule",
-                "radius": 0.5,
-                "height": 1.5
-              }
-            ]
-          },
-          {
-            "name": "Drone",
-            "mesh": "cube",
-            "material": "drone",
-            "rotation": [0.0, 0.0, 0.0],
-            "scale": [1.2, 1.2, 1.2],
-            "components": [
-              {
-                "type": "Enemy",
-                "enemyType": "Flyer",
-                "moveSpeed": 3.4,
-                "turnSpeed": 6.0,
-                "aggroRange": 120.0,
-                "attackRange": 12.0,
-                "preferredDistance": 9.0,
-                "attackDamage": 8.0,
-                "attackCooldown": 2.0,
-                "hoverFrequency": 2.3,
-                "hoverAmplitude": 0.4,
-                "baseHeight": 5.0,
-                "scoreValue": 150
-              },
-              {
-                "type": "Health",
-                "maxHealth": 35.0
-              },
-              {
-                "type": "Collider",
-                "layer": "enemy",
-                "radius": 0.8
-              }
-            ]
-          }
         ]
-      }
-    },
-    "world": [
-      {
-        "name": "Player Camera",
-        "position": [0.0, 1.8, 14.0],
-        "components": [
-          {
-            "type": "Camera",
-            "fovY": 60,
-            "near": 0.1,
-            "far": 500.0
-          },
-          {
-            "type": "Free Camera Controller",
-            "rotationSensitivity": 0.01,
-            "fovSensitivity": 0.3
-          },
-          {
-            "type": "PlayerMovement",
-            "walkSpeed": 8.0,
-            "sprintMultiplier": 2.0,
-            "crouchSpeed": 4.0,
-            "crouchHeight": 1.0,
-            "slideSpeedMultiplier": 1.5,
-            "slideDuration": 0.8,
-            "slideCooldown": 0.5,
-            "dashDistance": 5.0,
-            "dashCooldown": 1.0,
-            "groundLevel": 0.0,
-            "playerHeight": 2,
-            "jumpForce": 9.0
-          },
-          {
-            "type": "Player"
-          },
-          {
-            "type": "Post Process Effects Component"
-          },
-          {
-            "type": "Collider",
-            "layer": "player",
-            "radius": 0.45,
-            "height": 1.8,
-            "shape": "Capsule"
-          }
-        ],
-        "children": [
-          {
-            "type": "Health",
-            "maxHealth": 100.0
-          },
-          {
-            "position": [1, -1, -2],
-            "rotation": [0, 0, 0],
-            "scale": [0.3, 0.3, 0.3],
-            "components": [
-              {
-                "type": "Model Renderer",
-                "model": "gun"
-              }
-            ],
-            "children": []
-          }
-        ]
-      },
-      {
-        "name": "map",
-        "position": [0, 0, 0],
-        "components": [
-          {
-            "type": "Model Renderer",
-            "model": "map"
-          },
-          {
-            "type": "Collider",
-            "layer": "environment",
-            "shape": "Model",
-            "model": "map"
-          }
-        ],
-        "children": [
-          {
-            "position": [16.544, 4, 7.8],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [16.544, 4.1, -4.1],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [16.544, 4.1, -16.17],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [29.645, 4.1, -16.17],
-            "rotation": [0, 0, 0],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [29.645, 4.1, -4.1],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [29.645, 4.1, 7.8],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-1.6, 46, 0],
-            "rotation": [-90, 0, 0],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "spot",
-                "color": [1, 8, 2],
-                "attenuation": [1.0, 0.045, 0.0075],
-                "spotAngles": [15, 25]
-              }
-            ]
-          },
-          {
-            "position": [7.02, 4.1, -21.625],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-33.123, 4.1, 22.255],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-35.035, 6.55, -5.565],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-45.035, 6.55, -5.565],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-55.285, 6.55, -5.565],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-35.035, 6.55, -14.575],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-45.035, 6.55, -14.575],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-55.275, 6.55, -14.575],
-            "scale": [0.5, 0.5, 0.5],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [-3.225, 4.1, -21.625],
-            "scale": [1, 1, 1],
-            "rotation": [-90, 0, 0],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [7.02, 4.1, -30.606],
-            "scale": [1, 1, 1],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [2.977, 4.1, -30.606],
-            "scale": [1, 1, 1],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [45.159, 8.1, -0.987],
-            "scale": [1, 1, 1],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          },
-          {
-            "position": [45.159, 8.1, -9.237],
-            "scale": [1, 1, 1],
-            "components": [
-              {
-                "type": "light",
-                "lightType": "point",
-                "color": [0.7, 0.6, 0.3],
-                "attenuation": [1.0, 0.09, 0.032]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+    }
 }
