@@ -147,6 +147,7 @@ public:
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
 
+        gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
         gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
