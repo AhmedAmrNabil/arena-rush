@@ -1,5 +1,7 @@
 #include "forward-renderer.hpp"
 
+#include <string>
+
 #include "../components/model-renderer.hpp"
 #include "../components/post-process-effects.hpp"
 #include "../mesh/mesh-utils.hpp"
@@ -34,7 +36,18 @@ namespace our {
             // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring
             // while rendering the sky)
             std::string skyTextureFile = config.value<std::string>("sky", "");
-            Texture2D* skyTexture = texture_utils::loadImage(skyTextureFile, false);
+
+            auto ends_with = [](const std::string& str, const std::string& suffix) {
+                if (str.size() < suffix.size()) return false;
+                return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+            };
+
+            Texture2D* skyTexture = nullptr;
+            if (ends_with(skyTextureFile, ".hdr")) {
+                skyTexture = texture_utils::loadHDRImage(skyTextureFile, false);
+            } else {
+                skyTexture = texture_utils::loadImage(skyTextureFile, false);
+            }
 
             // Setup a sampler for the sky
             Sampler* skySampler = new Sampler();
