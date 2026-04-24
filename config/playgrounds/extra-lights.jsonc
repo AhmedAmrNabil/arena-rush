@@ -19,7 +19,7 @@
             },
             "bloom": {
                 "enabled": true,
-                "threshold": 0.3,
+                "threshold": 0.7,
                 "softKnee": 0.5,
                 "radius": 2.0,
                 "intensity": 2.0
