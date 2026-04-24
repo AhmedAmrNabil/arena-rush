@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include <ecs/world.hpp>
 #include <material/material.hpp>
@@ -10,8 +10,9 @@ namespace gameplay {
 
     class PlayerHUDSystem {
         our::Mesh* rectangleMesh = nullptr;
-        our::ShaderProgram* tintShader = nullptr;
-        our::TintedMaterial* healthBarMaterial = nullptr;
+        our::ShaderProgram* progressShader = nullptr;
+        our::TexturedMaterial* healthFrameMaterial = nullptr;
+        our::TexturedMaterial* healthFillMaterial = nullptr;
 
         our::ShaderProgram* texturedShader = nullptr;
         our::TexturedMaterial* weaponMaterial = nullptr;
@@ -19,7 +20,7 @@ namespace gameplay {
         our::Font testFont;
 
         our::UIRect weaponRect     = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 20.0f}, {80.0f, 80.0f} };
-        our::UIRect healthBarRect  = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 115.0f}, {160.0f, 9.0f} };
+        our::UIRect healthBarRect  = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-20.0f, 30.0f}, {200.0f, 33.0f} };
         our::UIRect ammoTextRect   = { {1.0f, 0.0f}, {1.0f, 0.0f}, {-34.0f, 78.0f}, {0.0f, 0.0f} };
 
         float outlineThickness = 3.0f;
@@ -28,6 +29,8 @@ namespace gameplay {
         glm::vec4 ammoColor = glm::vec4(124.0f / 255.0f, 136.0f / 255.0f, 158.0f / 255.0f, 1.0f);
 
         std::string weaponIconPath = "assets/UI/GTASA_AK.png";
+        std::string healthFramePath = "assets/UI/health_bar.png";
+        std::string healthFillPath = "assets/UI/heatlh.png";
         std::string fontPath = "assets/fonts/GTASA_font/GTASA_font.json";
         std::string fontTexturePath = "assets/fonts/GTASA_font/GTASA_font.png";
 

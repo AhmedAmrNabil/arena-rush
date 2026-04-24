@@ -19,20 +19,47 @@ namespace gameplay {
             0, 1, 2, 2, 3, 0,
         });
 
-        tintShader = new our::ShaderProgram();
-        tintShader->attach("assets/shaders/tinted.vert", GL_VERTEX_SHADER);
-        tintShader->attach("assets/shaders/tinted.frag", GL_FRAGMENT_SHADER);
-        tintShader->link();
-
-        healthBarMaterial = new our::TintedMaterial();
-        healthBarMaterial->shader = tintShader;
-        healthBarMaterial->pipelineState.depthTesting.enabled = false;
-        healthBarMaterial->pipelineState.faceCulling.enabled = false;
+        progressShader = new our::ShaderProgram();
+        progressShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
+        progressShader->attach("assets/shaders/progress.frag", GL_FRAGMENT_SHADER);
+        progressShader->link();
 
         texturedShader = new our::ShaderProgram();
         texturedShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
         texturedShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
         texturedShader->link();
+
+        healthFrameMaterial = new our::TexturedMaterial();
+        healthFrameMaterial->shader = texturedShader;
+        healthFrameMaterial->texture = our::texture_utils::loadImage(healthFramePath, true);
+        if (healthFrameMaterial->texture) {
+            healthFrameMaterial->texture->bind();
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            our::Texture2D::unbind();
+        }
+        healthFrameMaterial->tint = glm::vec4(1.0f);
+        healthFrameMaterial->pipelineState.depthTesting.enabled = false;
+        healthFrameMaterial->pipelineState.faceCulling.enabled = false;
+        healthFrameMaterial->pipelineState.blending.enabled = true;
+        healthFrameMaterial->pipelineState.blending.sourceFactor = GL_SRC_ALPHA;
+        healthFrameMaterial->pipelineState.blending.destinationFactor = GL_ONE_MINUS_SRC_ALPHA;
+
+        healthFillMaterial = new our::TexturedMaterial();
+        healthFillMaterial->shader = progressShader;
+        healthFillMaterial->texture = our::texture_utils::loadImage(healthFillPath, true);
+        if (healthFillMaterial->texture) {
+            healthFillMaterial->texture->bind();
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            our::Texture2D::unbind();
+        }
+        healthFillMaterial->tint = glm::vec4(1.0f);
+        healthFillMaterial->pipelineState.depthTesting.enabled = false;
+        healthFillMaterial->pipelineState.faceCulling.enabled = false;
+        healthFillMaterial->pipelineState.blending.enabled = true;
+        healthFillMaterial->pipelineState.blending.sourceFactor = GL_SRC_ALPHA;
+        healthFillMaterial->pipelineState.blending.destinationFactor = GL_ONE_MINUS_SRC_ALPHA;
 
         weaponMaterial = new our::TexturedMaterial();
         weaponMaterial->shader = texturedShader;
@@ -85,73 +112,98 @@ namespace gameplay {
         float healthPercentage = playerHealth->currentHealth / playerHealth->maxHealth;
         healthPercentage = glm::clamp(healthPercentage, 0.0f, 1.0f);
 
-        // Even though we have no view matrix here (we want the HUD fixed to the screen), VP is just a naming convention
+        // scale all HUD elements relative to a 720p baseline
+        float uiScale = windowSize.y / 720.0f;
+
         glm::mat4 orthoVP = glm::ortho(0.0f, (float)windowSize.x, (float)windowSize.y, 0.0f, 1.0f, -1.0f);
 
         // weapon icon
-        glm::vec2 weaponPos = weaponRect.getScreenPosition(windowSize);
+        our::UIRect scaledWeaponRect = weaponRect;
+        scaledWeaponRect.size *= uiScale;
+        scaledWeaponRect.offset *= uiScale;
+        
+        glm::vec2 weaponPos = scaledWeaponRect.getScreenPosition(windowSize);
         glm::mat4 weaponTransform = glm::translate(glm::mat4(1.0f), glm::vec3(weaponPos.x, weaponPos.y, 0.0f)) *
-                                    glm::scale(glm::mat4(1.0f), glm::vec3(weaponRect.size.x, weaponRect.size.y, 1.0f));
+                                    glm::scale(glm::mat4(1.0f), glm::vec3(scaledWeaponRect.size.x, scaledWeaponRect.size.y, 1.0f));
+        
+        if ((float)playerComp->currentAmmo / playerComp->magSize <= 0.2f) {
+            weaponMaterial->tint = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
+        } else {
+            weaponMaterial->tint = glm::vec4(1.0f);
+        }
+
         weaponMaterial->setup();
         weaponMaterial->shader->set("transform", orthoVP * weaponTransform);
         rectangleMesh->draw();
 
-        glm::vec2 barPos = healthBarRect.getScreenPosition(windowSize);
+        // local copy to not accumlate the multiplies each frame
+        our::UIRect scaledHealthRect = healthBarRect;
+        scaledHealthRect.size   *= uiScale;
+        scaledHealthRect.offset *= uiScale;
 
-        // health black outline
-        glm::mat4 outlineTransform = glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x - outlineThickness, barPos.y - outlineThickness, 0.0f)) *
-                                     glm::scale(glm::mat4(1.0f), glm::vec3(healthBarRect.size.x + outlineThickness * 2, healthBarRect.size.y + outlineThickness * 2, 1.0f));
-        healthBarMaterial->tint = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        healthBarMaterial->setup();
-        healthBarMaterial->shader->set("transform", orthoVP * outlineTransform);
+        glm::vec2 barPos = scaledHealthRect.getScreenPosition(windowSize);
+
+        // health bar frame
+        glm::mat4 frameTransform =
+            glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x, barPos.y, 0.0f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(scaledHealthRect.size.x, scaledHealthRect.size.y, 1.0f));
+        healthFrameMaterial->setup();
+        healthFrameMaterial->shader->set("transform", orthoVP * frameTransform);
         rectangleMesh->draw();
 
-        // health dark read bg
-        glm::mat4 bgTransform = glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x, barPos.y, 0.0f)) *
-                                glm::scale(glm::mat4(1.0f), glm::vec3(healthBarRect.size.x, healthBarRect.size.y, 1.0f));
-        healthBarMaterial->tint = glm::vec4(0.2f, 0.0f, 0.0f, 1.0f);
-        healthBarMaterial->setup();
-        healthBarMaterial->shader->set("transform", orthoVP * bgTransform);
-        rectangleMesh->draw();
-
-        // health bright red bg
         if (healthPercentage > 0.0f) {
-            glm::mat4 healthTransform = glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x, barPos.y, 0.0f)) *
-                                        glm::scale(glm::mat4(1.0f), glm::vec3(healthBarRect.size.x * healthPercentage, healthBarRect.size.y, 1.0f));
-            healthBarMaterial->tint = glm::vec4(0.85f, 0.1f, 0.1f, 1.0f);
-            healthBarMaterial->setup();
-            healthBarMaterial->shader->set("transform", orthoVP * healthTransform);
+            glm::mat4 fillTransform = glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x, barPos.y, 0.0f)) *
+                                        glm::scale(glm::mat4(1.0f), glm::vec3(scaledHealthRect.size.x,
+                                                                              scaledHealthRect.size.y, 1.0f));
+            healthFillMaterial->setup();
+            healthFillMaterial->shader->set("uvScale", glm::vec2(1.0f, 1.0f));
+            healthFillMaterial->shader->set("progress", healthPercentage);
+            healthFillMaterial->shader->set("transform", orthoVP * fillTransform);
             rectangleMesh->draw();
         }
 
         // Ammo Counter
         if (textRenderer) {
-            std::string ammoText = std::to_string(playerComp->currentAmmo) + "-" + std::to_string(playerComp->maxAmmo);
+            std::string ammoText = std::to_string(playerComp->currentAmmo) + " / " + std::to_string(playerComp->maxAmmo);
             
             glm::vec4 outlineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-            
-            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough :)
-            // (draws the text blackened four times to create an outline)
-            our::UIRect tr = ammoTextRect; tr.offset += glm::vec2(outlineSpread, outlineSpread);
-            textRenderer->drawText(&testFont, ammoText, tr, windowSize, textScale, orthoVP, outlineColor);
-            
-            our::UIRect bl = ammoTextRect; bl.offset += glm::vec2(-outlineSpread, -outlineSpread);
-            textRenderer->drawText(&testFont, ammoText, bl, windowSize, textScale, orthoVP, outlineColor);
-            
-            our::UIRect tl = ammoTextRect; tl.offset += glm::vec2(-outlineSpread, outlineSpread);
-            textRenderer->drawText(&testFont, ammoText, tl, windowSize, textScale, orthoVP, outlineColor);
-            
-            our::UIRect br = ammoTextRect; br.offset += glm::vec2(outlineSpread, -outlineSpread);
-            textRenderer->drawText(&testFont, ammoText, br, windowSize, textScale, orthoVP, outlineColor);
+            our::UIRect scaledAmmoTextRect = ammoTextRect;
+            scaledAmmoTextRect.size *= uiScale;
+            scaledAmmoTextRect.offset *= uiScale;
 
-            textRenderer->drawText(&testFont, ammoText, ammoTextRect, windowSize, textScale, orthoVP, ammoColor);
+            float scaledSpread = outlineSpread * uiScale;
+            float sTextScale = textScale * uiScale;
+
+            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough :)
+            // (draws the text blackened four times to create an outline)   
+            our::UIRect tr = scaledAmmoTextRect; tr.offset += glm::vec2(scaledSpread, scaledSpread);
+            textRenderer->drawText(&testFont, ammoText, tr, windowSize, sTextScale, orthoVP, outlineColor);
+            
+            our::UIRect bl = scaledAmmoTextRect; bl.offset += glm::vec2(-scaledSpread, -scaledSpread);
+            textRenderer->drawText(&testFont, ammoText, bl, windowSize, sTextScale, orthoVP, outlineColor);
+            
+            our::UIRect tl = scaledAmmoTextRect; tl.offset += glm::vec2(-scaledSpread, scaledSpread);
+            textRenderer->drawText(&testFont, ammoText, tl, windowSize, sTextScale, orthoVP, outlineColor);
+            
+            our::UIRect br = scaledAmmoTextRect; br.offset += glm::vec2(scaledSpread, -scaledSpread);
+            textRenderer->drawText(&testFont, ammoText, br, windowSize, sTextScale, orthoVP, outlineColor);
+
+            textRenderer->drawText(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP, ammoColor);
         }
     }
 
     void PlayerHUDSystem::destroy() {
         if (rectangleMesh) delete rectangleMesh;
-        if (tintShader) delete tintShader;
-        if (healthBarMaterial) delete healthBarMaterial;
+
+        if (progressShader) delete progressShader;
+        if (healthFrameMaterial) {
+            if (healthFrameMaterial->texture) delete healthFrameMaterial->texture;
+            delete healthFrameMaterial;
+        }
+        if (healthFillMaterial) {
+            if (healthFillMaterial->texture) delete healthFillMaterial->texture;
+            delete healthFillMaterial;
+        }
 
         if (texturedShader) delete texturedShader;
         if (weaponMaterial) {
