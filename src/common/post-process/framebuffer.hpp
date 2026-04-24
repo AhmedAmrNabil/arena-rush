@@ -19,7 +19,7 @@ namespace our {
             if (depthTarget) delete depthTarget;
         }
 
-        void resize(glm::ivec2 size, float hdr = false) {
+        void resize(glm::ivec2 size, bool hdr = false) {
             if (!colorTarget) colorTarget = new Texture2D();
             if (!depthTarget) depthTarget = new Texture2D();
 
@@ -55,7 +55,7 @@ namespace our {
             return depthTarget;
         }
 
-        // Non-copyable, movable
+        // Non-copyable
         Framebuffer(const Framebuffer&) = delete;
         Framebuffer& operator=(const Framebuffer&) = delete;
     };
