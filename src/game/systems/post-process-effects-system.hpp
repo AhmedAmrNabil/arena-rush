@@ -4,6 +4,7 @@
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
 
+#include "../components/health.hpp"
 #include "../components/player-movement.hpp"
 
 namespace gameplay {
@@ -18,10 +19,14 @@ namespace gameplay {
 
             PlayerMovementComponent* movement = nullptr;
             our::PostProcessEffectsComponent* effects = nullptr;
+            HealthComponent* playerHealth = nullptr;
 
             for (our::Entity* entity : world->getEntities()) {
                 if (!movement) movement = entity->getComponent<PlayerMovementComponent>();
-                if (!effects) effects = entity->getComponent<our::PostProcessEffectsComponent>();
+                if (!effects) {
+                    effects = entity->getComponent<our::PostProcessEffectsComponent>();
+                    if (effects) playerHealth = entity->getComponent<HealthComponent>();
+                }
                 if (movement && effects) break;
             }
 
@@ -36,6 +41,13 @@ namespace gameplay {
             }
 
             effects->uniforms["intensity"] = glm::max(0.0f, dashEffectTimer / DASH_EFFECT_DURATION);
+
+            // Red vignette for the first 0.5s after taking damage
+            float damageFlash = 0.0f;
+            if (playerHealth) {
+                damageFlash = glm::clamp((playerHealth->damageRevealTimer - 2.0f) / 0.5f, 0.0f, 1.0f);
+            }
+            effects->uniforms["damageFlash"] = damageFlash;
         }
     };
 

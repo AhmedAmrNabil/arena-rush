@@ -2,6 +2,7 @@
 
 uniform sampler2D tex;
 uniform float intensity;
+uniform float damageFlash;
 
 in vec2 tex_coord;
 out vec4 frag_color;
@@ -36,6 +37,13 @@ void main() {
     vec2 ndc = tex_coord * 2.0 - 1.0;
     float vignette = 1.0 / (1.0 + dot(ndc, ndc));
     color *= vignette;
+
+    // red vignette at screen edges when player takes a hit
+    if (damageFlash > 0.0) {
+        float edgeMask = smoothstep(0.2, 1.2, length(ndc));
+        vec3 damageColor = vec3(0.7, 0.02, 0.02);
+        color = mix(color, damageColor, damageFlash * edgeMask * 0.75);
+    }
 
     frag_color = vec4(color, 1.0);
 }
