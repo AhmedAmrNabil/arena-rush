@@ -19,20 +19,6 @@ namespace our {
             // First, we create a sphere which will be used to draw the sky
             this->skySphere = mesh_utils::sphere(glm::ivec2(16, 16));
 
-            // We can draw the sky using the same shader used to draw textured objects
-            ShaderProgram* skyShader = new ShaderProgram();
-            skyShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
-            skyShader->attach("assets/shaders/textured-gamma.frag", GL_FRAGMENT_SHADER);
-            skyShader->link();
-
-            PipelineState skyPipelineState{};
-            skyPipelineState.depthTesting.enabled = true;
-            skyPipelineState.depthTesting.function = GL_LEQUAL;
-            skyPipelineState.faceCulling.enabled = true;
-            // cull front as we are looking at the sphere from the inside
-            skyPipelineState.faceCulling.culledFace = GL_FRONT;
-            skyPipelineState.faceCulling.frontFace = GL_CCW;
-
             // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring
             // while rendering the sky)
             std::string skyTextureFile = config.value<std::string>("sky", "");
@@ -43,11 +29,28 @@ namespace our {
             };
 
             Texture2D* skyTexture = nullptr;
+
+            ShaderProgram* skyShader = new ShaderProgram();
+            skyShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
+
             if (ends_with(skyTextureFile, ".hdr")) {
                 skyTexture = texture_utils::loadHDRImage(skyTextureFile, false);
+                // do not gamma correct hdr images
+                skyShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
             } else {
+                skyShader->attach("assets/shaders/textured-gamma.frag", GL_FRAGMENT_SHADER);
                 skyTexture = texture_utils::loadImage(skyTextureFile, false);
             }
+            // We can draw the sky using the same shader used to draw textured objects
+            skyShader->link();
+
+            PipelineState skyPipelineState{};
+            skyPipelineState.depthTesting.enabled = true;
+            skyPipelineState.depthTesting.function = GL_LEQUAL;
+            skyPipelineState.faceCulling.enabled = true;
+            // cull front as we are looking at the sphere from the inside
+            skyPipelineState.faceCulling.culledFace = GL_FRONT;
+            skyPipelineState.faceCulling.frontFace = GL_CCW;
 
             // Setup a sampler for the sky
             Sampler* skySampler = new Sampler();
