@@ -36,9 +36,8 @@ namespace our {
 
                 // animated local transform, fallback to bind pose
                 glm::mat4 localTransform = node.localTransform;
-                auto it = currentAnimation->channels.find(node.name);
-                if (it != currentAnimation->channels.end()) {
-                    localTransform = it->second.interpolate(currentTime);
+                if (const BoneAnimation* boneAnim = currentAnimation->findBone(node.name); boneAnim) {
+                    localTransform = boneAnim->interpolate(currentTime);
                 }
 
                 // accumulate from parent

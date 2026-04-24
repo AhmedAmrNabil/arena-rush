@@ -33,12 +33,12 @@ namespace our {
                 channels[nodeName] = BoneAnimation(nodeName, channel);
             }
         }
-        BoneAnimation& findBone(const std::string& name) {
+        const BoneAnimation* findBone(const std::string& name) const {
             auto it = channels.find(name);
             if (it != channels.end()) {
-                return it->second;
+                return &it->second;
             }
-            throw std::runtime_error("BoneAnimation not found: " + name);
+            return nullptr;
         }
     };
 }  // namespace our
