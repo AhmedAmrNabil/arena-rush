@@ -3,6 +3,7 @@
 #include <btBulletCollisionCommon.h>
 
 #include "asset-loader.hpp"
+#include "deserialize-utils.hpp"
 
 static gameplay::ColliderShape parseColliderShape(const std::string& value, gameplay::ColliderShape fallback) {
     if (value == "Sphere") return gameplay::ColliderShape::Sphere;
@@ -27,6 +28,10 @@ namespace gameplay {
         radius = data.value("radius", radius);
         height = data.value("height", height);
         isTrigger = data.value("isTrigger", isTrigger);
+        worldSpace = data.value("worldSpace", worldSpace);
+        if (data.contains("centerOffset") && data["centerOffset"].is_array()) {
+            centerOffset = data["centerOffset"].get<glm::vec3>();
+        }
         std::string stringLayer = data.value("layer", "");
         layer = layerStringToGroup(stringLayer);
         std::string modelName = data.value("model", "");

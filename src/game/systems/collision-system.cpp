@@ -333,7 +333,8 @@ namespace gameplay {
         btCollisionShape* shape = nullptr;
 
         std::string shapeKey;
-        const std::string scaleSuffix = makeShapeScaleSuffix(entity->localTransform.scale);
+        const std::string scaleSuffix =
+            collider->worldSpace ? "_WS" : makeShapeScaleSuffix(entity->localTransform.scale);
         if (!collider->shapeCacheId.empty()) {
             shapeKey = std::string("ID_") + collider->shapeCacheId + scaleSuffix;
         } else {
@@ -378,7 +379,9 @@ namespace gameplay {
                     }
                     break;
             }
-            shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
+            if (!collider->worldSpace) {
+                shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
+            }
             shapesCache[shapeKey] = shape;
             ownedShapes[shape] = 1;
         }
@@ -388,11 +391,20 @@ namespace gameplay {
         obj->setCollisionShape(shape);
 
         auto* player = entity->getComponent<PlayerComponent>();
+        btTransform transform;
         if (player) {
-            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
+            transform = entityToBtTransformYawOnly(entity);
         } else {
-            obj->setWorldTransform(entityToBtTransform(entity));
+            transform = entityToBtTransform(entity);
         }
+
+        // Apply center offset (e.g. shift capsule up so bottom aligns with model feet)
+        if (collider->centerOffset != glm::vec3(0.0f)) {
+            btVector3 offset = glmToBtVec3(collider->centerOffset);
+            transform.setOrigin(transform.getOrigin() + offset);
+        }
+
+        obj->setWorldTransform(transform);
 
         obj->setUserPointer(entity);  // so we can go back to the entity
 
@@ -454,14 +466,24 @@ namespace gameplay {
         if (!obj) return;
 
         auto* player = entity->getComponent<PlayerComponent>();
+        auto* collider = entity->getComponent<ColliderComponent>();
 
+        btTransform transform;
         if (player) {
             // for players, we only update the yaw rotation to prevent them from tipping over when walking on slopes or
             // getting hit by hazards. This is a common technique in character controllers to improve stability.
-            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
+            transform = entityToBtTransformYawOnly(entity);
         } else {
-            obj->setWorldTransform(entityToBtTransform(entity));
+            transform = entityToBtTransform(entity);
         }
+
+        // Apply center offset (must match what was done in addEntity)
+        if (collider && collider->centerOffset != glm::vec3(0.0f)) {
+            btVector3 offset = glmToBtVec3(collider->centerOffset);
+            transform.setOrigin(transform.getOrigin() + offset);
+        }
+
+        obj->setWorldTransform(transform);
 
         // Update the broadphase AABB so Bullet uses the new position for collision detection
         collisionWorld->updateSingleAabb(obj);
