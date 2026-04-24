@@ -9,11 +9,13 @@ namespace our {
         for (auto entity : world->getEntities()) {
             AnimationComponent* animComp = entity->getComponent<AnimationComponent>();
             if (!animComp) continue;
-            if (animComp->animator.isFinished()) {
-                std::string defaultAnimation = animComp->defaultClip.empty() ? "idle" : animComp->defaultClip;
-                animComp->play(defaultAnimation);
-            }
             animComp->animator.update(deltaTime);
+
+            if (animComp->animator.isFinished()) {
+                if (!animComp->defaultClip.empty()) {
+                    animComp->play(animComp->defaultClip);
+                }
+            }
         }
     }
 }  // namespace our
