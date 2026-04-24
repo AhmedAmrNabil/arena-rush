@@ -259,15 +259,10 @@ namespace our {
         glDepthMask(GL_TRUE);
 
         // If there is a bloom or postprocess target, bind it before rendering the scene
-        Framebuffer* sceneTarget = nullptr;
         if (bloom) {
-            sceneTarget = bloom->getSceneFramebuffer();
+            bloom->bindSceneFramebuffer();
         } else if (postprocessMaterial) {
-            sceneTarget = postprocessFrameBuffer;
-        }
-
-        if (sceneTarget) {
-            sceneTarget->bind();
+            postprocessFrameBuffer->bind();
         } else {
             Framebuffer::unbind();
         }
@@ -280,6 +275,7 @@ namespace our {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
+            if (bloom) bloom->applyBloomUniforms(command.material->shader);
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setLightUniforms(sceneLights);
@@ -320,6 +316,7 @@ namespace our {
             // clang-format on
 
             skyMaterial->shader->set("transform", alwaysBehindTransform * VP * model);
+            if (bloom) bloom->applyBloomUniforms(skyMaterial->shader);
             skySphere->draw();
         }
 
@@ -328,6 +325,7 @@ namespace our {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
+            if (bloom) bloom->applyBloomUniforms(command.material->shader);
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setLightUniforms(sceneLights);
@@ -384,6 +382,7 @@ namespace our {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
+            if (bloom) bloom->applyBloomUniforms(command.material->shader);
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
                 // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setLightUniforms(sceneLights);
