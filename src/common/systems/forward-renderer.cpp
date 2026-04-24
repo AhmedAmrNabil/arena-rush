@@ -34,12 +34,12 @@ namespace our {
             skyShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
 
             if (ends_with(skyTextureFile, ".hdr")) {
-                skyTexture = texture_utils::loadHDRImage(skyTextureFile, false);
+                skyTexture = texture_utils::loadHDRImage(skyTextureFile, true);
                 // do not gamma correct hdr images
                 skyShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
             } else {
                 skyShader->attach("assets/shaders/textured-gamma.frag", GL_FRAGMENT_SHADER);
-                skyTexture = texture_utils::loadImage(skyTextureFile, false);
+                skyTexture = texture_utils::loadImage(skyTextureFile, true);
             }
             // We can draw the sky using the same shader used to draw textured objects
             skyShader->link();
@@ -54,7 +54,7 @@ namespace our {
 
             // Setup a sampler for the sky
             Sampler* skySampler = new Sampler();
-            skySampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            skySampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             skySampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             skySampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
             skySampler->set(GL_TEXTURE_WRAP_T, GL_REPEAT);
