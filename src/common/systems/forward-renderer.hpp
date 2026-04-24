@@ -12,6 +12,7 @@
 #include "../ecs/world.hpp"
 #include "animation/animator.hpp"
 #include "uniform-buffer/uniform-buffer.hpp"
+#include "post-process/bloom.hpp"
 #include "post-process/framebuffer.hpp"
 
 namespace our {
@@ -44,10 +45,11 @@ namespace our {
         Mesh* skySphere;
         TexturedMaterial* skyMaterial;
         // Objects used for Postprocessing
-        GLuint postProcessVertexArray;
-        Framebuffer* postprocessFrameBuffer;
+        GLuint postProcessVertexArray = 0;
+        Framebuffer* postprocessFrameBuffer = nullptr;
         std::unordered_map<std::string, float> postprocessUniforms;
-        TexturedMaterial* postprocessMaterial;
+        TexturedMaterial* postprocessMaterial = nullptr;
+        BloomPostProcess* bloom = nullptr;
         std::vector<LightRenderData> sceneLights;
         static constexpr GLuint bonesBindingPoint = 0;
         UniformBuffer* bonesUniformBuffer = nullptr;

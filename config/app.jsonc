@@ -16,6 +16,14 @@
                 "uniforms": {
                     "exposure": 1.0
                 }
+            },
+            "bloom": {
+                "enabled": true,
+                "threshold": 1.0,
+                "blur": {
+                    "horizontal": 2.0,
+                    "vertical": 2.0
+                }
             }
         },
         "hud": {

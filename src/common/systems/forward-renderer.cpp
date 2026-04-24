@@ -18,6 +18,12 @@ namespace our {
             // First, we create a sphere which will be used to draw the sky
             this->skySphere = mesh_utils::sphere(glm::ivec2(16, 16));
 
+            // We can draw the sky using the same shader used to draw textured objects
+            ShaderProgram* skyShader = new ShaderProgram();
+            skyShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
+            skyShader->attach("assets/shaders/textured-gamma.frag", GL_FRAGMENT_SHADER);
+            skyShader->link();
+
             PipelineState skyPipelineState{};
             skyPipelineState.depthTesting.enabled = true;
             skyPipelineState.depthTesting.function = GL_LEQUAL;
@@ -44,13 +50,29 @@ namespace our {
             this->skyMaterial->transparent = false;
         }
 
+        auto ensureFullscreenVertexArray = [this]() {
+            if (postProcessVertexArray == 0) {
+                glGenVertexArrays(1, &postProcessVertexArray);
+            }
+        };
+
+        // Then we check if there is a bloom postprocess configuration
+        if (config.contains("bloom") && config["bloom"].is_object()) {
+            const auto& bloomConfig = config["bloom"];
+            if (bloomConfig.value("enabled", true)) {
+                ensureFullscreenVertexArray();
+                bloom = new BloomPostProcess();
+                bloom->initialize(windowSize, bloomConfig);
+            }
+        }
+
         // Then we check if there is a postprocessing shader in the configuration
         if (config.contains("postprocess")) {
             postprocessFrameBuffer = new Framebuffer();
             postprocessFrameBuffer->resize(windowSize, true);
 
             // Create a vertex array to use for drawing the texture
-            glGenVertexArrays(1, &postProcessVertexArray);
+            ensureFullscreenVertexArray();
 
             // Create a sampler to use for sampling the scene texture in the post processing shader
             Sampler* postprocessSampler = new Sampler();
@@ -91,15 +113,25 @@ namespace our {
             skySphere = nullptr;
             skyMaterial = nullptr;
         }
+        // Delete all objects related to bloom
+        if (bloom) {
+            bloom->destroy();
+            delete bloom;
+            bloom = nullptr;
+        }
+
         // Delete all objects related to post processing
         if (postprocessMaterial) {
             delete postprocessFrameBuffer;
-            glDeleteVertexArrays(1, &postProcessVertexArray);
             delete postprocessMaterial->sampler;
             delete postprocessMaterial->shader;
             delete postprocessMaterial;
             postprocessMaterial = nullptr;
             postprocessFrameBuffer = nullptr;
+        }
+
+        if (postProcessVertexArray != 0) {
+            glDeleteVertexArrays(1, &postProcessVertexArray);
             postProcessVertexArray = 0;
         }
 
@@ -114,6 +146,7 @@ namespace our {
         if (this->windowSize != windowSize) {
             this->windowSize = windowSize;
             if (postprocessFrameBuffer) postprocessFrameBuffer->resize(windowSize, true);
+            if (bloom) bloom->resize(windowSize);
         }
 
         // First of all, we search for a camera and for all the mesh renderers
@@ -225,9 +258,18 @@ namespace our {
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDepthMask(GL_TRUE);
 
-        // If there is a postprocess material, bind the framebuffer
-        if (postprocessMaterial) {
-            postprocessFrameBuffer->bind();
+        // If there is a bloom or postprocess target, bind it before rendering the scene
+        Framebuffer* sceneTarget = nullptr;
+        if (bloom) {
+            sceneTarget = bloom->getSceneFramebuffer();
+        } else if (postprocessMaterial) {
+            sceneTarget = postprocessFrameBuffer;
+        }
+
+        if (sceneTarget) {
+            sceneTarget->bind();
+        } else {
+            Framebuffer::unbind();
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -349,6 +391,11 @@ namespace our {
                 litMaterial->shader->set("model", command.localToWorld);
             }
             command.mesh->draw();
+        }
+
+        if (bloom) {
+            Framebuffer* bloomOutput = postprocessMaterial ? postprocessFrameBuffer : nullptr;
+            bloom->render(postProcessVertexArray, bloomOutput);
         }
 
         // If there is a postprocess material, apply postprocessing
