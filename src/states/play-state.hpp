@@ -20,6 +20,7 @@
 #include <systems/player-movement-system.hpp>
 #include <systems/post-process-effects-system.hpp>
 #include <systems/projectile-system.hpp>
+#include <systems/trail-system.hpp>
 #include <systems/ui-renderer.hpp>
 #include <systems/weapon-visual-system.hpp>
 #include <ui/play-overlay.hpp>
@@ -173,6 +174,7 @@ public:
         if (fired) weaponVisuals.onFire();
 
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
+        gameplay::TrailSystem::update(&world, dt);
 
         // Death / effects / audio
         gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);

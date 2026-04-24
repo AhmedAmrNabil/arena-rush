@@ -13,10 +13,12 @@
 
 #include "../components/collider.hpp"
 #include "../components/health.hpp"
+#include "../components/projectile-trail.hpp"
 #include "../components/projectile.hpp"
 #include "../components/weapon.hpp"
 #include "collision-system.hpp"
 #include "components/player.hpp"
+#include "trail-system.hpp"
 
 namespace gameplay {
 
@@ -24,9 +26,9 @@ namespace gameplay {
         static our::Entity* spawnBullet(our::World* world, const WeaponComponent& weapon, const glm::vec3& origin,
                                         const glm::vec3& direction, CollisionLayer shooterLayer) {
             our::Mesh* mesh = our::AssetLoader<our::Mesh>::get("sphere");
-            our::Material* material = shooterLayer == CollisionLayer::LAYER_PLAYER
-                                          ? our::AssetLoader<our::Material>::get("projectile-player")
-                                          : our::AssetLoader<our::Material>::get("projectile-enemy");
+            const char* materialName =
+                shooterLayer == CollisionLayer::LAYER_PLAYER ? "projectile-player" : "projectile-enemy";
+            our::Material* material = our::AssetLoader<our::Material>::get(materialName);
             if (!mesh || !material) return nullptr;
 
             our::Entity* bullet = world->add();
@@ -50,6 +52,16 @@ namespace gameplay {
             proj->damage = weapon.bulletDamage;
             proj->lifetime = weapon.bulletLifetime;
             proj->shooterLayer = shooterLayer;
+
+            if (weapon.trailEnabled && weapon.trailMaxSegments > 0) {
+                ProjectileTrailComponent* trail = bullet->addComponent<ProjectileTrailComponent>();
+                trail->material = materialName;
+                trail->maxSegments = weapon.trailMaxSegments;
+                trail->segmentLifetime = weapon.trailSegmentLifetime;
+                trail->headScale = weapon.trailHeadScale;
+                trail->tailScale = weapon.trailTailScale;
+                trail->spawnTimer = 0.0f;
+            }
 
             return bullet;
         }
@@ -175,6 +187,11 @@ namespace gameplay {
                     if (hit.hit && hit.entity) {
                         HealthComponent* health = hit.entity->getComponent<HealthComponent>();
                         if (health && !health->isDead) health->takeDamage(proj->damage);
+
+                        const char* sparkMaterial = proj->shooterLayer == CollisionLayer::LAYER_PLAYER
+                                                        ? "projectile-player"
+                                                        : "projectile-enemy";
+                        TrailSystem::spawnImpactSpark(world, hit.point, hit.normal, sparkMaterial);
 
                         entity->localTransform.position = hit.point;
                         proj->lifetime = 0.0f;
