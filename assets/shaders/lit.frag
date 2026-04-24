@@ -8,7 +8,8 @@ in Varyings {
     mat3 TBN;
 } fs_in;
 
-out vec4 frag_color;
+layout(location = 0) out vec4 frag_color;
+layout(location = 1) out vec4 frag_bright;
 
 // Material
 struct Material {
@@ -44,6 +45,8 @@ struct Material {
 uniform Material material;
 uniform float alphaThreshold;
 uniform vec4 tint;
+uniform float bloomThreshold;
+uniform float bloomSoftKnee;
 
 // Lights
 #define MAX_LIGHTS 24
@@ -104,6 +107,15 @@ vec3 sampleNormal(vec2 uv) {
     return normalize(fs_in.TBN * n);
 }
 
+float bloomWeight(vec3 color) {
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    float knee = bloomThreshold * bloomSoftKnee;
+    if(knee > 0.0) {
+        return smoothstep(bloomThreshold - knee, bloomThreshold + knee, brightness);
+    }
+    return step(bloomThreshold, brightness);
+}
+
 // Blinn-Phong per light
 vec3 calcLight(
     Light light,
@@ -139,7 +151,8 @@ vec3 calcLight(
 
     // diffuse
     float diff = max(dot(N, L), 0.0);
-    if(diff <= 0.0) return vec3(0.0);
+    if(diff <= 0.0)
+        return vec3(0.0);
     vec3 diffuse = diff * albedo * light.color;
 
     // specular (Blinn-Phong)
@@ -184,4 +197,6 @@ void main() {
         discard;
 
     frag_color = vec4(result, alpha);
+    float weight = bloomWeight(result);
+    frag_bright = vec4(result * weight, alpha);
 }

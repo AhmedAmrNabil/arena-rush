@@ -10,7 +10,8 @@ in Varyings {
     mat3 TBN;
 } fs_in;
 
-out vec4 frag_color;
+layout(location = 0) out vec4 frag_color;
+layout(location = 1) out vec4 frag_bright;
 
 // Material
 struct Material {
@@ -46,6 +47,8 @@ struct Material {
 uniform Material material;
 uniform float alphaThreshold;
 uniform vec4 tint;
+uniform float bloomThreshold;
+uniform float bloomSoftKnee;
 
 // Lights
 #define MAX_LIGHTS 8
@@ -137,6 +140,15 @@ float geometrySmith(float NdotV, float NdotL, float roughness) {
 //   F(v,h) = F0 + (1 - F0)(1 - V·H)^5
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+float bloomWeight(vec3 color) {
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    float knee = bloomThreshold * bloomSoftKnee;
+    if(knee > 0.0) {
+        return smoothstep(bloomThreshold - knee, bloomThreshold + knee, brightness);
+    }
+    return step(bloomThreshold, brightness);
 }
 
 // Per-light PBR radiance contribution
@@ -236,4 +248,6 @@ void main() {
         discard;
 
     frag_color = vec4(result, alpha);
+    float weight = bloomWeight(result);
+    frag_bright = vec4(result * weight, alpha);
 }
