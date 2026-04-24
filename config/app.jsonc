@@ -295,11 +295,6 @@
                         "maxAmmo": 120
                     },
                     {
-                        "type": "Health"
-                    }
-                ],
-                "children": [
-                    {
                         "type": "Health",
                         "maxHealth": 100.0
                     },

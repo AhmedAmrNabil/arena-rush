@@ -24,7 +24,6 @@ namespace our {
         GLsizei vertexCount;
         std::vector<Vertex> vertices;  // Store vertices for potential future use (e.g., collision, CPU-side processing)
         std::vector<unsigned int> indices;  // Store indices for potential future use
-        bool isDynamic;
 
     public:
         GLsizei getVertexCount() const {
@@ -37,9 +36,7 @@ namespace our {
         // The constructor takes two vectors:
         // - vertices which contain the vertex data.
         // - elements which contain the indices of the vertices out of which each rectangle will be constructed.
-        // If isDynamic is true, GL_DYNAMIC_DRAW is used instead of GL_STATIC_DRAW.
-        Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements, bool dynamic = false) {
-            isDynamic = dynamic;
+        Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
             // Generate VAO
             glGenVertexArrays(1, &VAO);
             glBindVertexArray(VAO);
@@ -47,7 +44,7 @@ namespace our {
             // Generate VBO and send data
             glGenBuffers(1, &VBO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), isDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
             // Setting all the vertex attribute pointers
             glVertexAttribPointer(ATTRIB_LOC_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -80,8 +77,7 @@ namespace our {
             // Generate EBO and send indices of vertices
             glGenBuffers(1, &EBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
-                         isDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(), GL_STATIC_DRAW);
 
             // Unbind VAO, VBO and EBO to prevent accidental modification from outside the class
             glBindVertexArray(0);
@@ -101,8 +97,6 @@ namespace our {
         }
 
         void update(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
-            if (!isDynamic) return;
-            
             glBindVertexArray(VAO);
             
             glBindBuffer(GL_ARRAY_BUFFER, VBO);

@@ -4,8 +4,21 @@
 namespace our {
 
     void TextRenderer::initialize() {
-        // dynamic mesh, we change our vertices a lot
-        dynamicMesh = new our::Mesh({}, {}, true);
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, position));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(TextVertex), (void*)offsetof(TextVertex, color));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, tex_coord));
+        glGenBuffers(1, &EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
         shader = new our::ShaderProgram();
         shader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
@@ -24,7 +37,7 @@ namespace our {
     void TextRenderer::drawText(Font* font, const std::string& text, float startX, float startY, float scale, const glm::mat4& VP, glm::vec4 color) {
         if (!font || !font->getTexture() || text.empty()) return;
 
-        std::vector<Vertex> vertices;
+        std::vector<TextVertex> vertices;
         std::vector<unsigned int> indices;
 
         float cursorX = startX;
@@ -57,10 +70,10 @@ namespace our {
             float v1 = 1.0f - ((float)(info->y + info->height) / texHeight); // Bottom
 
             // Generate the vertices for this letter
-            vertices.push_back({{x0, y0, 0}, {255, 255, 255, 255}, {u0, v0}, {0, 0, 1}, {1, 0, 0}});
-            vertices.push_back({{x1, y0, 0}, {255, 255, 255, 255}, {u1, v0}, {0, 0, 1}, {1, 0, 0}});
-            vertices.push_back({{x1, y1, 0}, {255, 255, 255, 255}, {u1, v1}, {0, 0, 1}, {1, 0, 0}});
-            vertices.push_back({{x0, y1, 0}, {255, 255, 255, 255}, {u0, v1}, {0, 0, 1}, {1, 0, 0}});
+            vertices.push_back({{x0, y0, 0}, {255, 255, 255, 255}, {u0, v0}});
+            vertices.push_back({{x1, y0, 0}, {255, 255, 255, 255}, {u1, v0}});
+            vertices.push_back({{x1, y1, 0}, {255, 255, 255, 255}, {u1, v1}});
+            vertices.push_back({{x0, y1, 0}, {255, 255, 255, 255}, {u0, v1}});
 
             // Two triangles per letter block
             indices.push_back(vertexOffset + 0);
@@ -74,7 +87,12 @@ namespace our {
             cursorX += info->xadvance * scale; // Push the cursor forward for the next letter
         }
 
-        dynamicMesh->update(vertices, indices);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TextVertex), vertices.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_DYNAMIC_DRAW);
+        elementCount = (GLsizei)indices.size();
 
         material->texture = font->getTexture();
         material->tint = color;
@@ -82,7 +100,8 @@ namespace our {
         
         material->shader->set("transform", VP);
         
-        dynamicMesh->draw();
+        glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
     }
 
     void TextRenderer::drawText(Font* font, const std::string& text, UIRect rect, glm::vec2 windowSize, float scale, const glm::mat4& VP, glm::vec4 color) {
@@ -109,7 +128,9 @@ namespace our {
     }
 
     void TextRenderer::destroy() {
-        if (dynamicMesh) { delete dynamicMesh; dynamicMesh = nullptr; }
+        if (VAO) { glDeleteVertexArrays(1, &VAO); VAO = 0; }
+        if (VBO) { glDeleteBuffers(1, &VBO); VBO = 0; }
+        if (EBO) { glDeleteBuffers(1, &EBO); EBO = 0; }
         if (shader) { delete shader; shader = nullptr; }
         if (material) { delete material; material = nullptr; }
     }

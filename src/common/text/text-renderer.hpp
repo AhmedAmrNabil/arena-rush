@@ -4,7 +4,15 @@
 #include <mesh/mesh.hpp>
 #include <material/material.hpp>
 
+#include "font.hpp"
+
 namespace our {
+
+    struct TextVertex {
+        glm::vec3 position;
+        glm::u8vec4 color;
+        glm::vec2 tex_coord;
+    };
 
     struct UIRect {
         glm::vec2 anchor = {0.0f, 0.0f}; // Normalized screen attachment point (0 to 1)
@@ -21,7 +29,11 @@ namespace our {
     };
 
     class TextRenderer {
-        our::Mesh* dynamicMesh = nullptr; // just our normal mesh with gl_dynamic_draw
+        unsigned int VAO = 0;
+        unsigned int VBO = 0;
+        unsigned int EBO = 0;
+        GLsizei elementCount = 0;
+
         our::ShaderProgram* shader = nullptr;
         our::TexturedMaterial* material = nullptr;
 
