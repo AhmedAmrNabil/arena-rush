@@ -39,8 +39,8 @@ struct Material {
     sampler2D textureEmissive;
     bool hasTextureEmissive;
 
-    sampler2D hasTextureMetalnessRoughness;
-    bool hasMetalnessRoughness;
+    sampler2D textureMetalnessRoughness;
+    bool hasTextureMetalnessRoughness;
 };
 uniform Material material;
 uniform float alphaThreshold;
@@ -75,16 +75,16 @@ vec3 sampleAlbedo(vec2 uv) {
 }
 
 float sampleMetallic(vec2 uv) {
-    if(material.hasMetalnessRoughness)
-        return texture(material.hasTextureMetalnessRoughness, uv).b * material.metallic; // B channel
+    if(material.hasTextureMetalnessRoughness)
+        return texture(material.textureMetalnessRoughness, uv).b * material.metallic; // B channel
     if(material.hasTextureMetallic)
         return texture(material.textureMetallic, uv).r * material.metallic;
     return material.metallic;
 }
 
 float sampleRoughness(vec2 uv) {
-    if(material.hasMetalnessRoughness)
-        return texture(material.hasTextureMetalnessRoughness, uv).g * material.roughness; // G channel
+    if(material.hasTextureMetalnessRoughness)
+        return texture(material.textureMetalnessRoughness, uv).g * material.roughness; // G channel
     if(material.hasTextureRoughness)
         return texture(material.textureRoughness, uv).r * material.roughness;
     return material.roughness;
@@ -110,7 +110,7 @@ vec3 sampleNormal(vec2 uv) {
 float bloomWeight(vec3 color) {
     float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
     float knee = bloomThreshold * bloomSoftKnee;
-    if (knee > 0.0) {
+    if(knee > 0.0) {
         return smoothstep(bloomThreshold - knee, bloomThreshold + knee, brightness);
     }
     return step(bloomThreshold, brightness);
