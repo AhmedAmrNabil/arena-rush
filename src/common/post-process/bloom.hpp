@@ -12,18 +12,6 @@
 namespace our {
 
     class BloomPostProcess {
-    public:
-        void initialize(glm::ivec2 windowSize, const nlohmann::json& config);
-        void destroy();
-        void resize(glm::ivec2 windowSize);
-
-        Framebuffer* getSceneFramebuffer() const {
-            return sceneFramebuffer;
-        }
-
-        void render(GLuint fullscreenVao, Framebuffer* outputFramebuffer);
-
-    private:
         void setupFullscreenState() const;
         void drawFullscreen(GLuint fullscreenVao) const;
 
@@ -36,14 +24,44 @@ namespace our {
         float blurVertical = 1.0f;
 
         Framebuffer* sceneFramebuffer = nullptr;
-        Framebuffer* brightFramebuffer = nullptr;
+        Texture2D* sceneBrightTarget = nullptr;
         Framebuffer* blurPingFramebuffer = nullptr;
         Framebuffer* blurPongFramebuffer = nullptr;
 
-        ShaderProgram* thresholdShader = nullptr;
         ShaderProgram* blurShader = nullptr;
         ShaderProgram* combineShader = nullptr;
         Sampler* sampler = nullptr;
+
+    public:
+        void initialize(glm::ivec2 windowSize, const nlohmann::json& config);
+        void destroy();
+        void resize(glm::ivec2 windowSize);
+
+        void bindSceneFramebuffer() const;
+
+        Framebuffer* getSceneFramebuffer() const {
+            return sceneFramebuffer;
+        }
+
+        Texture2D* getSceneColorTarget() const {
+            return sceneFramebuffer ? sceneFramebuffer->getColorTarget() : nullptr;
+        }
+
+        Texture2D* getSceneBrightTarget() const {
+            return sceneBrightTarget;
+        }
+
+        void render(GLuint fullscreenVao, Framebuffer* outputFramebuffer);
+
+        void applyBloomUniforms(ShaderProgram* shader) const {
+            if (shader) {
+                shader->set("bloomThreshold", threshold);
+                shader->set("bloomSoftKnee", softKnee);
+                shader->set("bloomIntensity", intensity);
+                shader->set("bloomBlurHorizontal", blurHorizontal);
+                shader->set("bloomBlurVertical", blurVertical);
+            }
+        }
     };
 
 }  // namespace our

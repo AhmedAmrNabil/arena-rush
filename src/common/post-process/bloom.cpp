@@ -23,12 +23,19 @@ namespace our {
         }
 
         sceneFramebuffer = new Framebuffer();
-        brightFramebuffer = new Framebuffer();
+        sceneFramebuffer->resize(windowSize, true);
+
+        sceneBrightTarget = new Texture2D();
+        glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer->frameBuffer);
+        sceneBrightTarget->bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowSize.x, windowSize.y, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, sceneBrightTarget->getOpenGLName(),
+                               0);
+        Texture2D::unbind();
+        Framebuffer::unbind();
+
         blurPingFramebuffer = new Framebuffer();
         blurPongFramebuffer = new Framebuffer();
-
-        sceneFramebuffer->resize(windowSize, true);
-        brightFramebuffer->resize(windowSize, true);
         blurPingFramebuffer->resize(windowSize, true);
         blurPongFramebuffer->resize(windowSize, true);
 
@@ -37,11 +44,6 @@ namespace our {
         sampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         sampler->set(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         sampler->set(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        thresholdShader = new ShaderProgram();
-        thresholdShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
-        thresholdShader->attach("assets/shaders/postprocess/bloom-threshold.frag", GL_FRAGMENT_SHADER);
-        thresholdShader->link();
 
         blurShader = new ShaderProgram();
         blurShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
@@ -56,19 +58,17 @@ namespace our {
 
     void BloomPostProcess::destroy() {
         delete sceneFramebuffer;
-        delete brightFramebuffer;
+        delete sceneBrightTarget;
         delete blurPingFramebuffer;
         delete blurPongFramebuffer;
-        delete thresholdShader;
         delete blurShader;
         delete combineShader;
         delete sampler;
 
         sceneFramebuffer = nullptr;
-        brightFramebuffer = nullptr;
+        sceneBrightTarget = nullptr;
         blurPingFramebuffer = nullptr;
         blurPongFramebuffer = nullptr;
-        thresholdShader = nullptr;
         blurShader = nullptr;
         combineShader = nullptr;
         sampler = nullptr;
@@ -78,9 +78,25 @@ namespace our {
         this->windowSize = windowSize;
         if (!sceneFramebuffer) return;
         sceneFramebuffer->resize(windowSize, true);
-        brightFramebuffer->resize(windowSize, true);
+        if (!sceneBrightTarget) {
+            sceneBrightTarget = new Texture2D();
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer->frameBuffer);
+        sceneBrightTarget->bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowSize.x, windowSize.y, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, sceneBrightTarget->getOpenGLName(),
+                               0);
+        Texture2D::unbind();
+        Framebuffer::unbind();
         blurPingFramebuffer->resize(windowSize, true);
         blurPongFramebuffer->resize(windowSize, true);
+    }
+
+    void BloomPostProcess::bindSceneFramebuffer() const {
+        if (!sceneFramebuffer) return;
+        glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer->frameBuffer);
+        GLenum attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        glDrawBuffers(2, attachments);
     }
 
     void BloomPostProcess::setupFullscreenState() const {
@@ -102,31 +118,22 @@ namespace our {
 
         setupFullscreenState();
 
-        brightFramebuffer->bind();
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        thresholdShader->use();
-        glActiveTexture(GL_TEXTURE0);
-        sceneFramebuffer->getColorTarget()->bind();
-        sampler->bind(0);
-        thresholdShader->set("tex", 0);
-        thresholdShader->set("threshold", threshold);
-        thresholdShader->set("softKnee", softKnee);
-        drawFullscreen(fullscreenVao);
-
+        // first pass: blur horizontally
         blurPingFramebuffer->bind();
         glClear(GL_COLOR_BUFFER_BIT);
 
         blurShader->use();
         glActiveTexture(GL_TEXTURE0);
-        brightFramebuffer->getColorTarget()->bind();
+        if (sceneBrightTarget) {
+            sceneBrightTarget->bind();
+        }
         sampler->bind(0);
         blurShader->set("tex", 0);
         blurShader->set("direction", glm::vec2(1.0f, 0.0f));
         blurShader->set("radius", blurHorizontal);
         drawFullscreen(fullscreenVao);
 
+        // second pass: blur vertically
         blurPongFramebuffer->bind();
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -139,6 +146,7 @@ namespace our {
         blurShader->set("radius", blurVertical);
         drawFullscreen(fullscreenVao);
 
+        // third pass: combine bloom with the original scene
         if (outputFramebuffer) {
             outputFramebuffer->bind();
         } else {
