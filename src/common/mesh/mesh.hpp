@@ -77,7 +77,8 @@ namespace our {
             // Generate EBO and send indices of vertices
             glGenBuffers(1, &EBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(), GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
+                         GL_STATIC_DRAW);
 
             // Unbind VAO, VBO and EBO to prevent accidental modification from outside the class
             glBindVertexArray(0);
@@ -98,15 +99,16 @@ namespace our {
 
         void update(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
             glBindVertexArray(VAO);
-            
+
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
-            
+
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(), GL_DYNAMIC_DRAW);
-            
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
+                         GL_DYNAMIC_DRAW);
+
             elementCount = static_cast<GLsizei>(elements.size());
-            
+
             glBindVertexArray(0);
         }
 

@@ -1,7 +1,8 @@
 #include "font.hpp"
-#include <texture/texture-utils.hpp>
+
 #include <fstream>
 #include <iostream>
+#include <texture/texture-utils.hpp>
 
 namespace our {
 
@@ -28,14 +29,15 @@ namespace our {
         }
 
         // font size and line height
-        if(data.contains("info")) {
+        if (data.contains("info")) {
             fontSize = data["info"].value("size", 32.0f);
         }
-        if(data.contains("common")) {
+        if (data.contains("common")) {
             lineHeight = data["common"].value("lineHeight", 32.0f);
         }
 
-        // Parses the characters (by identified the texture atlas info per character, that is where in the texture is this character exactly, how big is it, and how much to advance the cursor after)
+        // Parses the characters (by identified the texture atlas info per character, that is where in the texture is
+        // this character exactly, how big is it, and how much to advance the cursor after)
         if (data.contains("chars")) {
             for (const auto& charData : data["chars"]) {
                 int id = charData["id"];
@@ -46,7 +48,7 @@ namespace our {
                 info.height = charData["height"];
                 info.xoffset = charData.value("xoffset", 0.0f);
                 info.yoffset = charData.value("yoffset", 0.0f);
-                info.xadvance = charData.value("xadvance", (float)info.width); // defaults to letter width
+                info.xadvance = charData.value("xadvance", (float)info.width);  // defaults to letter width
                 characters[(char)id] = info;
             }
         }
@@ -55,4 +57,4 @@ namespace our {
         return textureAtlas != nullptr;
     }
 
-}
+}  // namespace our

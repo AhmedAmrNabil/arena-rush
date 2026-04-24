@@ -95,10 +95,10 @@ namespace gameplay {
             WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
             if (!weapon || !playerComp) return;
-            if (weapon->timer > 0.0f) return; // still in cooldown / already reloading
+            if (weapon->timer > 0.0f) return;  // still in cooldown / already reloading
 
-            bool wantsReload = app->getKeyboard().justPressed(GLFW_KEY_R)
-                               && playerComp->currentAmmo < playerComp->magSize;
+            bool wantsReload =
+                app->getKeyboard().justPressed(GLFW_KEY_R) && playerComp->currentAmmo < playerComp->magSize;
             bool needsAutoReload = playerComp->currentAmmo <= 0;
 
             if ((wantsReload || needsAutoReload) && playerComp->maxAmmo > 0) {

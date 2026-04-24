@@ -10,14 +10,21 @@ namespace gameplay {
 
     void PlayerHUDSystem::initialize() {
         // a 1x1 space with local coordinates, to be scaled on render
-        rectangleMesh = new our::Mesh({
-            {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-            {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-            {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-        }, {
-            0, 1, 2, 2, 3, 0,
-        });
+        rectangleMesh = new our::Mesh(
+            {
+                {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+                {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+                {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+                {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            },
+            {
+                0,
+                1,
+                2,
+                2,
+                3,
+                0,
+            });
 
         progressShader = new our::ShaderProgram();
         progressShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
@@ -92,23 +99,24 @@ namespace gameplay {
         outlineThickness = data.value("outlineThickness", outlineThickness);
         textScale = data.value("textScale", textScale);
         outlineSpread = data.value("outlineSpread", outlineSpread);
-        if(data.contains("ammoColor") && data["ammoColor"].is_array()) {
+        if (data.contains("ammoColor") && data["ammoColor"].is_array()) {
             auto arr = data["ammoColor"];
             ammoColor = glm::vec4(arr[0], arr[1], arr[2], arr[3]);
         }
-        
+
         weaponIconPath = data.value("weaponIconPath", weaponIconPath);
         fontPath = data.value("fontPath", fontPath);
         fontTexturePath = data.value("fontTexturePath", fontTexturePath);
     }
 
-    void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize, our::TextRenderer* textRenderer) {
+    void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
+                                 our::TextRenderer* textRenderer) {
         if (!playerEntity) return;
 
         HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
         PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
         if (!playerHealth || !playerComp) return;
-        
+
         float healthPercentage = playerHealth->currentHealth / playerHealth->maxHealth;
         healthPercentage = glm::clamp(healthPercentage, 0.0f, 1.0f);
 
@@ -121,11 +129,12 @@ namespace gameplay {
         our::UIRect scaledWeaponRect = weaponRect;
         scaledWeaponRect.size *= uiScale;
         scaledWeaponRect.offset *= uiScale;
-        
+
         glm::vec2 weaponPos = scaledWeaponRect.getScreenPosition(windowSize);
-        glm::mat4 weaponTransform = glm::translate(glm::mat4(1.0f), glm::vec3(weaponPos.x, weaponPos.y, 0.0f)) *
-                                    glm::scale(glm::mat4(1.0f), glm::vec3(scaledWeaponRect.size.x, scaledWeaponRect.size.y, 1.0f));
-        
+        glm::mat4 weaponTransform =
+            glm::translate(glm::mat4(1.0f), glm::vec3(weaponPos.x, weaponPos.y, 0.0f)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(scaledWeaponRect.size.x, scaledWeaponRect.size.y, 1.0f));
+
         if ((float)playerComp->currentAmmo / playerComp->magSize <= 0.2f) {
             weaponMaterial->tint = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
         } else {
@@ -138,7 +147,7 @@ namespace gameplay {
 
         // local copy to not accumlate the multiplies each frame
         our::UIRect scaledHealthRect = healthBarRect;
-        scaledHealthRect.size   *= uiScale;
+        scaledHealthRect.size *= uiScale;
         scaledHealthRect.offset *= uiScale;
 
         glm::vec2 barPos = scaledHealthRect.getScreenPosition(windowSize);
@@ -152,9 +161,9 @@ namespace gameplay {
         rectangleMesh->draw();
 
         if (healthPercentage > 0.0f) {
-            glm::mat4 fillTransform = glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x, barPos.y, 0.0f)) *
-                                        glm::scale(glm::mat4(1.0f), glm::vec3(scaledHealthRect.size.x,
-                                                                              scaledHealthRect.size.y, 1.0f));
+            glm::mat4 fillTransform =
+                glm::translate(glm::mat4(1.0f), glm::vec3(barPos.x, barPos.y, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(scaledHealthRect.size.x, scaledHealthRect.size.y, 1.0f));
             healthFillMaterial->setup();
             healthFillMaterial->shader->set("uvScale", glm::vec2(1.0f, 1.0f));
             healthFillMaterial->shader->set("progress", healthPercentage);
@@ -164,8 +173,9 @@ namespace gameplay {
 
         // Ammo Counter
         if (textRenderer) {
-            std::string ammoText = std::to_string(playerComp->currentAmmo) + " / " + std::to_string(playerComp->maxAmmo);
-            
+            std::string ammoText =
+                std::to_string(playerComp->currentAmmo) + " / " + std::to_string(playerComp->maxAmmo);
+
             glm::vec4 outlineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             our::UIRect scaledAmmoTextRect = ammoTextRect;
             scaledAmmoTextRect.size *= uiScale;
@@ -174,18 +184,22 @@ namespace gameplay {
             float scaledSpread = outlineSpread * uiScale;
             float sTextScale = textScale * uiScale;
 
-            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough :)
-            // (draws the text blackened four times to create an outline)   
-            our::UIRect tr = scaledAmmoTextRect; tr.offset += glm::vec2(scaledSpread, scaledSpread);
+            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough
+            // :) (draws the text blackened four times to create an outline)
+            our::UIRect tr = scaledAmmoTextRect;
+            tr.offset += glm::vec2(scaledSpread, scaledSpread);
             textRenderer->drawText(&testFont, ammoText, tr, windowSize, sTextScale, orthoVP, outlineColor);
-            
-            our::UIRect bl = scaledAmmoTextRect; bl.offset += glm::vec2(-scaledSpread, -scaledSpread);
+
+            our::UIRect bl = scaledAmmoTextRect;
+            bl.offset += glm::vec2(-scaledSpread, -scaledSpread);
             textRenderer->drawText(&testFont, ammoText, bl, windowSize, sTextScale, orthoVP, outlineColor);
-            
-            our::UIRect tl = scaledAmmoTextRect; tl.offset += glm::vec2(-scaledSpread, scaledSpread);
+
+            our::UIRect tl = scaledAmmoTextRect;
+            tl.offset += glm::vec2(-scaledSpread, scaledSpread);
             textRenderer->drawText(&testFont, ammoText, tl, windowSize, sTextScale, orthoVP, outlineColor);
-            
-            our::UIRect br = scaledAmmoTextRect; br.offset += glm::vec2(scaledSpread, -scaledSpread);
+
+            our::UIRect br = scaledAmmoTextRect;
+            br.offset += glm::vec2(scaledSpread, -scaledSpread);
             textRenderer->drawText(&testFont, ammoText, br, windowSize, sTextScale, orthoVP, outlineColor);
 
             textRenderer->drawText(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP, ammoColor);
