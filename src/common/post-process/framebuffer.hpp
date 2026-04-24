@@ -1,4 +1,5 @@
 #pragma once
+#include "texture/texture2d.hpp"
 
 namespace our {
 
@@ -25,8 +26,8 @@ namespace our {
             glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
             colorTarget->bind();
-            glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA8, size.x, size.y, 0, GL_RGBA,
+                         hdr ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTarget->getOpenGLName(),
                                    0);
 

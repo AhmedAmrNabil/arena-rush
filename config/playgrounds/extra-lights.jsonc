@@ -16,6 +16,13 @@
                 "uniforms": {
                     "exposure": 1.0
                 }
+            },
+            "bloom": {
+                "enabled": true,
+                "threshold": 0.3,
+                "softKnee": 0.5,
+                "radius": 2.0,
+                "intensity": 2.0
             }
         },
         "assets": {
@@ -351,7 +358,7 @@
                             {
                                 "type": "Model Renderer",
                                 "model": "gun",
-                                 "firstPersonOverlay": true
+                                "firstPersonOverlay": true
                             }
                         ],
                         "children": []
