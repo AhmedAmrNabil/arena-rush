@@ -355,6 +355,11 @@ namespace our {
         Texture2D* texture = AssetLoader<Texture2D>::get(cacheKey);
         if (texture) return texture;
 
+        bool isSrgb = false;
+        if (type == aiTextureType_BASE_COLOR || type == aiTextureType_DIFFUSE || type == aiTextureType_EMISSIVE) {
+            isSrgb = true;
+        }
+
         if (path.length > 0 && path.data[0] == '*') {
             // this is an embedded texture, we can load it directly from memory
             const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(path.C_Str());
@@ -365,7 +370,7 @@ namespace our {
 
             if (embeddedTexture->mHeight == 0) {
                 texture = texture_utils::loadImageFromMemory(
-                    reinterpret_cast<const unsigned char*>(embeddedTexture->pcData), embeddedTexture->mWidth, true);
+                    reinterpret_cast<const unsigned char*>(embeddedTexture->pcData), embeddedTexture->mWidth, isSrgb);
             } else {
                 // note that this is not handled properly as it assumes the embedded texture is in RGBA format which
                 // might not always be the case
@@ -378,7 +383,7 @@ namespace our {
             }
         } else {
             std::string filePath = path.C_Str();
-            texture = texture_utils::loadImage(modelDirectory + "/" + filePath, true);
+            texture = texture_utils::loadImage(modelDirectory + "/" + filePath, isSrgb);
         }
 
         if (!texture) return nullptr;
