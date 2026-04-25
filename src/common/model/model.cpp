@@ -4,6 +4,7 @@
 #include <assimp/scene.h>
 
 #include <algorithm>
+#include <asset-loader.hpp>
 #include <assimp/Importer.hpp>
 #include <iostream>
 #include <unordered_map>
@@ -13,6 +14,27 @@
 #include "texture/texture-utils.hpp"
 
 namespace our {
+
+    int Model::getAssetsCount(const std::string& path, bool countAnimations) {
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(
+            path, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals |
+                      aiProcess_JoinIdenticalVertices | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph |
+                      aiProcess_ImproveCacheLocality | aiProcess_LimitBoneWeights | aiProcess_PopulateArmatureData |
+                      aiProcess_GlobalScale | aiProcess_GenUVCoords | aiProcess_TransformUVCoords |
+                      aiProcess_SortByPType);
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+            return 0;
+        }
+        int count = 2;  // for the combined mesh and model itself
+        if (scene->HasAnimations() && countAnimations) {
+            count += scene->mNumAnimations;
+        }
+        count += scene->mNumMeshes;
+        count += scene->mNumMaterials;
+        return count;
+    }
 
     void Model::loadFromFile(const std::string& path, const std::unordered_set<std::string>& animationNames) {
         std::cout << "Loading model from file: " << path << std::endl;
@@ -94,6 +116,7 @@ namespace our {
             }
             submesh->nodeName = node->mName.C_Str();
             submeshes.push_back(submesh);
+            AssetLoaderStats::loadingCount++;  // count the mesh as an asset for loading progress purposes
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
             processNode(node->mChildren[i], scene, globalTransform, skeletonNodes, currentIndex);
@@ -187,6 +210,7 @@ namespace our {
             }
             animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
             std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
+            AssetLoaderStats::loadingCount++;
         }
     }
 
@@ -205,6 +229,7 @@ namespace our {
                     std::cerr << "[Model] Duplicate animation skipped: \"" << animName << "\"\n";
                 else
                     std::cout << "Loaded animation: \"" << animName << "\"\n";
+                AssetLoaderStats::loadingCount++;
             }
         }
     }
@@ -391,6 +416,7 @@ namespace our {
         texture->unbind();
 
         AssetLoader<Texture2D>::add(cacheKey, texture);
+        AssetLoaderStats::totalCount++;
         return texture;
     }
 
@@ -471,6 +497,7 @@ namespace our {
             }
         }
         combinedMesh = new Mesh(combinedVertices, combinedIndices);
+        AssetLoaderStats::loadingCount++;  // count the combined mesh as an asset for loading progress purposes
     }
 
     Model::~Model() {

@@ -57,6 +57,9 @@ namespace our {
             return skeleton != nullptr;
         }
 
+        // this will be used for the progress bar loading
+        static int getAssetsCount(const std::string& path, bool countAnimations = true);
+
         ~Model();
 
         void loadFromFile(const std::string& path, const std::unordered_set<std::string>& animationNames = {});
