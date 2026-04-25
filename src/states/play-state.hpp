@@ -147,10 +147,13 @@ public:
         movementSystem.update(&world, dt);
 
         glm::vec3 playerVelocity = glm::vec3(0.0f);
+        bool playerOnGround = true;
         if (playerEntity) {
             if (gameplay::PlayerMovementComponent* movement =
-                    playerEntity->getComponent<gameplay::PlayerMovementComponent>())
+                    playerEntity->getComponent<gameplay::PlayerMovementComponent>()) {
                 playerVelocity = movement->velocity;
+                playerOnGround = movement->isGrounded;
+            }
         }
 
         // Spawning / AI
@@ -187,7 +190,7 @@ public:
         }
 
         postProcessEffects.update(&world, dt);
-        weaponVisuals.update(&world, dt, playerVelocity, cameraController.isAiming());
+        weaponVisuals.update(&world, dt, playerVelocity, playerOnGround, cameraController.isAiming());
         animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 

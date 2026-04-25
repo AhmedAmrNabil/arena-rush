@@ -113,7 +113,8 @@ namespace gameplay {
             recoilRotationVelocity += glm::vec3(glm::radians(8.0f), glm::radians(-4.0f), glm::radians(-11.0f));
         }
 
-        void update(our::World* world, float deltaTime, const glm::vec3& playerVelocity, bool isAiming) {
+        void update(our::World* world, float deltaTime, const glm::vec3& playerVelocity, bool isGrounded,
+                    bool isAiming) {
             if (!world || deltaTime <= 0.0f) return;
             deltaTime = glm::min(deltaTime, 0.05f);
 
@@ -175,10 +176,14 @@ namespace gameplay {
             }
 
             float horizontalSpeed = glm::length(glm::vec2(playerVelocity.x, playerVelocity.z));
-            float targetBob = glm::clamp(horizontalSpeed / 8.0f, 0.0f, 1.0f) * (isAiming ? 0.28f : 1.0f);
-            if (isReloading) targetBob *= 0.35f;
-            bobStrength = glm::mix(bobStrength, targetBob, glm::clamp(10.0f * deltaTime, 0.0f, 1.0f));
-            bobPhase += deltaTime * (6.5f + horizontalSpeed * 0.45f);
+            if (isGrounded) {
+                float targetBob = glm::clamp(horizontalSpeed / 8.0f, 0.0f, 1.0f) * (isAiming ? 0.28f : 1.0f);
+                if (isReloading) targetBob *= 0.35f;
+                bobStrength = glm::mix(bobStrength, targetBob, glm::clamp(10.0f * deltaTime, 0.0f, 1.0f));
+                bobPhase += deltaTime * (6.5f + horizontalSpeed * 0.45f);
+            } else {
+                bobStrength = 0.0f;
+            }
 
             glm::vec3 bobPosition =
                 glm::vec3(std::sin(bobPhase) * 0.026f, std::abs(std::cos(bobPhase)) * 0.018f - 0.009f,
