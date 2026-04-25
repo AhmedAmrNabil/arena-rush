@@ -398,7 +398,7 @@ namespace gameplay {
             transform = entityToBtTransform(entity);
         }
 
-        // Apply center offset (e.g. shift capsule up so bottom aligns with model feet)
+        // Apply center offset (shift capsule up so bottom aligns with model feet)
         if (collider->centerOffset != glm::vec3(0.0f)) {
             btVector3 offset = glmToBtVec3(collider->centerOffset);
             transform.setOrigin(transform.getOrigin() + offset);
@@ -477,7 +477,7 @@ namespace gameplay {
             transform = entityToBtTransform(entity);
         }
 
-        // Apply center offset (must match what was done in addEntity)
+        // Apply center offset
         if (collider && collider->centerOffset != glm::vec3(0.0f)) {
             btVector3 offset = glmToBtVec3(collider->centerOffset);
             transform.setOrigin(transform.getOrigin() + offset);

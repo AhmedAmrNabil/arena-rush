@@ -25,14 +25,14 @@ namespace gameplay {
         float hoverOriginY = 0.0f;
         int scoreValue = 100;
 
-        // ── Runtime state (NOT serialized — resets each spawn) ──
+        // Runtime state (not serialized)
         enum class AIState { Idle, Aggro, Attacking };
         AIState aiState = AIState::Idle;
 
         // Flyer orbit-strafe
-        int strafeDirection = 1;           // +1 CW, −1 CCW around player
-        float strafeFlipTimer = 0.0f;      // seconds until next random flip
-        float strafeFlipInterval = 3.0f;   // how often to flip (seconds)
+        int strafeDirection = 1;          // +1 CW, −1 CCW around player
+        float strafeFlipTimer = 0.0f;     // seconds until next random flip
+        float strafeFlipInterval = 3.0f;  // how often to flip (seconds)
 
         static std::string getID() {
             return "Enemy";

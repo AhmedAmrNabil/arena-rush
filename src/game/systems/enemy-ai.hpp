@@ -20,80 +20,79 @@
 namespace gameplay {
 
     class EnemyAISystem {
-        // ─── Constants ───────────────────────────────────────────────────
-        static constexpr int WHISKER_COUNT = 5;                 // number of rays in the fan
-        static constexpr float WHISKER_HALF_ANGLE = 1.0472f;    // 60° in radians  (total fan = 120°)
+        // Steering Constants
+        static constexpr int WHISKER_COUNT = 5;                 // rays in the fan
+        static constexpr float WHISKER_HALF_ANGLE = 1.0472f;    // 60° — total fan = 120°
         static constexpr float WHISKER_LENGTH = 4.0f;           // base ray length
-        static constexpr float WHISKER_HEIGHT_HIGH = 1.2f;      // chest-level ray (detects tall walls)
-        static constexpr float WHISKER_HEIGHT_LOW = 0.4f;       // knee-level ray  (detects short walls)
-        static constexpr float DANGER_WEIGHT = 1.5f;            // how strongly danger overrides interest
-        static constexpr float FLOOR_NORMAL_THRESHOLD = 0.5f;   // hit normal Y above this = floor, not wall
-        static constexpr float STEP_OVER_HEIGHT = 0.25f;        // hits below this height above feet = curb, ignore
-        static constexpr float STRAFE_OBSTACLE_RAY_LEN = 5.0f;  // flyer forward obstacle check
+        static constexpr float WHISKER_HEIGHT_HIGH = 1.2f;      // chest-level ray
+        static constexpr float WHISKER_HEIGHT_LOW = 0.4f;       // knee-level ray
+        static constexpr float DANGER_WEIGHT = 1.5f;            // danger-vs-interest multiplier
+        static constexpr float STRAFE_OBSTACLE_RAY_LEN = 5.0f;  // flyer obstacle check
 
-        // Helper: cast one whisker ray at a given height and return the danger value
+        // Whisker Danger
+        // Cast one horizontal ray from (enemyPos + height offset) in `dir`.
+        // Returns a danger value in [0, DANGER_WEIGHT] based on proximity.
+        // Closer hits produce higher danger.
         static float whiskerDanger(const glm::vec3& enemyPos, float height, const glm::vec3& dir, float rayLen,
-                                   float stepOverY, CollisionSystem* collision) {
+                                   CollisionSystem* collision) {
             Ray ray;
             ray.origin = enemyPos + glm::vec3(0.0f, height, 0.0f);
             ray.direction = dir;
 
             HitInfo hit = collision->raycast(ray, rayLen, CollisionLayer::LAYER_ENVIRONMENT);
             if (hit.hit) {
-                bool isFloor = hit.normal.y >= FLOOR_NORMAL_THRESHOLD;
-                bool isBelowStep = hit.point.y < stepOverY;
-                if (!isFloor && !isBelowStep) {
-                    return (1.0f - hit.distance / rayLen) * DANGER_WEIGHT;
-                }
+                // Linear falloff: danger is maximum when hit is at origin,
+                // zero when hit is at the ray's maximum length.
+                return (1.0f - hit.distance / rayLen) * DANGER_WEIGHT;
             }
             return 0.0f;
         }
 
-        // ─── Context Steering (ground enemies) ──────────────────────────
-        // Fan is centered on toPlayerDir so interest is always meaningful.
-        // Casts TWO rays per slot (chest + knee) to detect both tall and
-        // short walls. Sets hasDanger=true if any whisker detected a wall.
+        // Context Steering (ground enemies)
+        // Casts a fan of WHISKER_COUNT rays centered on `toPlayerDir`.
+        // Each slot gets an interest score (alignment with player direction)
+        // and a danger score (proximity to obstacles at two heights).
+        // Returns the direction of the slot with the highest (interest − danger).
+        // Sets `hasDanger` to true if any whisker detected an obstacle.
         static glm::vec3 contextSteer(const glm::vec3& enemyPos, const glm::vec3& toPlayerDir, float moveSpeed,
                                       CollisionSystem* collision, bool& hasDanger) {
             hasDanger = false;
-
-            // Fallback: if no collision system just go straight toward player
             if (!collision) return toPlayerDir;
 
             float interest[WHISKER_COUNT];
             float danger[WHISKER_COUNT];
             glm::vec3 dirs[WHISKER_COUNT];
 
-            // Fan is centered on the player direction — guarantees the
-            // center slot always has maximum interest (1.0).
+            // Forward = player direction (center slot will always have interest ≈ 1.0)
             glm::vec3 fwd =
                 (glm::dot(toPlayerDir, toPlayerDir) > 0.0001f) ? glm::normalize(toPlayerDir) : glm::vec3(0, 0, 1);
 
-            float stepOverY = enemyPos.y + STEP_OVER_HEIGHT;
+            // Extend ray length slightly with move speed so faster enemies look further ahead
             float rayLen = WHISKER_LENGTH + moveSpeed * 0.3f;
 
             for (int i = 0; i < WHISKER_COUNT; ++i) {
-                float t = (WHISKER_COUNT == 1) ? 0.0f : static_cast<float>(i) / static_cast<float>(WHISKER_COUNT - 1);
+                // Spread rays evenly across [−WHISKER_HALF_ANGLE, +WHISKER_HALF_ANGLE]
+                float t = static_cast<float>(i) / static_cast<float>(WHISKER_COUNT - 1);
                 float angle = -WHISKER_HALF_ANGLE + t * (2.0f * WHISKER_HALF_ANGLE);
 
                 float cs = std::cos(angle);
                 float sn = std::sin(angle);
                 glm::vec3 dir(fwd.x * cs + fwd.z * sn, 0.0f, -fwd.x * sn + fwd.z * cs);
-                if (glm::dot(dir, dir) > 0.0001f) dir = glm::normalize(dir);
-                dirs[i] = dir;
+                dirs[i] = glm::normalize(dir);
 
-                // Interest = how closely this slot points toward the player
-                interest[i] = glm::max(0.0f, glm::dot(dir, fwd));
+                // Interest: cosine similarity with the player direction
+                interest[i] = glm::max(0.0f, glm::dot(dirs[i], fwd));
 
-                // Danger: max of chest-level and knee-level raycasts
-                float dangerHigh = whiskerDanger(enemyPos, WHISKER_HEIGHT_HIGH, dir, rayLen, stepOverY, collision);
-                float dangerLow = whiskerDanger(enemyPos, WHISKER_HEIGHT_LOW, dir, rayLen, stepOverY, collision);
-                danger[i] = glm::max(dangerHigh, dangerLow);
+                // Danger: worst of chest-level and knee-level casts
+                float dHigh = whiskerDanger(enemyPos, WHISKER_HEIGHT_HIGH, dirs[i], rayLen, collision);
+                float dLow = whiskerDanger(enemyPos, WHISKER_HEIGHT_LOW, dirs[i], rayLen, collision);
+                danger[i] = glm::max(dHigh, dLow);
+
                 if (danger[i] > 0.0f) hasDanger = true;
             }
 
-            // Pick slot with highest (interest − danger)
-            int bestSlot = WHISKER_COUNT / 2;  // default to center (toward player)
+            // Pick the slot with the best net score
+            int bestSlot = WHISKER_COUNT / 2;
             float bestScore = -999.0f;
             for (int i = 0; i < WHISKER_COUNT; ++i) {
                 float score = interest[i] - danger[i];
@@ -106,7 +105,10 @@ namespace gameplay {
             return dirs[bestSlot];
         }
 
-        // ─── Orbit-Strafe (flyers) ──────────────────────────────────────
+        // Orbit-Strafe (flyers)
+        // Produces a movement direction that orbits the player at `preferredDistance`
+        // while periodically flipping strafe direction. Reverses immediately if
+        // the forward path is blocked by an obstacle.
         static glm::vec3 orbitStrafe(const glm::vec3& enemyPos, const glm::vec3& playerPos, EnemyComponent* enemy,
                                      float deltaTime, CollisionSystem* collision) {
             glm::vec3 toPlayer = playerPos - enemyPos;
@@ -115,29 +117,28 @@ namespace gameplay {
 
             glm::vec3 toPlayerDir = toPlayer / dist;
 
-            // Tangent (perpendicular on XZ plane) for orbiting
+            // Tangent = perpendicular on XZ, gives circular orbit
             glm::vec3 tangent = glm::normalize(glm::cross(glm::vec3(0, 1, 0), toPlayerDir)) *
                                 static_cast<float>(enemy->strafeDirection);
 
-            // Radial correction: push toward / away to maintain preferredDistance
+            // Radial correction pushes toward/away from player to hold preferred distance
             float radialError = dist - enemy->preferredDistance;
             glm::vec3 radialCorrection = toPlayerDir * radialError * 0.5f;
 
-            glm::vec3 moveDir = tangent + radialCorrection;
-            if (glm::dot(moveDir, moveDir) > 0.0001f) moveDir = glm::normalize(moveDir);
+            glm::vec3 moveDir = glm::normalize(tangent + radialCorrection);
 
-            // Periodically flip strafe direction for variety
+            // Periodic strafe flip
             enemy->strafeFlipTimer -= deltaTime;
             if (enemy->strafeFlipTimer <= 0.0f) {
                 enemy->strafeDirection *= -1;
                 enemy->strafeFlipTimer = enemy->strafeFlipInterval;
             }
 
-            // Single forward obstacle check — if blocked, reverse strafe immediately
-            if (collision && glm::dot(moveDir, moveDir) > 0.0001f) {
+            // Single forward obstacle check — reverse strafe if blocked
+            if (collision) {
                 Ray ray;
                 ray.origin = enemyPos + glm::vec3(0.0f, 1.0f, 0.0f);
-                ray.direction = glm::normalize(moveDir);
+                ray.direction = moveDir;
                 HitInfo hit = collision->raycast(ray, STRAFE_OBSTACLE_RAY_LEN, CollisionLayer::LAYER_ENVIRONMENT);
                 if (hit.hit && hit.distance < 2.0f) {
                     enemy->strafeDirection *= -1;
@@ -151,8 +152,8 @@ namespace gameplay {
             return moveDir;
         }
 
-        // ─── Facing ─────────────────────────────────────────────────────
-        // Instantly snaps or smoothly rotates entity yaw toward a direction.
+        // Facing
+        // Smoothly rotates entity yaw toward `dir` by at most `maxTurnStep` radians.
         static void faceDirection(our::Entity* entity, const glm::vec3& dir, float maxTurnStep) {
             if (maxTurnStep <= 0.0f || glm::dot(dir, dir) <= 0.000001f) return;
 
@@ -163,7 +164,7 @@ namespace gameplay {
             current += glm::clamp(delta, -maxTurnStep, maxTurnStep);
         }
 
-        // ─── FSM transition ─────────────────────────────────────────────
+        // FSM Transition
         static void updateState(EnemyComponent* enemy, float distToPlayer) {
             using S = EnemyComponent::AIState;
 
@@ -195,22 +196,22 @@ namespace gameplay {
                 glm::vec3 toPlayer = playerPos - enemyPos;
                 float distanceToPlayer = glm::length(toPlayer);
 
-                glm::vec3 toPlayerXZ = toPlayer;
-                toPlayerXZ.y = 0.0f;
+                // Flatten to XZ for horizontal steering
+                glm::vec3 toPlayerXZ = glm::vec3(toPlayer.x, 0.0f, toPlayer.z);
                 float XZDistance = glm::length(toPlayerXZ);
                 glm::vec3 toPlayerDir = (XZDistance > 0.0001f) ? (toPlayerXZ / XZDistance) : glm::vec3(0.0f);
 
-                // ── FSM state transition ──
+                // FSM
                 updateState(enemy, distanceToPlayer);
 
                 glm::vec3 movementDirection(0.0f);
                 float movementSpeed = 0.0f;
-                glm::vec3 faceDir = toPlayerDir;  // default: face the player
+                glm::vec3 faceDir = toPlayerDir;
 
                 using S = EnemyComponent::AIState;
 
                 if (enemy->type == EnemyType::Flyer) {
-                    // ────────────── FLYER ──────────────
+                    // FLYER
                     switch (enemy->aiState) {
                         case S::Idle:
                             break;
@@ -233,7 +234,7 @@ namespace gameplay {
                             break;
                     }
 
-                    // Flyer always faces the player (it's strafing, not turning away)
+                    // Flyer always faces the player
                     faceDir = toPlayerDir;
 
                     // Hover bob
@@ -246,10 +247,9 @@ namespace gameplay {
                         glm::sin(t * enemy->hoverFrequency) * enemy->hoverAmplitude;
 
                 } else {
-                    // ────────────── GROUND (Brute / Charger) ──────────────
+                    // GROUND (Brute / Charger)
                     switch (enemy->aiState) {
                         case S::Idle:
-                            // Stand still
                             break;
 
                         case S::Aggro: {
@@ -260,47 +260,36 @@ namespace gameplay {
                             movementDirection = steerDir;
                             movementSpeed = enemy->moveSpeed;
 
-                            if (dangerDetected) {
-                                // Obstacle avoidance active: face the avoidance direction
-                                // so steering is VISUALLY OBVIOUS (enemy turns sideways)
-                                faceDir = steerDir;
-                            } else {
-                                // Clear path: face the player directly while walking
-                                faceDir = toPlayerDir;
-                            }
+                            // Face avoidance direction when dodging, player when clear
+                            faceDir = dangerDetected ? steerDir : toPlayerDir;
                             break;
                         }
 
                         case S::Attacking:
-                            // Stop moving, face the player
                             faceDir = toPlayerDir;
                             break;
                     }
 
-                    // ── Ground tracking (same approach as player movement) ──
-                    // Raycast downward from slightly above feet to find ground surface,
-                    // then snap the enemy's Y directly to it.
+                    // Ground tracking
                     if (collisionSystem) {
                         Ray downRay;
                         downRay.origin = enemyPos + glm::vec3(0.0f, 0.5f, 0.0f);
                         downRay.direction = glm::vec3(0.0f, -1.0f, 0.0f);
-                        HitInfo groundHit =
-                            collisionSystem->raycast(downRay, 50.0f, CollisionLayer::LAYER_ENVIRONMENT);
+                        HitInfo groundHit = collisionSystem->raycast(downRay, 50.0f, CollisionLayer::LAYER_ENVIRONMENT);
                         if (groundHit.hit) {
                             enemyEntity->localTransform.position.y = groundHit.point.y;
                         }
                     }
                 }
 
-                // ── Apply facing ──
+                // Apply facing
                 faceDirection(enemyEntity, faceDir, enemy->turnSpeed * deltaTime);
 
-                // ── Apply movement (XZ only — ground tracking handles Y) ──
-                if (glm::dot(movementDirection, movementDirection) > 0.000001f && movementSpeed > 0.0f) {
+                // Apply movement (XZ only)
+                if (movementSpeed > 0.0f && glm::dot(movementDirection, movementDirection) > 0.000001f) {
                     glm::vec3 move = glm::normalize(movementDirection) * (movementSpeed * deltaTime);
                     enemyEntity->localTransform.position.x += move.x;
                     enemyEntity->localTransform.position.z += move.z;
-                    // Y movement handled by hover (flyer) or ground tracking (ground) above
                 }
             }
         }
