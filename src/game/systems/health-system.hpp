@@ -3,14 +3,22 @@
 #include <algorithm>
 #include <ecs/world.hpp>
 
+#include "../components/enemy.hpp"
 #include "../components/health.hpp"
 #include "../components/player.hpp"
 
 namespace gameplay {
+
+    struct HealthUpdateResult {
+        bool playerDied = false;
+        int kills = 0;
+        int score = 0;
+    };
+
     class HealthSystem {
     public:
-        bool update(our::World* world, float deltaTime) {
-            bool result = false;
+        HealthUpdateResult update(our::World* world, float deltaTime) {
+            HealthUpdateResult result;
             if (!world) return result;
 
             for (our::Entity* entity : world->getEntities()) {
@@ -22,10 +30,16 @@ namespace gameplay {
 
                 if (!health->isDead) continue;
 
-                if (entity->getComponent<PlayerComponent>())
-                    result = true;
-                else
+                if (entity->getComponent<PlayerComponent>()) {
+                    result.playerDied = true;
+                } else {
+                    EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
+                    if (enemy) {
+                        result.kills++;
+                        result.score += enemy->scoreValue;
+                    }
                     world->markForRemoval(entity);
+                }
             }
 
             return result;

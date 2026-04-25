@@ -145,9 +145,11 @@ public:
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
         // Death / effects / audio
-        bool playerDied = healthSystem.update(&world, dt);
+        gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
+        overlayStats.kills += healthResult.kills;
+        overlayStats.score += healthResult.score;
         world.deleteMarkedEntities();
-        if (playerDied) {
+        if (healthResult.playerDied) {
             overlay.openGameOver();
             overlay.renderCurrent(deltaTime);
             return;
