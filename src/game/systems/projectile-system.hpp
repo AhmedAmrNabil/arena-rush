@@ -89,13 +89,13 @@ namespace gameplay {
             return true;
         }
 
-        static void handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
-            if (!app || !playerEntity) return;
+        static bool handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
+            if (!app || !playerEntity) return false;
 
             WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
-            if (!weapon || !playerComp) return;
-            if (weapon->timer > 0.0f) return;  // still in cooldown / already reloading
+            if (!weapon || !playerComp) return false;
+            if (weapon->timer > 0.0f) return false;  // still in cooldown / already reloading
 
             bool wantsReload =
                 app->getKeyboard().justPressed(GLFW_KEY_R) && playerComp->currentAmmo < playerComp->magSize;
@@ -110,7 +110,9 @@ namespace gameplay {
                 if (!weapon->reloadSound.empty())
                     if (our::AudioBuffer* buffer = our::AssetLoader<our::AudioBuffer>::get(weapon->reloadSound))
                         app->getAudioSystem().playSound2D(buffer, 1.0f, 1.0f, false);
+                return true;
             }
+            return false;
         }
 
         static bool handlePlayerFire(our::World* world, our::Application* app, const CollisionSystem& collisions,
