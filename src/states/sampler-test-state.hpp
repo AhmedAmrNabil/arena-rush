@@ -14,7 +14,7 @@ class SamplerTestState : public our::State {
     our::Texture2D* texture;
     our::Sampler* sampler;
 
-    void onInitialize() override {
+    void onInitialize(GLFWwindow*) override {
         // First of all, we get the scene configuration from the app config
         auto& config = getApp()->getConfig()["scene"];
         // Then we load the shader that will be used for this scene

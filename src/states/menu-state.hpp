@@ -26,7 +26,7 @@ class Menustate : public our::State {
     int hoveredButton = -1;
 
 public:
-    void onInitialize() override {
+    void onInitialize(GLFWwindow*) override {
         menuMaterial = new our::TexturedMaterial();
         menuMaterial->shader = new our::ShaderProgram();
         menuMaterial->shader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
