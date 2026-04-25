@@ -73,7 +73,7 @@ uniform vec3 cameraPos;
 // Texture helpers
 
 vec3 sampleAlbedo(vec2 uv) {
-    vec3 base = material.hasTextureAlbedo ? pow(texture(material.textureAlbedo, uv).rgb, vec3(2.2)) : vec3(1.0);
+    vec3 base = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).rgb : vec3(1.0);
     return base * material.albedo;
 }
 
@@ -102,7 +102,7 @@ float sampleAO(vec2 uv) {
 
 vec3 sampleEmission(vec2 uv) {
     if(material.hasTextureEmissive)
-        return pow(texture(material.textureEmissive, uv).rgb, vec3(2.2)) * material.emission;
+        return texture(material.textureEmissive, uv).rgb * material.emission;
     return material.emission;
 }
 
