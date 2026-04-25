@@ -178,8 +178,28 @@ namespace our {
         // setting some default assets if something is missing
         if (!AssetLoader<Sampler>::get("default")) {
             Sampler* defaultSampler = new Sampler();
+            AssetLoaderStats::totalCount++;
             AssetLoader<Sampler>::add("default", defaultSampler);
         }
+
+        if (!AssetLoader<ShaderProgram>::get("textured")) {
+            ShaderProgram* texturedShader = new ShaderProgram();
+            texturedShader->attach("assets/shaders/textured.vs", GL_VERTEX_SHADER);
+            texturedShader->attach("assets/shaders/textured.fs", GL_FRAGMENT_SHADER);
+            texturedShader->link();
+            AssetLoaderStats::totalCount++;
+            AssetLoader<ShaderProgram>::add("textured", texturedShader);
+        }
+
+        if (!AssetLoader<ShaderProgram>::get("tinted")) {
+            ShaderProgram* tintedShader = new ShaderProgram();
+            tintedShader->attach("assets/shaders/tinted.vs", GL_VERTEX_SHADER);
+            tintedShader->attach("assets/shaders/tinted.fs", GL_FRAGMENT_SHADER);
+            tintedShader->link();
+            AssetLoaderStats::totalCount++;
+            AssetLoader<ShaderProgram>::add("tinted", tintedShader);
+        }
+
         int total = AssetLoaderStats::totalCount;
         // if assets are already loaded, set the loading count to total to avoid progress bar from getting stuck
         if (AssetLoaderStats::loadingCount != AssetLoaderStats::totalCount) AssetLoaderStats::loadingCount = total;
