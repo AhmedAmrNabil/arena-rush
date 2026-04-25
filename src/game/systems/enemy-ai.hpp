@@ -40,7 +40,7 @@ namespace gameplay {
             ray.direction = dir;
 
             HitInfo hit = collision->raycast(ray, rayLen, CollisionLayer::LAYER_ENVIRONMENT);
-            if (hit.hit) {
+            if (hit.hit && hit.normal.y < 0.7f) {
                 // Linear falloff: danger is maximum when hit is at origin,
                 // zero when hit is at the ray's maximum length.
                 return (1.0f - hit.distance / rayLen) * DANGER_WEIGHT;
@@ -283,12 +283,16 @@ namespace gameplay {
 
                     // Ground tracking
                     if (collisionSystem) {
+                        float lookAheadDist = 0.5f;  // to overcome simple obstacles like the pavement
+
                         Ray downRay;
-                        downRay.origin = enemyPos + glm::vec3(0.0f, 0.5f, 0.0f);
+                        downRay.origin = enemyPos + glm::vec3(0.0f, 1.0f, 0.0f) + (faceDir * lookAheadDist);
                         downRay.direction = glm::vec3(0.0f, -1.0f, 0.0f);
                         HitInfo groundHit = collisionSystem->raycast(downRay, 50.0f, CollisionLayer::LAYER_ENVIRONMENT);
                         if (groundHit.hit) {
-                            enemyEntity->localTransform.position.y = groundHit.point.y;
+                            float targetY = groundHit.point.y;
+                            float currentY = enemyEntity->localTransform.position.y;
+                            enemyEntity->localTransform.position.y = glm::mix(currentY, targetY, 15.0f * deltaTime);
                         }
                     }
                 }
