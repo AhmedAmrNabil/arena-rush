@@ -11,9 +11,9 @@
 #include "../components/mesh-renderer.hpp"
 #include "../ecs/world.hpp"
 #include "animation/animator.hpp"
-#include "uniform-buffer/uniform-buffer.hpp"
 #include "post-process/bloom.hpp"
 #include "post-process/framebuffer.hpp"
+#include "uniform-buffer/uniform-buffer.hpp"
 
 namespace our {
 
