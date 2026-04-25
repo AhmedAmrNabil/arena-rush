@@ -351,7 +351,10 @@ namespace our {
         if (mat->GetTextureCount(type) == 0) return nullptr;
         if (mat->GetTexture(type, 0, &path) != AI_SUCCESS) return nullptr;
 
-        Texture2D* texture = nullptr;
+        std::string cacheKey = this->name + "_" + path.C_Str();
+        Texture2D* texture = AssetLoader<Texture2D>::get(cacheKey);
+        if (texture) return texture;
+
         if (path.length > 0 && path.data[0] == '*') {
             // this is an embedded texture, we can load it directly from memory
             const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(path.C_Str());
@@ -387,7 +390,7 @@ namespace our {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         texture->unbind();
 
-        AssetLoader<Texture2D>::add(path.C_Str(), texture);
+        AssetLoader<Texture2D>::add(cacheKey, texture);
         return texture;
     }
 
