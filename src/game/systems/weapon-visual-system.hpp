@@ -24,8 +24,9 @@ namespace gameplay {
         glm::vec3 recoilRotation = glm::vec3(0.0f);
         glm::vec3 recoilRotationVelocity = glm::vec3(0.0f);
 
-        float cameraPitchPunch = 0.0f;
-        float appliedCameraPitchPunch = 0.0f;
+        glm::vec3 cameraRecoilRotation = glm::vec3(0.0f);
+        glm::vec3 cameraRecoilRotationVelocity = glm::vec3(0.0f);
+        glm::vec3 appliedCameraRecoilRotation = glm::vec3(0.0f);
 
         float reloadElapsed = 1.0f;
         float reloadDuration = 1.0f;
@@ -63,8 +64,8 @@ namespace gameplay {
 
     public:
         void destroy() {
-            if (cameraEntity && appliedCameraPitchPunch != 0.0f)
-                cameraEntity->localTransform.rotation.x -= appliedCameraPitchPunch;
+            if (cameraEntity && glm::dot(appliedCameraRecoilRotation, appliedCameraRecoilRotation) > 0.0f)
+                cameraEntity->localTransform.rotation -= appliedCameraRecoilRotation;
 
             weaponEntity = nullptr;
             cameraEntity = nullptr;
@@ -73,8 +74,9 @@ namespace gameplay {
             recoilPositionVelocity = glm::vec3(0.0f);
             recoilRotation = glm::vec3(0.0f);
             recoilRotationVelocity = glm::vec3(0.0f);
-            cameraPitchPunch = 0.0f;
-            appliedCameraPitchPunch = 0.0f;
+            cameraRecoilRotation = glm::vec3(0.0f);
+            cameraRecoilRotationVelocity = glm::vec3(0.0f);
+            appliedCameraRecoilRotation = glm::vec3(0.0f);
             reloadElapsed = reloadDuration;
             bobPhase = 0.0f;
             bobStrength = 0.0f;
@@ -92,7 +94,13 @@ namespace gameplay {
             recoilRotationVelocity +=
                 glm::vec3(glm::radians(-34.0f), glm::radians(4.0f * side), glm::radians(13.0f * side));
 
-            cameraPitchPunch = glm::min(cameraPitchPunch + glm::radians(0.55f), glm::radians(2.2f));
+            cameraRecoilRotation +=
+                glm::vec3(glm::radians(0.95f), glm::radians(0.20f * side), glm::radians(-0.16f * side));
+            cameraRecoilRotationVelocity +=
+                glm::vec3(glm::radians(10.0f), glm::radians(3.5f * side), glm::radians(-2.8f * side));
+            cameraRecoilRotation = glm::clamp(cameraRecoilRotation,
+                                              glm::vec3(glm::radians(-0.2f), glm::radians(-1.0f), glm::radians(-0.7f)),
+                                              glm::vec3(glm::radians(3.0f), glm::radians(1.0f), glm::radians(0.7f)));
         }
 
         void onReloadStart(float duration = 1.0f) {
@@ -124,16 +132,17 @@ namespace gameplay {
 
             integrateSpring(recoilPosition, recoilPositionVelocity, 95.0f, 17.0f, deltaTime);
             integrateSpring(recoilRotation, recoilRotationVelocity, 110.0f, 19.0f, deltaTime);
+            integrateSpring(cameraRecoilRotation, cameraRecoilRotationVelocity, 80.0f, 15.0f, deltaTime);
 
-            cameraPitchPunch = glm::mix(cameraPitchPunch, 0.0f, glm::clamp(14.0f * deltaTime, 0.0f, 1.0f));
             if (cameraEntity) {
-                float punchDelta = cameraPitchPunch - appliedCameraPitchPunch;
+                glm::vec3 kickDelta = cameraRecoilRotation - appliedCameraRecoilRotation;
                 float pitchLimit = glm::half_pi<float>() * 0.99f;
+                cameraEntity->localTransform.rotation += kickDelta;
                 cameraEntity->localTransform.rotation.x =
-                    glm::clamp(cameraEntity->localTransform.rotation.x + punchDelta, -pitchLimit, pitchLimit);
-                appliedCameraPitchPunch = cameraPitchPunch;
+                    glm::clamp(cameraEntity->localTransform.rotation.x, -pitchLimit, pitchLimit);
+                appliedCameraRecoilRotation = cameraRecoilRotation;
             } else {
-                appliedCameraPitchPunch = 0.0f;
+                appliedCameraRecoilRotation = glm::vec3(0.0f);
             }
 
             if (!weaponEntity || !hasBaseWeaponTransform) return;
