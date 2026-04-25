@@ -18,6 +18,7 @@ namespace our {
         Model* model = nullptr;
         Animator animator;
         std::string defaultClip = "";
+        std::string currentClip = "";
         // maps clip names to their corresponding animation clip data (animation name, loop, speed)
         std::unordered_map<std::string, AnimationClip> clips;
         static std::string getID() {
@@ -26,8 +27,8 @@ namespace our {
 
         void deserialize(const nlohmann::json& data) override;
 
-        void play(const std::string& clipName, float speedScale = 1.0f);
-        void playDuration(const std::string& clipName, float duration);
+        bool play(const std::string& clipName, float speedScale = 1.0f);
+        bool playDuration(const std::string& clipName, float duration);
     };
 
 }  // namespace our

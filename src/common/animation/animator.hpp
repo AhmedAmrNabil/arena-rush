@@ -61,7 +61,8 @@ namespace our {
 
         // speed should be affected by the scale and movement speed of the real entity
         void play(const Animation* anim, bool loop = true, float speed = 1.0f, bool forceRestart = false) {
-            if (anim == currentAnimation && !forceRestart) return;  // skip if the same animation is already playing
+            if ((anim == currentAnimation && !isFinished()) && !forceRestart)
+                return;  // skip if the same animation is already playing
             currentAnimation = anim;
             currentTime = 0.0f;
             this->loop = loop;
@@ -90,7 +91,11 @@ namespace our {
         }
 
         bool isFinished() const {
-            return currentAnimation && currentTime >= currentAnimation->duration && !loop;
+            return currentAnimation && currentTime >= currentAnimation->duration;
+        }
+
+        bool isLooping() const {
+            return loop;
         }
 
         const std::string getCurrentAnimationName() const {

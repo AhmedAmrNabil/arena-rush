@@ -208,12 +208,12 @@
                             {
                                 "type": "Enemy",
                                 "enemyType": "Brute",
-                                "moveSpeed": 3.8,
+                                "moveSpeed": 3,
                                 "turnSpeed": 5.5,
-                                "aggroRange": 120.0,
-                                "attackRange": 2.5,
+                                "aggroRange": 30.0,
+                                "attackRange": 3.0,
                                 "attackDamage": 10.0,
-                                "attackCooldown": 0.3,
+                                "attackCooldown": 0.8,
                                 "scoreValue": 100
                             },
                             {
@@ -223,11 +223,77 @@
                             {
                                 "type": "Collider",
                                 "layer": "enemy",
-                                "shape": "Capsule",
+                                 "shape": "Capsule",
                                 "worldSpace": true,
                                 "radius": 0.8,
                                 "height": 3.0,
                                 "centerOffset": [0.0, 1.5, 0.0]
+                            },
+                            {
+                                "type": "Animation",
+                                "model": "monster",
+                                "default": "idle",
+                                "clips": {
+                                    "idle": {
+                                        "clip": "IdleVariant1",
+                                        "speed": 1.0,
+                                        "loop": true
+                                    },
+                                    "walk": {
+                                        "clip": "Run01",
+                                        "speed": 0.3333333333333333,
+                                        "loop": true
+                                    },
+                                    "attack": {
+                                        "clip": "Attack1",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    },
+                                    "attack_to_idle": {
+                                        "clip": "Attack1_toIdle.anm",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    },
+                                    "attack_to_walk": {
+                                        "clip": "Attack1_0.anm",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    },
+                                    "death": {
+                                        "clip": "Death",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Charger",
+                        "model": "charger",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [0.015, 0.015, 0.015],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Charger",
+                                "moveSpeed": 7.0,
+                                "turnSpeed": 4.0,
+                                "aggroRange": 120.0,
+                                "attackRange": 1.8,
+                                "attackDamage": 5.0,
+                                "attackCooldown": 0.15,
+                                "scoreValue": 75
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 35.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "shape": "Model",
+                                "model": "charger"
                             }
                         ]
                     },
@@ -304,6 +370,33 @@
                                 "muzzleOffset": [0.0, 0.0, -0.8],
                                 "fireSound": "gunshot-enemy",
                                 "isActive": true
+                            },
+                            {
+                                "type": "Animation",
+                                "model": "drone",
+                                "default": "idle",
+                                "clips": {
+                                    "idle": {
+                                        "clip": "Idle01",
+                                        "speed": 1.0,
+                                        "loop": true
+                                    },
+                                    "walk": {
+                                        "clip": "Run01",
+                                        "speed": 0.3333333333333333,
+                                        "loop": true
+                                    },
+                                    "attack": {
+                                        "clip": "Attack1",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    },
+                                    "death": {
+                                        "clip": "Death",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    }
+                                }
                             }
                         ]
                     }

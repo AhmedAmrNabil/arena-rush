@@ -14,6 +14,7 @@
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
 #include "../components/weapon.hpp"
+#include "components/animation.hpp"
 #include "collision-system.hpp"
 #include "projectile-system.hpp"
 
@@ -194,6 +195,8 @@ namespace gameplay {
                 enemy->attackTimer = glm::max(0.0f, enemy->attackTimer - deltaTime);
 
                 HealthComponent* health = enemyEntity->getComponent<HealthComponent>();
+                our::AnimationComponent* anim = enemyEntity->getComponent<our::AnimationComponent>();
+
                 if (health && health->isDead) continue;
 
                 glm::vec3 enemyPos = glm::vec3(enemyEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
@@ -218,11 +221,17 @@ namespace gameplay {
                     // FLYER
                     switch (enemy->aiState) {
                         case S::Idle:
+                            if (anim && (anim->animator.isLooping() || anim->animator.isFinished())) {
+                                anim->play("idle");
+                            }
                             break;
 
                         case S::Aggro:
                             movementDirection = orbitStrafe(enemyPos, playerPos, enemy, deltaTime, collisionSystem);
                             movementSpeed = enemy->moveSpeed;
+                            if (anim && (anim->animator.isLooping() || anim->animator.isFinished())) {
+                                anim->play("walk", enemy->moveSpeed);
+                            }
                             break;
 
                         case S::Attacking:
@@ -230,6 +239,8 @@ namespace gameplay {
                             movementSpeed = enemy->moveSpeed * 0.5f;
 
                             if (WeaponComponent* weapon = enemyEntity->getComponent<WeaponComponent>()) {
+                                if (anim && (anim->animator.isLooping() || anim->animator.isFinished()))
+                                    anim->playDuration("attack", weapon->cooldown);
                                 glm::vec3 muzzleWorld = glm::vec3(enemyEntity->getLocalToWorldMatrix() *
                                                                   glm::vec4(weapon->muzzleOffset, 1.0f));
                                 ProjectileSystem::fire(world, app, enemyEntity, playerPos - muzzleWorld,
@@ -246,17 +257,21 @@ namespace gameplay {
                         enemy->hoverOriginY = enemyEntity->localTransform.position.y;
                         enemy->hoverOriginSet = true;
                     }
-                    enemyEntity->localTransform.position.y =
-                        enemy->hoverOriginY + enemy->baseHeight +
-                        glm::sin(t * enemy->hoverFrequency) * enemy->hoverAmplitude;
+                    enemyEntity->localTransform.position.y = enemy->hoverOriginY + enemy->baseHeight;
 
                 } else {
                     // GROUND (Brute / Charger)
                     switch (enemy->aiState) {
                         case S::Idle:
+                            if (anim && (anim->animator.isLooping() || anim->animator.isFinished())) {
+                                anim->play("idle");
+                            }
                             break;
 
                         case S::Aggro: {
+                            if (anim && (anim->animator.isLooping() || anim->animator.isFinished())) {
+                                anim->play("walk", movementSpeed);
+                            }
                             bool dangerDetected = false;
                             glm::vec3 steerDir =
                                 contextSteer(enemyPos, toPlayerDir, enemy->moveSpeed, collisionSystem, dangerDetected);
@@ -275,6 +290,9 @@ namespace gameplay {
                             if (playerHealth && enemy->attackTimer <= 0.0f) {
                                 playerHealth->takeDamage(enemy->attackDamage);
                                 enemy->attackTimer = enemy->attackCooldown;
+                                if (anim) {
+                                    anim->playDuration("attack", enemy->attackCooldown);
+                                }
                             }
                             break;
                         }

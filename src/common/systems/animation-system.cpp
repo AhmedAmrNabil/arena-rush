@@ -10,12 +10,6 @@ namespace our {
             AnimationComponent* animComp = entity->getComponent<AnimationComponent>();
             if (!animComp) continue;
             animComp->animator.update(deltaTime);
-
-            if (animComp->animator.isFinished()) {
-                if (!animComp->defaultClip.empty()) {
-                    animComp->play(animComp->defaultClip);
-                }
-            }
         }
     }
 }  // namespace our

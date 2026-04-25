@@ -39,50 +39,55 @@ namespace our {
         }
     }
 
-    void AnimationComponent::play(const std::string& clipName, float speedScale) {
+    bool AnimationComponent::play(const std::string& clipName, float speedScale) {
         if (!model) {
             std::cerr << "\033[31mCannot play animation: model is not set\033[0m" << std::endl;
-            return;
+            return false;
         }
 
         auto clipIt = clips.find(clipName);
         if (clipIt == clips.end()) {
             std::cerr << "\033[31mClip not found: " << clipName << "\033[0m" << std::endl;
-            return;
+            return false;
         }
         AnimationClip& clip = clipIt->second;
         auto animIt = model->animations.find(clip.clip);
         if (animIt == model->animations.end()) {
             std::cerr << "\033[31mAnimation not found in model: " << clip.clip << "\033[0m" << std::endl;
-            return;
+            return false;
         }
         // speed scale is used so we can change the speed of the animation
         // depending on the movement speed of the entity
         // and the scale of the model (eg. a giant monster should have slower animations than a small character)
+        currentClip = clipName;
         animator.play(&animIt->second, clip.loop, clip.speed * speedScale);
+        return true;
     }
 
-    void AnimationComponent::playDuration(const std::string& clipName, float duration) {
+    bool AnimationComponent::playDuration(const std::string& clipName, float duration) {
         if (!model) {
             std::cerr << "\033[31mCannot play animation: model is not set\033[0m" << std::endl;
-            return;
+            return false;
         }
 
         auto clipIt = clips.find(clipName);
         if (clipIt == clips.end()) {
             std::cerr << "\033[31mClip not found: " << clipName << "\033[0m" << std::endl;
-            return;
+            return false;
         }
         AnimationClip& clip = clipIt->second;
         auto animIt = model->animations.find(clip.clip);
         if (animIt == model->animations.end()) {
             std::cerr << "\033[31mAnimation not found in model: " << clip.clip << "\033[0m" << std::endl;
-            return;
+            return false;
         }
         float originalSpeed = clip.speed;
         float animDuration = animIt->second.duration / animIt->second.ticksPerSecond;
         float speedScale = animDuration > 0.0f ? animDuration / duration : 1.0f;
+
+        currentClip = clipName;
         animator.play(&animIt->second, false, originalSpeed * speedScale);
+        return true;
     }
 
 }  // namespace our

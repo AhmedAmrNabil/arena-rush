@@ -11,10 +11,11 @@
 #include <string>
 #include <vector>
 
-#include "../components/collider.hpp"
-#include "../components/enemy.hpp"
-#include "../components/health.hpp"
-#include "../components/weapon.hpp"
+#include "components/animation.hpp"
+#include "components/collider.hpp"
+#include "components/enemy.hpp"
+#include "components/health.hpp"
+#include "components/weapon.hpp"
 
 namespace gameplay {
 
@@ -131,28 +132,31 @@ namespace gameplay {
                 if (!componentConfig.is_object()) continue;
 
                 std::string type = componentConfig.value("type", "");
-                if (type == "Enemy") {
+                if (type == EnemyComponent::getID()) {
                     EnemyComponent* enemy = enemyEntity->addComponent<EnemyComponent>();
 
                     enemy->deserialize(componentConfig);
                     enemy->moveSpeed *= wave.speedMul;
                     enemy->attackDamage *= wave.damageMul;
-                } else if (type == "Health") {
+                } else if (type == HealthComponent::getID()) {
                     HealthComponent* health = enemyEntity->addComponent<HealthComponent>();
 
                     health->deserialize(componentConfig);
                     health->maxHealth *= wave.healthMul;
                     health->currentHealth = health->maxHealth;
-                } else if (type == "Collider") {
+                } else if (type == ColliderComponent::getID()) {
                     ColliderComponent* collider = enemyEntity->addComponent<ColliderComponent>();
 
                     collider->deserialize(componentConfig);
                     collider->shapeCacheId = std::string("enemy:") + config.name + ":" + config.model;
-                } else if (type == "Weapon") {
+                } else if (type == WeaponComponent::getID()) {
                     WeaponComponent* weapon = enemyEntity->addComponent<WeaponComponent>();
 
                     weapon->deserialize(componentConfig);
                     weapon->bulletDamage *= wave.damageMul;
+                } else if (type == our::AnimationComponent::getID()) {
+                    our::AnimationComponent* animation = enemyEntity->addComponent<our::AnimationComponent>();
+                    animation->deserialize(componentConfig);
                 }
             }
         }
