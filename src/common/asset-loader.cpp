@@ -132,7 +132,21 @@ namespace our {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
                 auto model = new our::Model(name);
-                model->loadFromFile(desc.get<std::string>());
+                if (desc.is_string()) {
+                    model->loadFromFile(desc.get<std::string>());
+                } else if (desc.is_object()) {
+                    const std::string path = desc.at("path").get<std::string>();
+                    std::unordered_set<std::string> animationNames;
+                    if (desc.contains("animations")) {
+                        for (const auto& anim : desc["animations"]) {
+                            animationNames.insert(anim.get<std::string>());
+                        }
+                        model->loadFromFile(path, animationNames);
+                    } else {
+                        model->loadFromFile(path);
+                    }
+                }
+
                 assets[name] = model;
             }
         }
