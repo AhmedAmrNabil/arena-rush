@@ -22,6 +22,7 @@
 #include <systems/post-process-effects-system.hpp>
 #include <systems/projectile-system.hpp>
 #include <systems/ui-renderer.hpp>
+#include <systems/weapon-visual-system.hpp>
 #include <ui/play-overlay.hpp>
 
 #include "../game/systems/player-hud.hpp"
@@ -45,6 +46,7 @@ class Playstate : public our::State {
     gameplay::PlayerMovementSystem playerMovement;
     gameplay::PostProcessEffectsSystem postProcessEffects;
     gameplay::CrosshairRenderer crosshair;
+    gameplay::WeaponVisualSystem weaponVisuals;
     float aimBlend = 0.0f;
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
@@ -144,6 +146,16 @@ public:
         playerMovement.update(&world, dt, getApp(), &collisionSystem);
         movementSystem.update(&world, dt);
 
+        glm::vec3 playerVelocity = glm::vec3(0.0f);
+        bool playerOnGround = true;
+        if (playerEntity) {
+            if (gameplay::PlayerMovementComponent* movement =
+                    playerEntity->getComponent<gameplay::PlayerMovementComponent>()) {
+                playerVelocity = movement->velocity;
+                playerOnGround = movement->isGrounded;
+            }
+        }
+
         // Spawning / AI
         enemySpawner.update(&world, dt);
         enemyAI.update(&world, playerEntity, getApp(), dt);
@@ -151,8 +163,19 @@ public:
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
 
-        gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
-        gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
+        bool reloadStarted = gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
+        if (reloadStarted) {
+            float reloadDuration = 1.0f;
+            if (playerEntity) {
+                if (gameplay::WeaponComponent* weapon = playerEntity->getComponent<gameplay::WeaponComponent>())
+                    reloadDuration = weapon->reloadTime;
+            }
+            weaponVisuals.onReloadStart(reloadDuration);
+        }
+
+        bool fired = gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
+        if (fired) weaponVisuals.onFire();
+
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
         // Death / effects / audio
@@ -167,6 +190,7 @@ public:
         }
 
         postProcessEffects.update(&world, dt);
+        weaponVisuals.update(&world, dt, playerVelocity, playerOnGround, cameraController.isAiming());
         animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
@@ -201,6 +225,7 @@ public:
         uiRenderer.destroy();
         textRenderer.destroy();
         playerHud.destroy();
+        weaponVisuals.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         getApp()->getAudioSystem().stopAll();
