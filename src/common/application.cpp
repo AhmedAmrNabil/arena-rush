@@ -22,6 +22,7 @@
 #define ENABLE_OPENGL_DEBUG_MESSAGES
 #endif
 
+#include "asset-loader.hpp"
 #include "texture/screenshot.hpp"
 
 std::string default_screenshot_filepath() {
@@ -217,6 +218,16 @@ int our::Application::run(int run_for_frames) {
         return -1;
     }
 
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* sharedContextWindow = glfwCreateWindow(1, 1, "shared-context", nullptr, window);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    if (!sharedContextWindow) {
+        std::cerr << "Failed to Create Shared OpenGL Context" << std::endl;
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return -1;
+    }
+
     if (win_config.isFullscreen && primaryMonitor) {
         glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
         glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_TRUE);  // so taskbar doesn't cover the window
@@ -289,7 +300,7 @@ int our::Application::run(int run_for_frames) {
     }
     // Call onInitialize if the scene needs to do some custom initialization (such as file loading, object creation,
     // etc).
-    if (currentState) currentState->onInitialize();
+    if (currentState) currentState->onInitialize(sharedContextWindow);
 
     // The time at which the last frame started. But there was no frames yet, so we'll just pick the current time.
     double last_frame_time = glfwGetTime();
@@ -381,7 +392,7 @@ int our::Application::run(int run_for_frames) {
             currentState = nextState;
             nextState = nullptr;
             // Initialize the new scene
-            currentState->onInitialize();
+            currentState->onInitialize(sharedContextWindow);
         }
 
         ++current_frame;
@@ -389,6 +400,7 @@ int our::Application::run(int run_for_frames) {
 
     // Call for cleaning up
     if (currentState) currentState->onDestroy();
+    our::clearAllAssets();
 
     audioSystem.destroy();
 
@@ -398,6 +410,7 @@ int our::Application::run(int run_for_frames) {
     ImGui::DestroyContext();
 
     // Destroy the window
+    glfwDestroyWindow(sharedContextWindow);
     glfwDestroyWindow(window);
 
     // And finally terminate GLFW

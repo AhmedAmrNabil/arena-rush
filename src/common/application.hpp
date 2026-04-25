@@ -37,7 +37,7 @@ namespace our {
         friend Application;
 
     public:
-        virtual void onInitialize() {}    // Called once before the game loop.
+        virtual void onInitialize(GLFWwindow*) {}
         virtual void onImmediateGui() {}  // Called every frame to draw the Immediate GUI (if any).
         virtual void onDraw(double deltaTime) {
         }  // Called every frame in the game loop passing the time taken to draw the frame "Delta time".
