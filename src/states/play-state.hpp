@@ -7,6 +7,8 @@
 #include <components/health.hpp>
 #include <components/player.hpp>
 #include <ecs/world.hpp>
+#include <systems/animation-system.hpp>
+#include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
 #include <systems/crosshair-renderer.hpp>
 #include <systems/enemy-ai.hpp>
@@ -22,10 +24,14 @@
 #include <systems/ui-renderer.hpp>
 #include <ui/play-overlay.hpp>
 
+#include "../game/systems/player-hud.hpp"
+
 class Playstate : public our::State {
     our::World world;
     our::ForwardRenderer renderer;
     our::UIRenderer uiRenderer;
+    our::TextRenderer textRenderer;
+    our::AnimationSystem animationSystem;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
 
@@ -42,6 +48,7 @@ class Playstate : public our::State {
     float aimBlend = 0.0f;
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
+    gameplay::PlayerHUDSystem playerHud;
 
     void displayFPS() const {
         ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
@@ -103,8 +110,11 @@ public:
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
         uiRenderer.initialize();
+        textRenderer.initialize();
         collisionSystem.initialize();
         overlay.initialize(getApp(), &cameraController);
+        if (config.contains("hud")) playerHud.deserialize(config["hud"]);
+        playerHud.initialize();
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
@@ -141,24 +151,29 @@ public:
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
 
+        gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
         gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
         // Death / effects / audio
-        bool playerDied = healthSystem.update(&world, dt);
+        gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
+        overlayStats.kills += healthResult.kills;
+        overlayStats.score += healthResult.score;
         world.deleteMarkedEntities();
-        if (playerDied) {
+        if (healthResult.playerDied) {
             overlay.openGameOver();
             overlay.renderCurrent(deltaTime);
             return;
         }
 
         postProcessEffects.update(&world, dt);
+        animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
@@ -184,6 +199,9 @@ public:
         collisionSystem.destroy();
         renderer.destroy();
         uiRenderer.destroy();
+        textRenderer.destroy();
+        playerHud.destroy();
+        // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         getApp()->getAudioSystem().stopAll();
         overlay.destroy();

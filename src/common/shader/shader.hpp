@@ -40,6 +40,15 @@ namespace our {
             return location;
         }
 
+        GLuint getUniformBlockBinding(const std::string& blockName) {
+            if (uniformLocations.find(blockName) != uniformLocations.end()) return uniformLocations[blockName];
+
+            GLuint index = glGetUniformBlockIndex(program, blockName.c_str());
+            if (index == GL_INVALID_INDEX) return GL_INVALID_INDEX;
+            uniformLocations[blockName] = index;
+            return index;
+        }
+
         void set(const std::string& uniform, GLfloat value) {
             glUniform1f(getUniformLocation(uniform), value);
         }
@@ -66,6 +75,12 @@ namespace our {
 
         void set(const std::string& uniform, glm::mat4 matrix) {
             glUniformMatrix4fv(getUniformLocation(uniform), 1, GL_FALSE, glm::value_ptr(matrix));
+        }
+
+        void bindUniformBlock(const std::string& blockName, GLuint binding) {
+            GLuint index = getUniformBlockBinding(blockName);
+            if (index == GL_INVALID_INDEX) return;
+            glUniformBlockBinding(program, index, binding);
         }
 
         ShaderProgram(const ShaderProgram&) = delete;

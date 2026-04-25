@@ -9,7 +9,8 @@
 #include "../components/camera.hpp"
 #include "../components/mesh-renderer.hpp"
 #include "../ecs/world.hpp"
-
+#include "animation/animator.hpp"
+#include "uniform-buffer/uniform-buffer.hpp"
 namespace our {
 
     // The render command stores command that tells the renderer that it should draw
@@ -20,6 +21,7 @@ namespace our {
         glm::vec3 center;
         Mesh* mesh;
         Material* material;
+        Animator* animator = nullptr;
     };
 
     // A forward renderer is a renderer that draw the object final color directly to the framebuffer
@@ -43,6 +45,8 @@ namespace our {
         Texture2D *colorTarget, *depthTarget;
         TexturedMaterial* postprocessMaterial;
         std::vector<LightRenderData> sceneLights;
+        static constexpr GLuint bonesBindingPoint = 0;
+        UniformBuffer* bonesUniformBuffer = nullptr;
 
         void resizePostprocess(glm::ivec2 size);
 

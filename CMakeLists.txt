@@ -257,6 +257,7 @@ add_executable(${PROJECT_NAME}
     src/common/components/free-camera-controller.cpp
     src/common/components/movement.cpp
     src/common/components/light.cpp
+    src/common/components/animation.cpp
 
     src/game/components/collider.cpp
     src/game/components/enemy.cpp
@@ -269,9 +270,14 @@ add_executable(${PROJECT_NAME}
     src/game/systems/collision-debug-drawer.cpp
     src/game/components/player-movement.cpp
     src/game/systems/player-movement-system.cpp
+    src/game/systems/player-hud.cpp
+
+    src/common/text/font.cpp
+    src/common/text/text-renderer.cpp
 
     src/common/systems/forward-renderer.cpp
     src/common/systems/audio-system.cpp
+    src/common/systems/animation-system.cpp
 
     src/common/audio/audio-utils.cpp
     src/common/components/audio-source.cpp

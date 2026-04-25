@@ -14,6 +14,8 @@ namespace gameplay {
         bulletColliderRadius = data.value("bulletColliderRadius", bulletColliderRadius);
         muzzleOffset = data.value("muzzleOffset", muzzleOffset);
         fireSound = data.value("fireSound", fireSound);
+        reloadSound = data.value("reloadSound", reloadSound);
+        reloadTime = data.value("reloadTime", reloadTime);
     }
 
 }  // namespace gameplay

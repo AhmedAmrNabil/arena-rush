@@ -15,9 +15,11 @@ namespace gameplay {
         float bulletLifetime = 3.0f;
         float bulletScale = 0.15f;
         float bulletColliderRadius = 0.15f;
+        float reloadTime = 1.0f;
 
         glm::vec3 muzzleOffset = glm::vec3(0.0f, 0.0f, 0.0f);
         std::string fireSound;
+        std::string reloadSound;
         static std::string getID() {
             return "Weapon";
         }

@@ -78,7 +78,7 @@ static btTransform entityToBtTransformYawOnly(our::Entity* entity) {
 
 namespace gameplay {
 
-    inline short getMaskForLayer(short group) {
+    short getMaskForLayer(short group) {
         switch (group) {
             case LAYER_PLAYER:
                 return LAYER_ENEMY | LAYER_ENVIRONMENT | LAYER_TRIGGER | LAYER_PROJECTILE;

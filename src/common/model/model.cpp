@@ -14,7 +14,7 @@
 
 namespace our {
 
-    void Model::loadFromFile(const std::string& path) {
+    void Model::loadFromFile(const std::string& path, const std::unordered_set<std::string>& animationNames) {
         std::cout << "Loading model from file: " << path << std::endl;
         Assimp::Importer importer;
         const aiScene* scene =
@@ -25,8 +25,10 @@ namespace our {
                                   aiProcess_GenSmoothNormals |  // better than GenNormals, uses smoothing angles
 
                                   // Optimization
-                                  aiProcess_JoinIdenticalVertices |  // reduce vertex count
+                                  aiProcess_JoinIdenticalVertices |  // combine vertices that are identical in position,
+                                                                     // normal, tex coords, and color
                                   aiProcess_OptimizeMeshes |         // reduce draw calls
+                                  aiProcess_OptimizeGraph |          // optimize node hierarchy
                                   aiProcess_ImproveCacheLocality |   // better GPU cache usage
 
                                   // Skeletal
@@ -35,8 +37,6 @@ namespace our {
                                   aiProcess_GlobalScale |  // fixes scale differences between formats (FBX vs GLTF)
 
                                   // Correctness
-                                  aiProcess_ValidateDataStructure |                      // debug: catch malformed files
-                                  aiProcess_FindInvalidData |                            // remove degenerate geometry
                                   aiProcess_GenUVCoords | aiProcess_TransformUVCoords |  // convert to proper UV range
                                   aiProcess_SortByPType);
 
@@ -47,25 +47,56 @@ namespace our {
 
         this->modelDirectory = path.substr(0, path.find_last_of('/'));
 
-        loadMaterialsFromScene(scene);
         glm::mat4 identity(1.0f);
-        processNode(scene->mRootNode, scene, identity);
+        loadMaterialsFromScene(scene);
+
+        if (scene->HasAnimations()) {
+            skeleton = new Skeleton();
+            skeleton->setGlobalInverseTransform(glm::inverse(aiToGlm(scene->mRootNode->mTransformation)));
+            loadAnimationsFromScene(scene, animationNames);
+            processNode(scene->mRootNode, scene, identity, &skeleton->getNodes());
+        } else {
+            processNode(scene->mRootNode, scene, identity, nullptr);
+        }
+
         generateCombinedMesh();
     }
 
-    void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform) {
+    void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4& parentTransform,
+                            std::vector<SkeletonNode>* skeletonNodes, int parentIndex) {
         // process all the node's meshes (if any)
         aiMatrix4x4 t = node->mTransformation;
         glm::mat4 nodeTransform = aiToGlm(t);
         glm::mat4 globalTransform = parentTransform * nodeTransform;
+
+        int currentIndex = -1;
+        if (skeletonNodes) {
+            currentIndex = static_cast<int>(skeletonNodes->size());
+
+            SkeletonNode skeletonNode;
+            skeletonNode.name = node->mName.C_Str();
+            skeletonNode.localTransform = nodeTransform;
+            skeletonNode.parentIndex = parentIndex;
+            skeletonNodes->push_back(skeletonNode);
+        }
+
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             MeshRendererComponent* submesh = processMesh(mesh, scene);
             submesh->transform = globalTransform;
+            // this is a fix for model that is exported for directX where the coordinate system is left-handed, we can
+            // detect that by checking if the transform has a negative scale (which is equivalent to a negative
+            // determinant) and if so we flip the winding order of the triangles by applying a negative scale on the X
+            // axis and also update the face culling mode to front face = CW instead of CCW
+            if (glm::determinant(globalTransform) < 0.0f) {
+                submesh->material->pipelineState.faceCulling.frontFace = GL_CW;
+                submesh->transform = globalTransform * glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 1.0f));
+            }
+            submesh->nodeName = node->mName.C_Str();
             submeshes.push_back(submesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene, globalTransform);
+            processNode(node->mChildren[i], scene, globalTransform, skeletonNodes, currentIndex);
         }
     }
 
@@ -89,8 +120,8 @@ namespace our {
             else
                 v.color = our::Color(255, 255, 255, 255);
 
-            // Tangents and bitangents are needed for normal mapping, but not all models have them. If they don't exist
-            // we will set them to zero and the shader will handle it as if the surface is flat (facing up)
+            // Tangents and bitangents are needed for normal mapping, but not all models have them. If they don't
+            // exist we will set them to zero and the shader will handle it as if the surface is flat (facing up)
             if (mesh->mTangents && mesh->mBitangents) {
                 glm::vec3 T = aiToGlm(mesh->mTangents[i]);
                 glm::vec3 B = aiToGlm(mesh->mBitangents[i]);
@@ -112,7 +143,7 @@ namespace our {
             vertices[i] = v;
         }
 
-        processVertexBoneData(mesh, vertices);
+        if (mesh->HasBones()) processVertexBoneData(vertices, mesh);
 
         // process indices
         for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
@@ -133,6 +164,7 @@ namespace our {
         MeshRendererComponent* meshComponent = new MeshRendererComponent();
         meshComponent->mesh = ourMesh;
         meshComponent->material = material;
+        meshComponent->hasBones = mesh->HasBones();
         return meshComponent;
     }
 
@@ -143,6 +175,36 @@ namespace our {
             std::string name = this->name + "_" + std::to_string(i);
             if (material) {
                 AssetLoader<Material>::add(name, material);
+            }
+        }
+    }
+
+    void Model::loadAnimationsFromScene(const aiScene* scene) {
+        for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
+            std::string animName = scene->mAnimations[i]->mName.C_Str();
+            if (animName.empty()) {
+                animName = "Anim_" + std::to_string(i);
+            }
+            animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
+            std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
+        }
+    }
+
+    void Model::loadAnimationsFromScene(const aiScene* scene, const std::unordered_set<std::string>& nameFilter) {
+        // if none specified, load all animations
+        const bool isEmpty = nameFilter.empty();
+        for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
+            aiAnimation* aiAnim = scene->mAnimations[i];
+            std::string animName = aiAnim->mName.C_Str();
+
+            if (animName.empty()) animName = "Anim_" + std::to_string(i);
+
+            if (isEmpty || nameFilter.count(animName)) {
+                auto [it, inserted] = animations.emplace(animName, Animation(aiAnim, *skeleton));
+                if (!inserted)
+                    std::cerr << "[Model] Duplicate animation skipped: \"" << animName << "\"\n";
+                else
+                    std::cout << "Loaded animation: \"" << animName << "\"\n";
             }
         }
     }
@@ -289,7 +351,10 @@ namespace our {
         if (mat->GetTextureCount(type) == 0) return nullptr;
         if (mat->GetTexture(type, 0, &path) != AI_SUCCESS) return nullptr;
 
-        Texture2D* texture = nullptr;
+        std::string cacheKey = this->name + "_" + path.C_Str();
+        Texture2D* texture = AssetLoader<Texture2D>::get(cacheKey);
+        if (texture) return texture;
+
         if (path.length > 0 && path.data[0] == '*') {
             // this is an embedded texture, we can load it directly from memory
             const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(path.C_Str());
@@ -325,16 +390,56 @@ namespace our {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         texture->unbind();
 
-        AssetLoader<Texture2D>::add(path.C_Str(), texture);
+        AssetLoader<Texture2D>::add(cacheKey, texture);
         return texture;
     }
 
-    struct BoneInfo {
-        glm::mat4 offsetMatrix;
-    };
+    void Model::setVertexBoneData(Vertex& vertex, BoneID boneID, float weight) {
+        for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+            if (vertex.bone_ids[i] < 0) {
+                vertex.bone_ids[i] = boneID;
+                vertex.weights[i] = weight;
+                return;
+            }
+        }
+        // If we reach here, it means we have more than MAX_BONE_INFLUENCE bones affecting this vertex
+        // We will ignore the extra bones and just print a warning
+        std::cerr << "Warning: Vertex has more than " << MAX_BONE_INFLUENCE
+                  << " bone influences. Extra influences will be ignored." << std::endl;
+    }
 
-    void Model::processVertexBoneData(aiMesh* mesh, std::vector<Vertex>& vertices) {
-        // will be implemented correctly later with the animation system
+    void Model::processVertexBoneData(std::vector<Vertex>& vertices, aiMesh* mesh) {
+        if (!skeleton) return;  // if the model has no animations, we won't have a skeleton to store the bone data in
+        for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+            aiBone* bone = mesh->mBones[boneIndex];
+            std::string boneName(bone->mName.C_Str());
+
+            BoneID boneID = skeleton->findOrCreateBone(boneName, bone->mOffsetMatrix);
+
+            for (unsigned int j = 0; j < bone->mNumWeights; ++j) {
+                auto boneWeight = bone->mWeights[j];
+                unsigned int vertexID = boneWeight.mVertexId;
+                float weight = boneWeight.mWeight;
+                setVertexBoneData(vertices[vertexID], boneID, weight);
+            }
+        }
+
+        for (Vertex& vertex : vertices) {
+            float weightSum = 0.0f;
+            for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+                if (vertex.bone_ids[i] >= 0) {
+                    weightSum += vertex.weights[i];
+                }
+            }
+            if (weightSum > 0.0f) {
+                float invSum = 1.0f / weightSum;
+                for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+                    if (vertex.bone_ids[i] >= 0) {
+                        vertex.weights[i] *= invSum;
+                    }
+                }
+            }
+        }
     }
 
     void Model::generateCombinedMesh() {
@@ -373,7 +478,9 @@ namespace our {
             delete submesh->mesh;
             delete submesh;
         }
-        delete combinedMesh;
+        if (skeleton) delete skeleton;
+
+        if (combinedMesh) delete combinedMesh;
         combinedMesh = nullptr;
     }
 

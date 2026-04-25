@@ -2,6 +2,7 @@
 
 #include "../ecs/component-registry.hpp"
 #include "../ecs/entity.hpp"
+#include "animation.hpp"
 #include "audio-source.hpp"
 #include "camera.hpp"
 #include "free-camera-controller.hpp"
@@ -22,7 +23,7 @@ namespace our {
         ComponentRegistry::registerType<AudioSourceComponent>();
         ComponentRegistry::registerType<Light>();
         ComponentRegistry::registerType<ModelRendererComponent>();
-
+        ComponentRegistry::registerType<AnimationComponent>();
         initialized = true;
     }
 

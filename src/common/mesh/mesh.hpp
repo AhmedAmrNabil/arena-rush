@@ -36,10 +36,6 @@ namespace our {
         // The constructor takes two vectors:
         // - vertices which contain the vertex data.
         // - elements which contain the indices of the vertices out of which each rectangle will be constructed.
-        // The mesh class does not keep a these data on the RAM. Instead, it should create
-        // a vertex buffer to store the vertex data on the VRAM,
-        // an element buffer to store the element data on the VRAM,
-        // a vertex array object to define how to read the vertex & element buffer during rendering
         Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
             // Generate VAO
             glGenVertexArrays(1, &VAO);
@@ -99,6 +95,21 @@ namespace our {
         void draw() {
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, 0);
+        }
+
+        void update(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
+            glBindVertexArray(VAO);
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
+                         GL_DYNAMIC_DRAW);
+
+            elementCount = static_cast<GLsizei>(elements.size());
+
+            glBindVertexArray(0);
         }
 
         // this function should delete the vertex & element buffers and the vertex array object

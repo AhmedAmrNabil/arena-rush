@@ -16,6 +16,7 @@
 #include "../components/projectile.hpp"
 #include "../components/weapon.hpp"
 #include "collision-system.hpp"
+#include "components/player.hpp"
 
 namespace gameplay {
 
@@ -89,6 +90,30 @@ namespace gameplay {
             return true;
         }
 
+        static void handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
+            if (!app || !playerEntity) return;
+
+            WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
+            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            if (!weapon || !playerComp) return;
+            if (weapon->timer > 0.0f) return;  // still in cooldown / already reloading
+
+            bool wantsReload =
+                app->getKeyboard().justPressed(GLFW_KEY_R) && playerComp->currentAmmo < playerComp->magSize;
+            bool needsAutoReload = playerComp->currentAmmo <= 0;
+
+            if ((wantsReload || needsAutoReload) && playerComp->maxAmmo > 0) {
+                int reloadAmt = std::min(playerComp->magSize - playerComp->currentAmmo, playerComp->maxAmmo);
+                playerComp->currentAmmo += reloadAmt;
+                playerComp->maxAmmo -= reloadAmt;
+                weapon->timer = weapon->reloadTime;
+
+                if (!weapon->reloadSound.empty())
+                    if (our::AudioBuffer* buffer = our::AssetLoader<our::AudioBuffer>::get(weapon->reloadSound))
+                        app->getAudioSystem().playSound2D(buffer, 1.0f, 1.0f, false);
+            }
+        }
+
         static bool handlePlayerFire(our::World* world, our::Application* app, const CollisionSystem& collisions,
                                      our::Entity* playerEntity) {
             if (!world || !app || !playerEntity) return false;
@@ -109,7 +134,14 @@ namespace gameplay {
             glm::vec3 aimVector = aimPoint - muzzleOrigin;
             if (glm::dot(aimVector, aimVector) <= 0.000001f) aimVector = forward;
 
-            return fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER);
+            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            if (playerComp && playerComp->currentAmmo <= 0) return false;
+
+            bool fired = fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER);
+            if (fired && playerComp) {
+                playerComp->currentAmmo--;
+            }
+            return fired;
         }
 
         static void update(our::World* world, const CollisionSystem& collisions, float deltaTime) {
