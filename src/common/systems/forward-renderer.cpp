@@ -289,22 +289,21 @@ namespace our {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Animator* lastUploadedAnimator = nullptr;
-        // draw all opaque objects first
-        for (const RenderCommand& command : opaqueCommands) {
+
+        auto renderCommand = [&](const RenderCommand& command) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
             if (bloom) bloom->applyBloomUniforms(command.material->shader);
+
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setLightUniforms(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->shader->set("model", command.localToWorld);
             }
+
             if (command.animator) {
                 command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                // to optimize performance, we only update the bone matrices uniform buffer
-                // if the animator is different from the last drawn command's animator
                 if (command.animator != lastUploadedAnimator) {
                     const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
                     bonesUniformBuffer->bind();
@@ -315,7 +314,13 @@ namespace our {
             } else {
                 command.material->shader->set("hasBones", 0);
             }
+
             command.mesh->draw();
+        };
+
+        // draw all opaque objects first
+        for (const RenderCommand& command : opaqueCommands) {
+            renderCommand(command);
         }
 
         // If there is a sky material, draw the sky
@@ -341,26 +346,7 @@ namespace our {
 
         // draw all the transparent commands
         for (const RenderCommand& command : transparentCommands) {
-            command.material->setup();
-            glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            if (bloom) bloom->applyBloomUniforms(command.material->shader);
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setLightUniforms(sceneLights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", command.localToWorld);
-            }
-            if (command.animator) {
-                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
-                bonesUniformBuffer->bind();
-                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
-                command.material->shader->set("hasBones", 1);
-            } else {
-                command.material->shader->set("hasBones", 0);
-            }
-            command.mesh->draw();
+            renderCommand(command);
         }
 
         // render weapon at the end with depth testing cleared
@@ -370,45 +356,7 @@ namespace our {
 
         // render weapon
         for (const RenderCommand& command : weaponCommands) {
-            command.material->setup();
-            glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setLightUniforms(sceneLights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", command.localToWorld);
-            }
-            if (command.animator) {
-                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
-                bonesUniformBuffer->bind();
-                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
-                command.material->shader->set("hasBones", 1);
-            } else {
-                command.material->shader->set("hasBones", 0);
-            }
-            command.mesh->draw();
-        }
-
-        // render weapon at the end with depth testing cleared
-        // enable depth mask again so it actually get cleared
-        glDepthMask(GL_TRUE);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        // render weapon
-        for (const RenderCommand& command : weaponCommands) {
-            command.material->setup();
-            glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            if (bloom) bloom->applyBloomUniforms(command.material->shader);
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setLightUniforms(sceneLights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", command.localToWorld);
-            }
-            command.mesh->draw();
+            renderCommand(command);
         }
 
         if (bloom) {
