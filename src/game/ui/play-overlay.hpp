@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <material/material.hpp>
 #include <menu-layout.hpp>
+#include <mesh/mesh-utils.hpp>
 #include <mesh/mesh.hpp>
 #include <shader/shader.hpp>
 #include <sstream>
@@ -198,21 +199,7 @@ namespace gameplay {
             highlightMaterial->pipelineState.blending.sourceFactor = GL_ONE;
             highlightMaterial->pipelineState.blending.destinationFactor = GL_ONE;
 
-            rectangle = new our::Mesh(
-                {
-                    {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                    {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                    {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                    {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                },
-                {
-                    0,
-                    1,
-                    2,
-                    2,
-                    3,
-                    0,
-                });
+            rectangle = our::mesh_utils::generateQuad();
 
             pauseTexture = our::texture_utils::loadImage("assets/textures/menus/pause.png");
             gameOverTexture = our::texture_utils::loadImage("assets/textures/menus/game-over.png");

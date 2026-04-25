@@ -14,7 +14,6 @@ namespace gameplay {
         our::TexturedMaterial* healthFrameMaterial = nullptr;
         our::TexturedMaterial* healthFillMaterial = nullptr;
 
-        our::ShaderProgram* texturedShader = nullptr;
         our::TexturedMaterial* weaponMaterial = nullptr;
 
         our::Font testFont;

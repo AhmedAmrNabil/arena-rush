@@ -5,6 +5,7 @@
 #include <atomic>
 #include <glm/common.hpp>
 #include <material/material.hpp>
+#include <mesh/mesh-utils.hpp>
 #include <mesh/mesh.hpp>
 #include <model/model.hpp>
 #include <shader/shader.hpp>
@@ -41,21 +42,7 @@ public:
         loadingBarMaterial->shader->link();
         loadingBarMaterial->tint = glm::vec4(0.372549f, 0.725490f, 0.274510f, 1.0f);  // color #5ec846
 
-        rectangle = new our::Mesh(
-            {
-                {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            },
-            {
-                0,
-                1,
-                2,
-                2,
-                3,
-                0,
-            });
+        rectangle = our::mesh_utils::generateQuad();
 
         assetsLoaded = false;  // Reset the assets loaded flag in case we return to this state again
         auto config = getApp()->getConfig()["scene"];

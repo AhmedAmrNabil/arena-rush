@@ -7,6 +7,7 @@
 #include <audio/audio-utils.hpp>
 #include <glm/common.hpp>
 #include <material/material.hpp>
+#include <mesh/mesh-utils.hpp>
 #include <mesh/mesh.hpp>
 #include <shader/shader.hpp>
 #include <string>
@@ -46,21 +47,7 @@ public:
         highlightMaterial->pipelineState.blending.sourceFactor = GL_ONE;
         highlightMaterial->pipelineState.blending.destinationFactor = GL_ONE;
 
-        rectangle = new our::Mesh(
-            {
-                {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            },
-            {
-                0,
-                1,
-                2,
-                2,
-                3,
-                0,
-            });
+        rectangle = our::mesh_utils::generateQuad();
 
         time = 0.0f;
         hoveredButton = -1;
