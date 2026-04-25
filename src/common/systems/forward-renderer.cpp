@@ -4,6 +4,7 @@
 #include "../components/post-process-effects.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
+#include "components/animation.hpp"
 
 namespace our {
 
@@ -104,6 +105,8 @@ namespace our {
 
             resizePostprocess(windowSize);
         }
+
+        bonesUniformBuffer = new UniformBuffer(MAX_BONES * sizeof(glm::mat4), bonesBindingPoint);
     }
 
     void ForwardRenderer::destroy() {
@@ -132,6 +135,11 @@ namespace our {
             postprocessFrameBuffer = 0;
             postProcessVertexArray = 0;
         }
+
+        if (bonesUniformBuffer) {
+            delete bonesUniformBuffer;
+            bonesUniformBuffer = nullptr;
+        }
     }
 
     void ForwardRenderer::render(World* world, glm::ivec2 windowSize) {
@@ -158,6 +166,15 @@ namespace our {
                 command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                 command.mesh = meshRenderer->mesh;
                 command.material = meshRenderer->material;
+                if (auto anim = entity->getComponent<AnimationComponent>(); anim) {
+                    if (meshRenderer->hasBones) {
+                        command.animator = &anim->animator;
+                    } else if (auto nodeTransform = anim->animator.getNodeTransform(meshRenderer->nodeName);
+                               nodeTransform) {
+                        command.localToWorld = command.localToWorld * (*nodeTransform);
+                    }
+                }
+                // if it is transparent, we add it to the transparent commands list
                 if (command.material->transparent) {
                     transparentCommands.push_back(command);
                 } else {
@@ -183,6 +200,9 @@ namespace our {
             }
 
             if (auto modelRenderer = entity->getComponent<ModelRendererComponent>(); modelRenderer) {
+                if (!modelRenderer->model) {
+                    continue;  // model failed to load, skip rendering
+                }
                 glm::mat4 modelMatrix = modelRenderer->getOwner()->getLocalToWorldMatrix();
                 for (MeshRendererComponent* submesh : modelRenderer->model->getSubmeshes()) {
                     RenderCommand command;
@@ -190,6 +210,14 @@ namespace our {
                     command.center = glm::vec3(command.localToWorld * glm::vec4(0, 0, 0, 1));
                     command.mesh = submesh->mesh;
                     command.material = submesh->material;
+                    if (auto anim = entity->getComponent<AnimationComponent>(); anim) {
+                        if (submesh->hasBones) {
+                            command.animator = &anim->animator;
+                        } else if (auto nodeTransform = anim->animator.getNodeTransform(submesh->nodeName);
+                                   nodeTransform) {
+                            command.localToWorld = modelMatrix * (*nodeTransform);
+                        }
+                    }
 
                     if (modelRenderer->firstPersonOverlay) {
                         weaponCommands.push_back(command);
@@ -232,6 +260,7 @@ namespace our {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Animator* lastUploadedAnimator = nullptr;
         // draw all opaque objects first
         for (const RenderCommand& command : opaqueCommands) {
             command.material->setup();
@@ -242,6 +271,20 @@ namespace our {
                 litMaterial->setLightUniforms(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->shader->set("model", command.localToWorld);
+            }
+            if (command.animator) {
+                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
+                // to optimize performance, we only update the bone matrices uniform buffer
+                // if the animator is different from the last drawn command's animator
+                if (command.animator != lastUploadedAnimator) {
+                    const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
+                    bonesUniformBuffer->bind();
+                    bonesUniformBuffer->update(boneMatrices);
+                    lastUploadedAnimator = command.animator;
+                }
+                command.material->shader->set("hasBones", 1);
+            } else {
+                command.material->shader->set("hasBones", 0);
             }
             command.mesh->draw();
         }
@@ -276,6 +319,43 @@ namespace our {
                 litMaterial->setLightUniforms(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->shader->set("model", command.localToWorld);
+            }
+            if (command.animator) {
+                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
+                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
+                bonesUniformBuffer->bind();
+                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
+                command.material->shader->set("hasBones", 1);
+            } else {
+                command.material->shader->set("hasBones", 0);
+            }
+            command.mesh->draw();
+        }
+
+        // render weapon at the end with depth testing cleared
+        // enable depth mask again so it actually get cleared
+        glDepthMask(GL_TRUE);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        // render weapon
+        for (const RenderCommand& command : weaponCommands) {
+            command.material->setup();
+            glm::mat4 MVP = VP * command.localToWorld;
+            command.material->shader->set("transform", MVP);
+            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
+                // if the material is a lit material, we need to set the light uniforms
+                litMaterial->setLightUniforms(sceneLights);
+                litMaterial->shader->set("cameraPos", cameraPosition);
+                litMaterial->shader->set("model", command.localToWorld);
+            }
+            if (command.animator) {
+                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
+                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
+                bonesUniformBuffer->bind();
+                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
+                command.material->shader->set("hasBones", 1);
+            } else {
+                command.material->shader->set("hasBones", 0);
             }
             command.mesh->draw();
         }

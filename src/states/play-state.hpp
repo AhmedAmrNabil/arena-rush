@@ -7,6 +7,8 @@
 #include <components/health.hpp>
 #include <components/player.hpp>
 #include <ecs/world.hpp>
+#include <systems/animation-system.hpp>
+#include <systems/audio-system.hpp>
 #include <systems/collision-system.hpp>
 #include <systems/crosshair-renderer.hpp>
 #include <systems/enemy-ai.hpp>
@@ -29,6 +31,7 @@ class Playstate : public our::State {
     our::ForwardRenderer renderer;
     our::UIRenderer uiRenderer;
     our::TextRenderer textRenderer;
+    our::AnimationSystem animationSystem;
     our::FreeCameraControllerSystem cameraController;
     our::MovementSystem movementSystem;
 
@@ -153,15 +156,18 @@ public:
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
         // Death / effects / audio
-        bool playerDied = healthSystem.update(&world, dt);
+        gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
+        overlayStats.kills += healthResult.kills;
+        overlayStats.score += healthResult.score;
         world.deleteMarkedEntities();
-        if (playerDied) {
+        if (healthResult.playerDied) {
             overlay.openGameOver();
             overlay.renderCurrent(deltaTime);
             return;
         }
 
         postProcessEffects.update(&world, dt);
+        animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
         // Rendering
