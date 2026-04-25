@@ -66,11 +66,11 @@ public:
         hoveredButton = -1;
 
         buttons[0].normalizedPosition = {0.34375f, 0.6875f};
-        buttons[0].normalizedSize = {0.3125f, 0.1f};
+        buttons[0].normalizedSize = {0.31328125f, 0.10078125f};
         buttons[0].action = [this]() { getApp()->changeState("loading-play"); };
 
         buttons[1].normalizedPosition = {0.34375f, 0.8125f};
-        buttons[1].normalizedSize = {0.3125f, 0.1f};
+        buttons[1].normalizedSize = {0.31328125f, 0.10078125f};
         buttons[1].action = [this]() { getApp()->close(); };
 
         menuMusic = our::audio_utils::loadWAV("assets/sounds/menu-music.wav");
