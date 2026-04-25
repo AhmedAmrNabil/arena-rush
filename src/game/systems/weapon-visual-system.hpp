@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cmath>
+#include <components/camera.hpp>
 #include <components/model-renderer.hpp>
 #include <ecs/transform.hpp>
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
+#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/trigonometric.hpp>
@@ -13,11 +15,31 @@ namespace gameplay {
 
     class WeaponVisualSystem {
         our::Entity* weaponEntity = nullptr;
+        our::Entity* cameraEntity = nullptr;
         our::Transform baseWeaponTransform{};
         bool hasBaseWeaponTransform = false;
 
+        glm::vec3 recoilPosition = glm::vec3(0.0f);
+        glm::vec3 recoilPositionVelocity = glm::vec3(0.0f);
+        glm::vec3 recoilRotation = glm::vec3(0.0f);
+        glm::vec3 recoilRotationVelocity = glm::vec3(0.0f);
+
+        float cameraPitchPunch = 0.0f;
+        float appliedCameraPitchPunch = 0.0f;
+
         float reloadElapsed = 1.0f;
         float reloadDuration = 1.0f;
+
+        float bobPhase = 0.0f;
+        float bobStrength = 0.0f;
+        unsigned int shotIndex = 0;
+
+        static void integrateSpring(glm::vec3& value, glm::vec3& velocity, float stiffness, float damping,
+                                    float deltaTime) {
+            glm::vec3 acceleration = (-stiffness * value) - (damping * velocity);
+            velocity += acceleration * deltaTime;
+            value += velocity * deltaTime;
+        }
 
         static float pulse(float t, float start, float end) {
             if (t <= start || t >= end) return 0.0f;
@@ -33,19 +55,57 @@ namespace gameplay {
             return nullptr;
         }
 
+        static our::Entity* findCameraEntity(our::World* world) {
+            for (our::Entity* entity : world->getEntities())
+                if (entity->getComponent<our::CameraComponent>()) return entity;
+            return nullptr;
+        }
+
     public:
         void destroy() {
+            if (cameraEntity && appliedCameraPitchPunch != 0.0f)
+                cameraEntity->localTransform.rotation.x -= appliedCameraPitchPunch;
+
             weaponEntity = nullptr;
+            cameraEntity = nullptr;
             hasBaseWeaponTransform = false;
+            recoilPosition = glm::vec3(0.0f);
+            recoilPositionVelocity = glm::vec3(0.0f);
+            recoilRotation = glm::vec3(0.0f);
+            recoilRotationVelocity = glm::vec3(0.0f);
+            cameraPitchPunch = 0.0f;
+            appliedCameraPitchPunch = 0.0f;
             reloadElapsed = reloadDuration;
+            bobPhase = 0.0f;
+            bobStrength = 0.0f;
+            shotIndex = 0;
+        }
+
+        void onFire() {
+            float side = (shotIndex % 2 == 0 ? 1.0f : -1.0f) * (0.75f + 0.25f * std::sin(shotIndex * 1.73f));
+            ++shotIndex;
+
+            recoilPosition += glm::vec3(0.012f * side, 0.018f, 0.12f);
+            recoilPositionVelocity += glm::vec3(0.08f * side, 0.16f, 1.35f);
+
+            recoilRotation += glm::vec3(glm::radians(-3.2f), glm::radians(0.45f * side), glm::radians(1.5f * side));
+            recoilRotationVelocity +=
+                glm::vec3(glm::radians(-34.0f), glm::radians(4.0f * side), glm::radians(13.0f * side));
+
+            cameraPitchPunch = glm::min(cameraPitchPunch + glm::radians(0.55f), glm::radians(2.2f));
         }
 
         void onReloadStart(float duration = 1.0f) {
             reloadDuration = glm::max(duration, 0.05f);
             reloadElapsed = 0.0f;
+
+            recoilPosition += glm::vec3(-0.015f, -0.018f, 0.035f);
+            recoilPositionVelocity += glm::vec3(-0.11f, -0.22f, 0.42f);
+            recoilRotation += glm::vec3(glm::radians(1.1f), 0.0f, glm::radians(-1.8f));
+            recoilRotationVelocity += glm::vec3(glm::radians(8.0f), glm::radians(-4.0f), glm::radians(-11.0f));
         }
 
-        void update(our::World* world, float deltaTime, bool isAiming) {
+        void update(our::World* world, float deltaTime, const glm::vec3& playerVelocity, bool isAiming) {
             if (!world || deltaTime <= 0.0f) return;
             deltaTime = glm::min(deltaTime, 0.05f);
 
@@ -60,11 +120,28 @@ namespace gameplay {
                 hasBaseWeaponTransform = true;
             }
 
+            cameraEntity = findCameraEntity(world);
+
+            integrateSpring(recoilPosition, recoilPositionVelocity, 95.0f, 17.0f, deltaTime);
+            integrateSpring(recoilRotation, recoilRotationVelocity, 110.0f, 19.0f, deltaTime);
+
+            cameraPitchPunch = glm::mix(cameraPitchPunch, 0.0f, glm::clamp(14.0f * deltaTime, 0.0f, 1.0f));
+            if (cameraEntity) {
+                float punchDelta = cameraPitchPunch - appliedCameraPitchPunch;
+                float pitchLimit = glm::half_pi<float>() * 0.99f;
+                cameraEntity->localTransform.rotation.x =
+                    glm::clamp(cameraEntity->localTransform.rotation.x + punchDelta, -pitchLimit, pitchLimit);
+                appliedCameraPitchPunch = cameraPitchPunch;
+            } else {
+                appliedCameraPitchPunch = 0.0f;
+            }
+
             if (!weaponEntity || !hasBaseWeaponTransform) return;
 
             glm::vec3 reloadPosition = glm::vec3(0.0f);
             glm::vec3 reloadRotation = glm::vec3(0.0f);
-            if (reloadElapsed < reloadDuration) {
+            bool isReloading = reloadElapsed < reloadDuration;
+            if (isReloading) {
                 reloadElapsed = glm::min(reloadElapsed + deltaTime, reloadDuration);
                 float t = reloadElapsed / reloadDuration;
                 float prep = pulse(t, 0.00f, 0.22f);
@@ -88,9 +165,24 @@ namespace gameplay {
                     motionScale;
             }
 
+            float horizontalSpeed = glm::length(glm::vec2(playerVelocity.x, playerVelocity.z));
+            float targetBob = glm::clamp(horizontalSpeed / 8.0f, 0.0f, 1.0f) * (isAiming ? 0.28f : 1.0f);
+            if (isReloading) targetBob *= 0.35f;
+            bobStrength = glm::mix(bobStrength, targetBob, glm::clamp(10.0f * deltaTime, 0.0f, 1.0f));
+            bobPhase += deltaTime * (6.5f + horizontalSpeed * 0.45f);
+
+            glm::vec3 bobPosition =
+                glm::vec3(std::sin(bobPhase) * 0.026f, std::abs(std::cos(bobPhase)) * 0.018f - 0.009f,
+                          std::sin(bobPhase * 2.0f) * 0.010f) *
+                bobStrength;
+            glm::vec3 bobRotation =
+                glm::vec3(std::cos(bobPhase) * glm::radians(0.75f), std::sin(bobPhase * 0.5f) * glm::radians(0.65f),
+                          std::sin(bobPhase) * glm::radians(1.35f)) *
+                bobStrength;
+
             our::Transform transform = baseWeaponTransform;
-            transform.position += reloadPosition;
-            transform.rotation += reloadRotation;
+            transform.position += recoilPosition + reloadPosition + bobPosition;
+            transform.rotation += recoilRotation + reloadRotation + bobRotation;
             weaponEntity->localTransform = transform;
         }
     };

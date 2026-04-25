@@ -146,6 +146,13 @@ public:
         playerMovement.update(&world, dt, getApp(), &collisionSystem);
         movementSystem.update(&world, dt);
 
+        glm::vec3 playerVelocity = glm::vec3(0.0f);
+        if (playerEntity) {
+            if (gameplay::PlayerMovementComponent* movement =
+                    playerEntity->getComponent<gameplay::PlayerMovementComponent>())
+                playerVelocity = movement->velocity;
+        }
+
         // Spawning / AI
         enemySpawner.update(&world, dt);
         enemyAI.update(&world, playerEntity, getApp(), dt);
@@ -163,7 +170,8 @@ public:
             weaponVisuals.onReloadStart(reloadDuration);
         }
 
-        gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
+        bool fired = gameplay::ProjectileSystem::handlePlayerFire(&world, getApp(), collisionSystem, playerEntity);
+        if (fired) weaponVisuals.onFire();
 
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
 
@@ -179,7 +187,7 @@ public:
         }
 
         postProcessEffects.update(&world, dt);
-        weaponVisuals.update(&world, dt, cameraController.isAiming());
+        weaponVisuals.update(&world, dt, playerVelocity, cameraController.isAiming());
         animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
 
