@@ -61,6 +61,10 @@ namespace our {
             glUniform1i(getUniformLocation(uniform), value);
         }
 
+        void set(const std::string& uniform, size_t value) {
+            glUniform1i(getUniformLocation(uniform), static_cast<GLint>(value));
+        }
+
         void set(const std::string& uniform, glm::vec2 value) {
             glUniform2fv(getUniformLocation(uniform), 1, glm::value_ptr(value));
         }

@@ -70,7 +70,7 @@ namespace our {
     }
 
     void LitMaterial::setLightUniforms(const std::vector<our::LightRenderData>& lights) const {
-        int lightCount = std::min(static_cast<int>(lights.size()), MAX_LIGHTS);
+        auto lightCount = std::min(lights.size(), MAX_LIGHTS);
         shader->set("numLights", lightCount);
         for (size_t i = 0; i < lightCount; i++) {
             const auto& light = lights[i];
