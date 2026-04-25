@@ -1,7 +1,7 @@
 #pragma once
 
 #include <application.hpp>
-#include <asset-loader.hpp>
+#include <atomic>
 #include <components/camera.hpp>
 #include <components/enemy.hpp>
 #include <components/health.hpp>
@@ -23,6 +23,7 @@
 #include <systems/projectile-system.hpp>
 #include <systems/ui-renderer.hpp>
 #include <systems/weapon-visual-system.hpp>
+#include <thread>
 #include <ui/play-overlay.hpp>
 
 #include "../game/systems/player-hud.hpp"
@@ -91,11 +92,8 @@ public:
         }
     }
 
-    void onInitialize() override {
+    void onInitialize(GLFWwindow*) override {
         auto& config = getApp()->getConfig()["scene"];
-        if (config.contains("assets")) {
-            our::deserializeAllAssets(config["assets"]);
-        }
         if (config.contains("world")) {
             world.deserialize(config["world"]);
         }
@@ -233,6 +231,5 @@ public:
         activeCamera = nullptr;
         playerEntity = nullptr;
         world.clear();
-        our::clearAllAssets();
     }
 };
