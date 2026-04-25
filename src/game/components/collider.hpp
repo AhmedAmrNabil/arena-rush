@@ -25,9 +25,10 @@ namespace gameplay {
         float radius = 0.5f;
         float height = 1.0f;  // must be the total height
         bool isTrigger = false;
-        bool worldSpace = false;     // if true, radius/height are in world units (skip entity scale)
-        glm::vec3 centerOffset = glm::vec3(0.0f);  // local offset applied to the Bullet transform (e.g. shift capsule up)
-        our::Mesh* mesh = nullptr;   // optional mesh for mesh colliders
+        bool worldSpace = false;  // if true, radius/height are in world units (skip entity scale)
+        glm::vec3 centerOffset =
+            glm::vec3(0.0f);        // local offset applied to the Bullet transform (e.g. shift capsule up)
+        our::Mesh* mesh = nullptr;  // optional mesh for mesh colliders
 
         static std::string getID() {
             return "Collider";

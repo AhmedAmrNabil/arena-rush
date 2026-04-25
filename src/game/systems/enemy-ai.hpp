@@ -256,6 +256,7 @@ namespace gameplay {
                     switch (enemy->aiState) {
                         case S::Idle:
                             break;
+
                         case S::Aggro: {
                             bool dangerDetected = false;
                             glm::vec3 steerDir =
@@ -269,14 +270,15 @@ namespace gameplay {
                             break;
                         }
 
-                        case S::Attacking:
+                        case S::Attacking: {
                             faceDir = toPlayerDir;
-                            if (inAttackRange && playerHealth && enemy->attackTimer <= 0.0f) {
+                            // Integrate the melee damage from main directly into the FSM Attacking state
+                            if (playerHealth && enemy->attackTimer <= 0.0f) {
                                 playerHealth->takeDamage(enemy->attackDamage);
                                 enemy->attackTimer = enemy->attackCooldown;
                             }
-                        
                             break;
+                        }
                     }
 
                     // Ground tracking
