@@ -24,6 +24,7 @@ namespace gameplay {
         bool hoverOriginSet = false;
         float hoverOriginY = 0.0f;
         int scoreValue = 100;
+        std::string attackSound = "monster-attack";
 
         // Runtime state (not serialized)
         enum class AIState { Idle, Aggro, Attacking };

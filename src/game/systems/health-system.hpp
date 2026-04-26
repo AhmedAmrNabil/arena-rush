@@ -58,8 +58,9 @@ namespace gameplay {
                     }
                     our::AnimationComponent* anim = entity->getComponent<our::AnimationComponent>();
                     if (anim) {
-                        if (anim->currentClip != "death" && !anim->play("death", 1.0f)) world->markForRemoval(entity);
-                        if (anim->currentClip == "death" && anim->animator.isFinished()) world->markForRemoval(entity);
+                        anim->setNextState(our::AnimationState::Death);
+                        if (anim->getState() == our::AnimationState::Death && anim->animator.isFinished())
+                            world->markForRemoval(entity);
                     } else
                         world->markForRemoval(entity);
                 }

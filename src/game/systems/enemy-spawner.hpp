@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "components/animation.hpp"
+#include "components/audio-source.hpp"
 #include "components/collider.hpp"
 #include "components/enemy.hpp"
 #include "components/health.hpp"
@@ -157,6 +158,9 @@ namespace gameplay {
                 } else if (type == our::AnimationComponent::getID()) {
                     our::AnimationComponent* animation = enemyEntity->addComponent<our::AnimationComponent>();
                     animation->deserialize(componentConfig);
+                } else if (type == our::AudioSourceComponent::getID()) {
+                    our::AudioSourceComponent* audioSource = enemyEntity->addComponent<our::AudioSourceComponent>();
+                    audioSource->deserialize(componentConfig);
                 }
             }
         }

@@ -249,12 +249,12 @@
                                         "speed": 1.0,
                                         "loop": false
                                     },
-                                    "attack_to_idle": {
+                                    "attack_then_idle": {
                                         "clip": "Attack1_toIdle.anm",
                                         "speed": 1.0,
                                         "loop": false
                                     },
-                                    "attack_to_walk": {
+                                    "attack_then_walk": {
                                         "clip": "Attack1_0.anm",
                                         "speed": 1.0,
                                         "loop": false
