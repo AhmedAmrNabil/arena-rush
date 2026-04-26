@@ -2,7 +2,6 @@
 
 #include <glad/gl.h>
 
-#include <cstddef>
 #include <vector>
 
 #include "vertex.hpp"
