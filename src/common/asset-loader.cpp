@@ -178,6 +178,10 @@ namespace our {
         // setting some default assets if something is missing
         if (!AssetLoader<Sampler>::get("default")) {
             Sampler* defaultSampler = new Sampler();
+            defaultSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            defaultSampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            defaultSampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
+            defaultSampler->set(GL_TEXTURE_WRAP_T, GL_REPEAT);
             AssetLoaderStats::totalCount++;
             AssetLoader<Sampler>::add("default", defaultSampler);
         }
