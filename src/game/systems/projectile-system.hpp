@@ -66,7 +66,6 @@ namespace gameplay {
         static bool fire(our::World* world, our::Application* app, our::Entity* shooter, const glm::vec3& aim,
                          CollisionLayer shooterLayer) {
             if (!world || !app || !shooter) return false;
-            return false;
 
             WeaponComponent* weapon = shooter->getComponent<WeaponComponent>();
             if (!weapon || weapon->timer > 0.0f) return false;
