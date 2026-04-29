@@ -188,8 +188,8 @@ namespace our {
 
         if (!AssetLoader<ShaderProgram>::get("textured")) {
             ShaderProgram* texturedShader = new ShaderProgram();
-            texturedShader->attach("assets/shaders/textured.vs", GL_VERTEX_SHADER);
-            texturedShader->attach("assets/shaders/textured.fs", GL_FRAGMENT_SHADER);
+            texturedShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
+            texturedShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
             texturedShader->link();
             AssetLoaderStats::totalCount++;
             AssetLoader<ShaderProgram>::add("textured", texturedShader);
@@ -197,8 +197,8 @@ namespace our {
 
         if (!AssetLoader<ShaderProgram>::get("tinted")) {
             ShaderProgram* tintedShader = new ShaderProgram();
-            tintedShader->attach("assets/shaders/tinted.vs", GL_VERTEX_SHADER);
-            tintedShader->attach("assets/shaders/tinted.fs", GL_FRAGMENT_SHADER);
+            tintedShader->attach("assets/shaders/tinted.vert", GL_VERTEX_SHADER);
+            tintedShader->attach("assets/shaders/tinted.frag", GL_FRAGMENT_SHADER);
             tintedShader->link();
             AssetLoaderStats::totalCount++;
             AssetLoader<ShaderProgram>::add("tinted", tintedShader);
