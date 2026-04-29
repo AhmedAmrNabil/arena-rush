@@ -71,6 +71,9 @@ namespace gameplay {
         void destroy() {
             if (cameraEntity && glm::dot(appliedCameraRecoilRotation, appliedCameraRecoilRotation) > 0.0f)
                 cameraEntity->localTransform.rotation -= appliedCameraRecoilRotation;
+
+            if (weaponEntity && hasBaseWeaponTransform) weaponEntity->localTransform = baseWeaponTransform;
+
             weaponEntity = nullptr;
             cameraEntity = nullptr;
             hasBaseWeaponTransform = false;
@@ -124,6 +127,8 @@ namespace gameplay {
 
             our::Entity* foundWeaponEntity = findWeaponEntity();
             if (foundWeaponEntity != weaponEntity) {
+                if (weaponEntity && hasBaseWeaponTransform) weaponEntity->localTransform = baseWeaponTransform;
+
                 weaponEntity = foundWeaponEntity;
                 hasBaseWeaponTransform = false;
             }
