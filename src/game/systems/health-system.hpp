@@ -13,6 +13,8 @@ namespace gameplay {
         bool playerDied = false;
         int kills = 0;
         int score = 0;
+        float healthReward = 0.0f;
+        int ammoReward = 0;
     };
 
     class HealthSystem {
@@ -37,6 +39,22 @@ namespace gameplay {
                     if (enemy) {
                         result.kills++;
                         result.score += enemy->scoreValue;
+
+                        // per-kill rewards
+                        switch (enemy->type) {
+                            case EnemyType::Brute:
+                                result.healthReward += 5.0f;
+                                result.ammoReward += 8;
+                                break;
+                            case EnemyType::Charger:
+                                result.healthReward += 2.0f;
+                                result.ammoReward += 5;
+                                break;
+                            case EnemyType::Flyer:
+                                result.healthReward += 8.0f;
+                                result.ammoReward += 12;
+                                break;
+                        }
                     }
                     world->markForRemoval(entity);
                 }
