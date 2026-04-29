@@ -54,7 +54,7 @@
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/lit.frag"
                 },
-                "pbr":{
+                "pbr": {
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/pbr.frag"
                 }
@@ -147,6 +147,7 @@
             "models": {
                 "drone": "assets/gltf/drone/arcade_corki.glb",
                 "monster": "assets/gltf/monster/drmundo.glb",
+                "charger": "assets/gltf/enemies/shaco.glb",
                 "map": "assets/gltf/map/map.glb",
                 "gun": "assets/gltf/weapons/rifle.glb"
             }
@@ -177,10 +178,10 @@
                     [-55.248, 2.483, -9.798],
                     [38.642, 0.467, -37.656],
                     [-1.527, 0.144, 5.357],
-                    [-20.244, 2.600, -26.874],
+                    [-20.244, 2.6, -26.874],
                     [-18.147, 0.136, -9.077],
                     [-37.834, 1.253, 31.636],
-                    [-47.990, 4.171, 9.926]
+                    [-47.99, 4.171, 9.926]
                 ],
                 "spawnInterval": 2.0,
                 "initialSpawnCount": 4,
@@ -212,6 +213,35 @@
                                 "layer": "enemy",
                                 "shape": "Model",
                                 "model": "monster"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Charger",
+                        "model": "charger",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [0.015, 0.015, 0.015],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Brute",
+                                "moveSpeed": 7.0,
+                                "turnSpeed": 4.0,
+                                "aggroRange": 120.0,
+                                "attackRange": 1.8,
+                                "attackDamage": 5.0,
+                                "attackCooldown": 0.15,
+                                "scoreValue": 75
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 35.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "shape": "Model",
+                                "model": "charger"
                             }
                         ]
                     },
