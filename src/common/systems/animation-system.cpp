@@ -5,6 +5,24 @@
 #include "components/animation.hpp"
 
 namespace our {
+
+    struct TransitionRule {
+        AnimationState from;
+        AnimationState to;
+        const char* clip;
+        bool loop;
+    };
+
+    const TransitionRule transitionRules[] = {
+        {AnimationState::Attack, AnimationState::Walk, "attack_then_walk", true},
+        {AnimationState::Attack, AnimationState::Idle, "attack_then_idle", true},
+        {AnimationState::Attack, AnimationState::Attack, "attack_then_idle", true},
+    };
+
+    const TransitionRule overrideRules[] = {
+        {AnimationState::AttackThenIdle, AnimationState::Walk, "attack_then_walk", false},
+    };
+
     void AnimationSystem::update(World* world, float deltaTime) {
         for (auto entity : world->getEntities()) {
             AnimationComponent* animComp = entity->getComponent<AnimationComponent>();
@@ -12,32 +30,31 @@ namespace our {
 
             AnimationCommand from = animComp->getCurrentCommand();
             AnimationCommand to = animComp->getQueuedCommand();
-            if (animComp->canTransitionNow()) {
-                if (from.to == AnimationState::Attack && to.to == AnimationState::Walk) {
-                    if (animComp->play("attack_then_walk")) {
-                        animComp->setNextCommand(to);
-                    } else {
-                        animComp->setCommand(to);
-                    }
-                } else if (from.to == AnimationState::Attack &&
-                           (to.to == AnimationState::Idle || to.to == AnimationState::Attack)) {
-                    if (animComp->play("attack_then_idle")) {
-                        animComp->setNextCommand(to);
-                    } else {
-                        animComp->setCommand(to);
-                    }
+            const AnimationState fromState = from.to;
+            const AnimationState toState = to.to;
+
+            auto applyRule = [&](const TransitionRule& rule) -> bool {
+                if (fromState != rule.from || toState != rule.to) return false;
+                if (animComp->play(rule.clip, 1.0f, rule.loop)) {
+                    animComp->setNextCommand(to);
                 } else {
                     animComp->setCommand(to);
                 }
-            } else {
-                // this skips the attack then idle animation and goes straight to attack then walk instead
-                if (animComp->getCurrentCommand().to == AnimationState::AttackThenIdle &&
-                    to.to == AnimationState::Walk) {
-                    if (animComp->play("attack_then_walk", 1.0f, false)) {
-                        animComp->setNextCommand(to);
-                    } else {
-                        animComp->setCommand(to);
+                return true;
+            };
+
+            if (animComp->canTransitionNow()) {
+                bool handled = false;
+                for (const auto& rule : transitionRules) {
+                    if (applyRule(rule)) {
+                        handled = true;
+                        break;
                     }
+                }
+                if (!handled) animComp->setCommand(to);
+            } else {
+                for (const auto& rule : overrideRules) {
+                    if (applyRule(rule)) break;
                 }
             }
 
