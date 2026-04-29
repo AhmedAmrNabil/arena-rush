@@ -240,6 +240,7 @@ namespace gameplay {
                                                                       glm::vec4(weapon->muzzleOffset, 1.0f));
                                     ProjectileSystem::fire(world, app, enemyEntity, playerPos - muzzleWorld,
                                                            CollisionLayer::LAYER_ENEMY);
+                                    enemy->attackTimer = enemy->attackCooldown;
                                 } else {
                                     if (anim) anim->setNextState(our::AnimationState::Idle);
                                 }
