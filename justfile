@@ -43,6 +43,25 @@ package:
 clean:
     rm -rf build bin
 
+# Create a desktop entry for the game
+desktop:
+    #!/usr/bin/env bash
+    mkdir -p ~/.local/share/icons/hicolor/256x256/apps
+    cp assets/textures/logo.png ~/.local/share/icons/hicolor/256x256/apps/arena-rush-dev.png
+
+    mkdir -p ~/.local/share/applications
+    sed \
+        -e 's|@CMAKE_INSTALL_PREFIX@|{{ justfile_directory() }}|g' \
+        -e 's|Icon=ArenaRush|Icon=arena-rush-dev|' \
+        -e 's|Name=Arena Rush|Name=Arena Rush (dev)|' \
+        ArenaRush.desktop.in > ~/.local/share/applications/arena-rush-dev.desktop
+
+    update-desktop-database ~/.local/share/applications
+
+clean-desktop:
+    rm -f ~/.local/share/icons/hicolor/256x256/apps/arena-rush-dev.png
+    rm -f ~/.local/share/applications/arena-rush-dev.desktop
+
 # ------ Linux setup and test targets ------
 
 # Setup imgcmp for Linux

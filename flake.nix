@@ -31,6 +31,7 @@
           bullet
           glfw
           assimp
+          zlib
 
           # Wayland
           wayland
@@ -73,6 +74,8 @@
             ccache
             clang-tools
             gdb
+            # provides update-desktop-database for testing application.desktop file
+            desktop-file-utils
           ];
         };
 
@@ -97,7 +100,6 @@
             installPhase = ''
               cmake --install . --prefix $out
               wrapProgram $out/bin/ArenaRush \
-                --chdir $out \
                 --suffix LD_LIBRARY_PATH : ${LD_LIBRARY_PATH}
             '';
           };

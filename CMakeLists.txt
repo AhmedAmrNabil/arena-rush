@@ -330,6 +330,7 @@ endif()
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:COLLISION_DEBUG_DRAW>
+        $<$<CONFIG:Release>:WAYLAND_APPID=\"${PROJECT_NAME}\">
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -341,11 +342,26 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 install(DIRECTORY assets/
-    DESTINATION assets/
+    DESTINATION assets
 )
 
 install(FILES config/app.jsonc
     DESTINATION config/
+)
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/ArenaRush.desktop.in
+    ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+    @ONLY
+)
+
+install(FILES ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+    DESTINATION share/applications
+)
+
+install(FILES assets/textures/logo.png
+    DESTINATION share/icons/hicolor/256x256/apps
+    RENAME ${PROJECT_NAME}.png
 )
 
 if(UNIX AND NOT APPLE)

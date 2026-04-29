@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Arena Rush
+Comment=A fast-paced arena shooter game developed using C++ and OpenGL.
+Exec=@CMAKE_INSTALL_PREFIX@/bin/ArenaRush
+Path=@CMAKE_INSTALL_PREFIX@
+Icon=ArenaRush
+Type=Application
+Categories=Game;
+StartupWMClass=ArenaRush

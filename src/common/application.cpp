@@ -1,6 +1,7 @@
 #include "application.hpp"
 
 #include <flags/flags.h>
+#include <stb/stb_image.h>
 
 #include <ctime>
 #include <filesystem>
@@ -24,6 +25,10 @@
 
 #include "asset-loader.hpp"
 #include "texture/screenshot.hpp"
+
+#ifndef WAYLAND_APPID
+#define WAYLAND_APPID "arena-rush-dev"
+#endif
 
 std::string default_screenshot_filepath() {
     std::stringstream stream;
@@ -159,6 +164,9 @@ void our::Application::configureOpenGL() {
 
     // Set the refresh rate of the window (GLFW_DONT_CARE = Run as fast as possible)
     glfwWindowHint(GLFW_REFRESH_RATE, GLFW_DONT_CARE);
+
+    // Set the application name for wayland
+    glfwWindowHintString(GLFW_WAYLAND_APP_ID, WAYLAND_APPID);
 }
 
 our::WindowConfiguration our::Application::getWindowConfiguration() {
@@ -247,6 +255,43 @@ int our::Application::run(int run_for_frames) {
     std::cout << "RENDERER        : " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "VERSION         : " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GLSL VERSION    : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+
+    int platform = glfwGetPlatform();
+    std::cout << "PLATFORM        : ";
+    switch (platform) {
+        case GLFW_PLATFORM_WIN32:
+            std::cout << "Windows" << std::endl;
+            break;
+        case GLFW_PLATFORM_COCOA:
+            std::cout << "macOS" << std::endl;
+            break;
+        case GLFW_PLATFORM_WAYLAND:
+            std::cout << "Wayland" << std::endl;
+            break;
+        case GLFW_PLATFORM_X11:
+            std::cout << "X11" << std::endl;
+            break;
+    }
+
+    if (platform != GLFW_PLATFORM_WAYLAND) {
+        int width, height, channels;
+        unsigned char* pixels = stbi_load("assets/textures/logo.png", &width, &height, &channels, 4);
+        if (pixels) {
+            GLFWimage images[1];
+            images[0].width = width;
+            images[0].height = height;
+            images[0].pixels = pixels;
+
+            glfwSetWindowIcon(window, 1, images);
+            if (glfwGetError(nullptr) != GLFW_NO_ERROR) {
+                std::cerr << "Failed to set window icon" << std::endl;
+            }
+
+            stbi_image_free(pixels);
+        } else {
+            std::cerr << "Failed to load window icon" << std::endl;
+        }
+    }
 
 #if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
     // if we have OpenGL debug messages enabled, set the message callback
