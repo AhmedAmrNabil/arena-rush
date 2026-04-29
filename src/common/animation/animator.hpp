@@ -100,5 +100,10 @@ namespace our {
         const std::string getCurrentAnimationName() const {
             return currentAnimation ? currentAnimation->name : "";
         }
+
+        const float getPlaybackPercent() const {
+            if (!currentAnimation) return 0.0f;
+            return std::min(currentTime / currentAnimation->duration, 1.0f);
+        }
     };
 }  // namespace our

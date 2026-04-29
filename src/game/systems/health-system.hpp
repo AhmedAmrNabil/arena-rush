@@ -37,9 +37,19 @@ namespace gameplay {
                 } else {
                     our::AnimationComponent* anim = entity->getComponent<our::AnimationComponent>();
                     bool shouldRemove = (anim == nullptr);
+                    float deathPercent = 0.0f;  // funny variable name xd
                     if (anim) {
-                        anim->setNextState(our::AnimationState::Death);
+                        anim->play("death", 1.0f, false);
                         shouldRemove = (anim->getState() == our::AnimationState::Death && anim->animator.isFinished());
+                        if (anim->currentClip == "death") {
+                            deathPercent = anim->animator.getPlaybackPercent();
+                        }
+                    }
+
+                    if (enemy && enemy->type == EnemyType::Flyer) {
+                        // change the height of the flyer as it dies to create a sinking effect
+                        our::Transform& transform = entity->localTransform;
+                        transform.position.y = enemy->baseHeight * (1 - std::min(deathPercent * 1.2f, 1.0f));
                     }
 
                     if (shouldRemove) {
