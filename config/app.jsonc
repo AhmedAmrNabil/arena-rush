@@ -347,7 +347,8 @@
                                 "trailMaxSegments": 8,
                                 "trailSegmentLifetime": 0.08,
                                 "trailHeadScale": 0.1,
-                                "trailTailScale": 0.012
+                                "trailTailScale": 0.012,
+                                "order": 0
                             }
                         ],
                         "children": [
@@ -394,7 +395,8 @@
                                 "trailMaxSegments": 8,
                                 "trailSegmentLifetime": 0.08,
                                 "trailHeadScale": 0.1,
-                                "trailTailScale": 0.012
+                                "trailTailScale": 0.012,
+                                "order": 1
                             }
                         ]
                     }

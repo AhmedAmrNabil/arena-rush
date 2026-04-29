@@ -22,6 +22,9 @@ namespace gameplay {
                     weapons.push_back(weapon);
                 }
             }
+
+            std::sort(weapons.begin(), weapons.end(),
+                      [](WeaponComponent* a, WeaponComponent* b) { return a->order < b->order; });
         }
 
         void update(our::Application* app) {
@@ -45,7 +48,8 @@ namespace gameplay {
             if (mouse.getScrollOffset().y > 0.0f) {
                 playerComp->currentActiveWeaponIndex = (playerComp->currentActiveWeaponIndex + 1) % weapons.size();
             } else if (mouse.getScrollOffset().y < 0.0f) {
-                playerComp->currentActiveWeaponIndex = (playerComp->currentActiveWeaponIndex - 1) % weapons.size();
+                playerComp->currentActiveWeaponIndex =
+                    (playerComp->currentActiveWeaponIndex - 1 + weapons.size()) % weapons.size();
             }
 
             weapons[currentIndex]->isActive = false;

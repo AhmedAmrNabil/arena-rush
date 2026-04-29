@@ -21,6 +21,7 @@ namespace gameplay {
         int magSize = 30;
         int maxAmmo = 120;
         bool isActive = false;  // Whether this weapon is currently active (held by the player)
+        int order = 0;  // The order of this weapon in the player's inventory (0 for primary, 1 for secondary, etc.)
 
         // Trail effect
         bool trailEnabled = true;
