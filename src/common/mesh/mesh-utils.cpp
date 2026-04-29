@@ -163,3 +163,18 @@ our::Mesh* our::mesh_utils::sphere(const glm::ivec2& segments) {
 
     return new our::Mesh(vertices, elements);
 }
+
+our::Mesh* our::mesh_utils::generateQuad() {
+    std::vector<our::Vertex> vertices = {{
+        {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+        {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+        {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+        {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+    }};
+
+    std::vector<GLuint> elements = {
+        0, 1, 2, 2, 3, 0,
+    };
+
+    return new our::Mesh(vertices, elements);
+}

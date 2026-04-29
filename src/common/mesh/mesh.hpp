@@ -2,6 +2,8 @@
 
 #include <glad/gl.h>
 
+#include <vector>
+
 #include "vertex.hpp"
 
 namespace our {
@@ -17,8 +19,10 @@ namespace our {
     class Mesh {
         // Here, we store the object names of the 3 main components of a mesh:
         // A vertex array object, A vertex buffer and an element buffer
-        unsigned int VBO, EBO;
-        unsigned int VAO;
+        unsigned int VBO = 0;
+        unsigned int EBO = 0;
+        unsigned int VAO = 0;
+        bool vaoReady = false;
         // We need to remember the number of elements that will be draw by glDrawElements
         GLsizei elementCount;
         GLsizei vertexCount;
@@ -37,16 +41,34 @@ namespace our {
         // - vertices which contain the vertex data.
         // - elements which contain the indices of the vertices out of which each rectangle will be constructed.
         Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
-            // Generate VAO
-            glGenVertexArrays(1, &VAO);
-            glBindVertexArray(VAO);
-
             // Generate VBO and send data
             glGenBuffers(1, &VBO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-            // Setting all the vertex attribute pointers
+            // Generate EBO and send indices of vertices
+            glGenBuffers(1, &EBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
+                         GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            elementCount = static_cast<GLsizei>(elements.size());
+            vertexCount = static_cast<GLsizei>(vertices.size());
+            this->vertices = vertices;
+            this->indices = elements;
+        }
+
+        void setupVAO() {
+            if (vaoReady) return;
+
+            glGenVertexArrays(1, &VAO);
+            glBindVertexArray(VAO);
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
             glVertexAttribPointer(ATTRIB_LOC_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                   (void*)offsetof(Vertex, position));
             glEnableVertexAttribArray(ATTRIB_LOC_POSITION);
@@ -74,30 +96,19 @@ namespace our {
                                   (void*)offsetof(Vertex, weights));
             glEnableVertexAttribArray(ATTRIB_LOC_BONE_WEIGHTS);
 
-            // Generate EBO and send indices of vertices
-            glGenBuffers(1, &EBO);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(unsigned int), elements.data(),
-                         GL_STATIC_DRAW);
-
-            // Unbind VAO, VBO and EBO to prevent accidental modification from outside the class
             glBindVertexArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-            elementCount = static_cast<GLsizei>(elements.size());
-            vertexCount = static_cast<GLsizei>(vertices.size());
-            this->vertices = vertices;
-            this->indices = elements;
+            vaoReady = true;
         }
 
         // this function should render the mesh
         void draw() {
+            if (!vaoReady) setupVAO();
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, 0);
         }
 
         void update(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& elements) {
+            if (!vaoReady) setupVAO();
             glBindVertexArray(VAO);
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -114,9 +125,9 @@ namespace our {
 
         // this function should delete the vertex & element buffers and the vertex array object
         ~Mesh() {
-            glDeleteBuffers(1, &VBO);
-            glDeleteBuffers(1, &EBO);
-            glDeleteVertexArrays(1, &VAO);
+            if (VBO) glDeleteBuffers(1, &VBO);
+            if (EBO) glDeleteBuffers(1, &EBO);
+            if (VAO) glDeleteVertexArrays(1, &VAO);
         }
 
         const std::vector<Vertex>& getVertices() const {

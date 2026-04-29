@@ -21,13 +21,14 @@ namespace our {
     void AssetLoader<ShaderProgram>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<ShaderProgram>::get(name)) continue;
                 std::string vsPath = desc.value("vs", "");
                 std::string fsPath = desc.value("fs", "");
                 auto shader = new ShaderProgram();
                 shader->attach(vsPath, GL_VERTEX_SHADER);
                 shader->attach(fsPath, GL_FRAGMENT_SHADER);
                 shader->link();
-                assets[name] = shader;
+                AssetLoader<ShaderProgram>::add(name, shader);
             }
         }
     };
@@ -39,8 +40,9 @@ namespace our {
     void AssetLoader<Texture2D>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<Texture2D>::get(name)) continue;
                 std::string path = desc.get<std::string>();
-                assets[name] = texture_utils::loadImage(path);
+                AssetLoader<Texture2D>::add(name, texture_utils::loadImage(path));
             }
         }
     };
@@ -56,9 +58,10 @@ namespace our {
     void AssetLoader<Sampler>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<Sampler>::get(name)) continue;
                 auto sampler = new Sampler();
                 sampler->deserialize(desc);
-                assets[name] = sampler;
+                AssetLoader<Sampler>::add(name, sampler);
             }
         }
     };
@@ -70,8 +73,9 @@ namespace our {
     void AssetLoader<Mesh>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<Mesh>::get(name)) continue;
                 std::string path = desc.get<std::string>();
-                assets[name] = mesh_utils::loadOBJ(path);
+                AssetLoader<Mesh>::add(name, mesh_utils::loadOBJ(path));
             }
         }
     };
@@ -94,10 +98,11 @@ namespace our {
     void AssetLoader<Material>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<Material>::get(name)) continue;
                 std::string type = desc.value("type", "");
                 auto material = createMaterialFromType(type);
                 material->deserialize(desc);
-                assets[name] = material;
+                AssetLoader<Material>::add(name, material);
             }
         }
     };
@@ -109,20 +114,10 @@ namespace our {
     void AssetLoader<AudioBuffer>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<AudioBuffer>::get(name)) continue;
                 std::string path = desc.get<std::string>();
                 AudioBuffer* buffer = audio_utils::loadWAV(path);
-                if (buffer) assets[name] = buffer;
-            }
-        }
-    }
-
-    template <>
-    void AssetLoader<our::Light>::deserialize(const nlohmann::json& data) {
-        if (data.is_object()) {
-            for (auto& [name, desc] : data.items()) {
-                our::Light* light = new our::Light();
-                light->deserialize(desc);
-                assets[name] = light;
+                if (buffer) AssetLoader<AudioBuffer>::add(name, buffer);
             }
         }
     }
@@ -131,6 +126,8 @@ namespace our {
     void AssetLoader<our::Model>::deserialize(const nlohmann::json& data) {
         if (data.is_object()) {
             for (auto& [name, desc] : data.items()) {
+                if (AssetLoader<our::Model>::get(name)) continue;
+
                 auto model = new our::Model(name);
                 if (desc.is_string()) {
                     model->loadFromFile(desc.get<std::string>());
@@ -147,12 +144,29 @@ namespace our {
                     }
                 }
 
-                assets[name] = model;
+                AssetLoader<our::Model>::add(name, model);
             }
         }
     };
 
     void deserializeAllAssets(const nlohmann::json& assetData) {
+        AssetLoaderStats::loadingCount = 0;
+        AssetLoaderStats::totalCount = 0;
+        for (auto key : {"shaders", "textures", "samplers", "meshes", "materials", "sounds"}) {
+            if (assetData.contains(key)) {
+                AssetLoaderStats::totalCount += assetData[key].size();
+            }
+        }
+        if (assetData.contains("models")) {
+            for (auto& [name, desc] : assetData["models"].items()) {
+                if (desc.is_string()) {
+                    AssetLoaderStats::totalCount += Model::getAssetsCount(desc.get<std::string>());
+                } else if (desc.is_object() && desc.contains("path")) {
+                    AssetLoaderStats::totalCount += Model::getAssetsCount(desc["path"].get<std::string>(), false) +
+                                                    desc.value("animations", nlohmann::json::array()).size();
+                }
+            }
+        }
         if (!assetData.is_object()) return;
         if (assetData.contains("shaders")) AssetLoader<ShaderProgram>::deserialize(assetData["shaders"]);
         if (assetData.contains("textures")) AssetLoader<Texture2D>::deserialize(assetData["textures"]);
@@ -160,16 +174,44 @@ namespace our {
         if (assetData.contains("meshes")) AssetLoader<Mesh>::deserialize(assetData["meshes"]);
         if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
         if (assetData.contains("sounds")) AssetLoader<AudioBuffer>::deserialize(assetData["sounds"]);
-        if (assetData.contains("lights")) AssetLoader<our::Light>::deserialize(assetData["lights"]);
         if (assetData.contains("models")) AssetLoader<our::Model>::deserialize(assetData["models"]);
         // setting some default assets if something is missing
         if (!AssetLoader<Sampler>::get("default")) {
             Sampler* defaultSampler = new Sampler();
+            defaultSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            defaultSampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            defaultSampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
+            defaultSampler->set(GL_TEXTURE_WRAP_T, GL_REPEAT);
+            AssetLoaderStats::totalCount++;
             AssetLoader<Sampler>::add("default", defaultSampler);
         }
+
+        if (!AssetLoader<ShaderProgram>::get("textured")) {
+            ShaderProgram* texturedShader = new ShaderProgram();
+            texturedShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
+            texturedShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
+            texturedShader->link();
+            AssetLoaderStats::totalCount++;
+            AssetLoader<ShaderProgram>::add("textured", texturedShader);
+        }
+
+        if (!AssetLoader<ShaderProgram>::get("tinted")) {
+            ShaderProgram* tintedShader = new ShaderProgram();
+            tintedShader->attach("assets/shaders/tinted.vert", GL_VERTEX_SHADER);
+            tintedShader->attach("assets/shaders/tinted.frag", GL_FRAGMENT_SHADER);
+            tintedShader->link();
+            AssetLoaderStats::totalCount++;
+            AssetLoader<ShaderProgram>::add("tinted", tintedShader);
+        }
+
+        int total = AssetLoaderStats::totalCount;
+        // if assets are already loaded, set the loading count to total to avoid progress bar from getting stuck
+        if (AssetLoaderStats::loadingCount != AssetLoaderStats::totalCount) AssetLoaderStats::loadingCount = total;
     }
 
     void clearAllAssets() {
+        AssetLoaderStats::loadingCount = 0;
+        AssetLoaderStats::totalCount = 0;
         AssetLoader<ShaderProgram>::clear();
         AssetLoader<Texture2D>::clear();
         AssetLoader<Sampler>::clear();

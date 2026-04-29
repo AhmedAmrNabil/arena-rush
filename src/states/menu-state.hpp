@@ -7,6 +7,7 @@
 #include <audio/audio-utils.hpp>
 #include <glm/common.hpp>
 #include <material/material.hpp>
+#include <mesh/mesh-utils.hpp>
 #include <mesh/mesh.hpp>
 #include <shader/shader.hpp>
 #include <string>
@@ -26,7 +27,7 @@ class Menustate : public our::State {
     int hoveredButton = -1;
 
 public:
-    void onInitialize() override {
+    void onInitialize(GLFWwindow*) override {
         menuMaterial = new our::TexturedMaterial();
         menuMaterial->shader = new our::ShaderProgram();
         menuMaterial->shader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
@@ -46,31 +47,17 @@ public:
         highlightMaterial->pipelineState.blending.sourceFactor = GL_ONE;
         highlightMaterial->pipelineState.blending.destinationFactor = GL_ONE;
 
-        rectangle = new our::Mesh(
-            {
-                {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            },
-            {
-                0,
-                1,
-                2,
-                2,
-                3,
-                0,
-            });
+        rectangle = our::mesh_utils::generateQuad();
 
         time = 0.0f;
         hoveredButton = -1;
 
         buttons[0].normalizedPosition = {0.34375f, 0.6875f};
-        buttons[0].normalizedSize = {0.3125f, 0.1f};
+        buttons[0].normalizedSize = {0.31328125f, 0.10078125f};
         buttons[0].action = [this]() { getApp()->changeState("loading-play"); };
 
         buttons[1].normalizedPosition = {0.34375f, 0.8125f};
-        buttons[1].normalizedSize = {0.3125f, 0.1f};
+        buttons[1].normalizedSize = {0.31328125f, 0.10078125f};
         buttons[1].action = [this]() { getApp()->close(); };
 
         menuMusic = our::audio_utils::loadWAV("assets/sounds/menu-music.wav");

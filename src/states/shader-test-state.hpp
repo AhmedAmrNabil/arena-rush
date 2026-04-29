@@ -9,7 +9,7 @@ class ShaderTestState : public our::State {
     our::ShaderProgram* shader;
     GLuint vertex_array;
 
-    void onInitialize() override {
+    void onInitialize(GLFWwindow*) override {
         // First of all, we get the scene configuration from the app config
         auto& config = getApp()->getConfig()["scene"];
         // Then we load the shader that will be used for this scene

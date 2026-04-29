@@ -5,26 +5,13 @@
 
 #include "../components/health.hpp"
 #include "../components/player.hpp"
+#include "mesh/mesh-utils.hpp"
 
 namespace gameplay {
 
     void PlayerHUDSystem::initialize() {
         // a 1x1 space with local coordinates, to be scaled on render
-        rectangleMesh = new our::Mesh(
-            {
-                {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            },
-            {
-                0,
-                1,
-                2,
-                2,
-                3,
-                0,
-            });
+        rectangleMesh = our::mesh_utils::generateQuad();
 
         progressShader = new our::ShaderProgram();
         progressShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
@@ -207,9 +194,9 @@ namespace gameplay {
     }
 
     void PlayerHUDSystem::destroy() {
-        if (rectangleMesh) delete rectangleMesh;
-
         if (progressShader) delete progressShader;
+        if (rectangleMesh) delete rectangleMesh;
+        if (texturedShader) delete texturedShader;
         if (healthFrameMaterial) {
             if (healthFrameMaterial->texture) delete healthFrameMaterial->texture;
             delete healthFrameMaterial;
@@ -219,7 +206,6 @@ namespace gameplay {
             delete healthFillMaterial;
         }
 
-        if (texturedShader) delete texturedShader;
         if (weaponMaterial) {
             if (weaponMaterial->texture) delete weaponMaterial->texture;
             delete weaponMaterial;
