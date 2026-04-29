@@ -51,7 +51,7 @@ uniform float bloomThreshold;
 uniform float bloomSoftKnee;
 
 // Lights
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 24
 
 #define LIGHT_DIRECTIONAL 0
 #define LIGHT_POINT       1
