@@ -52,6 +52,11 @@ namespace gameplay {
                     (playerComp->currentActiveWeaponIndex - 1 + weapons.size()) % weapons.size();
             }
 
+            our::Joystick& joystick = app->getJoystick();
+            if (joystick.justPressed(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER)) {
+                playerComp->currentActiveWeaponIndex = (playerComp->currentActiveWeaponIndex + 1) % weapons.size();
+            }
+
             weapons[currentIndex]->isActive = false;
             weapons[playerComp->currentActiveWeaponIndex]->isActive = true;
 

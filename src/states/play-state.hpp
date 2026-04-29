@@ -149,6 +149,7 @@ public:
     void onDraw(double deltaTime) override {
         float dt = static_cast<float>(deltaTime);
         our::Keyboard& keyboard = getApp()->getKeyboard();
+        our::Joystick& joystick = getApp()->getJoystick();
 
         if (waitFirstFrame) {
             waitFirstFrame = false;
@@ -158,7 +159,7 @@ public:
 
         if (overlay.handleActiveFrame(deltaTime)) return;
 
-        if (keyboard.justPressed(GLFW_KEY_ESCAPE)) {
+        if (keyboard.justPressed(GLFW_KEY_ESCAPE) || joystick.justPressed(GLFW_GAMEPAD_BUTTON_START)) {
             overlay.openPause();
             overlay.renderCurrent(deltaTime);
             return;

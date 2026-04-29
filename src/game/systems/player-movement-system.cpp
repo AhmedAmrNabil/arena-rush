@@ -210,7 +210,9 @@ namespace gameplay {
             moveDir -= joystickMoveDir;
         }
 
-        movement->isSprinting = keyboard.isPressed(GLFW_KEY_LEFT_SHIFT) && !movement->isSliding;
+        bool sprintPressed =
+            keyboard.isPressed(GLFW_KEY_LEFT_SHIFT) || joystick.isPressed(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER);
+        movement->isSprinting = sprintPressed && !movement->isSliding;
 
         float sprintSpeed = movement->walkSpeed * movement->sprintMultiplier;
         float slideStartSpeed = sprintSpeed * movement->slideSpeedMultiplier;

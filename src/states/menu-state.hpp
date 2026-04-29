@@ -67,9 +67,10 @@ public:
 
     void onDraw(double deltaTime) override {
         auto& keyboard = getApp()->getKeyboard();
-        if (keyboard.justPressed(GLFW_KEY_SPACE))
+        auto& joystick = getApp()->getJoystick();
+        if (keyboard.justPressed(GLFW_KEY_SPACE) || joystick.justPressed(GLFW_GAMEPAD_BUTTON_A))
             getApp()->changeState("loading-play");
-        else if (keyboard.justPressed(GLFW_KEY_ESCAPE))
+        else if (keyboard.justPressed(GLFW_KEY_ESCAPE) || joystick.justPressed(GLFW_GAMEPAD_BUTTON_B))
             getApp()->close();
 
         glm::ivec2 size = getApp()->getFrameBufferSize();
