@@ -70,8 +70,9 @@ namespace gameplay {
             float actualDashDistance = movement->dashDistance;
             if (collisionSystem) {
                 Ray dashRay{playerPosition - glm::vec3(0, movement->playerHeight / 2.0f, 0), dashDirection};
-                HitInfo hit = collisionSystem->raycast(dashRay, movement->dashDistance, CollisionLayer::LAYER_ENVIRONMENT);
-                
+                HitInfo hit =
+                    collisionSystem->raycast(dashRay, movement->dashDistance, CollisionLayer::LAYER_ENVIRONMENT);
+
                 if (hit.hit) {
                     actualDashDistance = glm::max(0.0f, hit.distance - 0.5f);
                 }
