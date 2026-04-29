@@ -148,6 +148,7 @@
             "models": {
                 "drone": "assets/gltf/drone/arcade_corki.glb",
                 "monster": "assets/gltf/monster/drmundo.glb",
+                "charger": "assets/gltf/enemies/shaco.glb",
                 "map": "assets/gltf/map/map.glb",
                 "rifle": "assets/gltf/weapons/rifle.glb",
                 "deagle": "assets/gltf/weapons/deagle.glb"
@@ -214,6 +215,35 @@
                                 "layer": "enemy",
                                 "shape": "Model",
                                 "model": "monster"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Charger",
+                        "model": "charger",
+                        "rotation": [0.0, 0.0, 0.0],
+                        "scale": [0.015, 0.015, 0.015],
+                        "components": [
+                            {
+                                "type": "Enemy",
+                                "enemyType": "Brute",
+                                "moveSpeed": 7.0,
+                                "turnSpeed": 4.0,
+                                "aggroRange": 120.0,
+                                "attackRange": 1.8,
+                                "attackDamage": 5.0,
+                                "attackCooldown": 0.15,
+                                "scoreValue": 75
+                            },
+                            {
+                                "type": "Health",
+                                "maxHealth": 35.0
+                            },
+                            {
+                                "type": "Collider",
+                                "layer": "enemy",
+                                "shape": "Model",
+                                "model": "charger"
                             }
                         ]
                     },
