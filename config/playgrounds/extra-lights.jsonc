@@ -14,7 +14,7 @@
             "postprocess": {
                 "fs": "assets/shaders/postprocess/dash-distortion.frag",
                 "uniforms": {
-                    "exposure": 1.0
+                    "exposure": 5
                 }
             },
             "bloom": {
@@ -65,6 +65,10 @@
                 "lit": {
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/lit.frag"
+                },
+                "pbr": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/pbr.frag"
                 }
             },
             "textures": {
