@@ -18,7 +18,7 @@ namespace gameplay {
         progressShader->attach("assets/shaders/progress.frag", GL_FRAGMENT_SHADER);
         progressShader->link();
 
-        our::ShaderProgram* texturedShader = new our::ShaderProgram();
+        texturedShader = new our::ShaderProgram();
         texturedShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
         texturedShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
         texturedShader->link();
@@ -195,6 +195,8 @@ namespace gameplay {
 
     void PlayerHUDSystem::destroy() {
         if (progressShader) delete progressShader;
+        if (rectangleMesh) delete rectangleMesh;
+        if (texturedShader) delete texturedShader;
         if (healthFrameMaterial) {
             if (healthFrameMaterial->texture) delete healthFrameMaterial->texture;
             delete healthFrameMaterial;
