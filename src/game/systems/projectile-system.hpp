@@ -76,12 +76,11 @@ namespace gameplay {
         }
 
         static bool fire(our::World* world, our::Application* app, our::Entity* shooter, const glm::vec3& aim,
-                         CollisionLayer shooterLayer) {
+                         CollisionLayer shooterLayer, WeaponComponent* weaponOverride = nullptr) {
             if (!world || !app || !shooter) return false;
 
-            WeaponComponent* weapon = shooter->getComponent<WeaponComponent>();
-            if (!weapon || weapon->timer > 0.0f) return false;
-            if (glm::dot(aim, aim) <= 0.000001f) return false;
+            WeaponComponent* weapon = weaponOverride ? weaponOverride : shooter->getComponent<WeaponComponent>();
+            if (!weapon || weapon->timer > 0.0f || glm::dot(aim, aim) <= 0.000001f) return false;
 
             glm::vec3 direction = glm::normalize(aim);
             glm::vec3 origin = glm::vec3(shooter->getLocalToWorldMatrix() * glm::vec4(weapon->muzzleOffset, 1.0f));
@@ -156,7 +155,7 @@ namespace gameplay {
             glm::vec3 aimVector = aimPoint - muzzleOrigin;
             if (glm::dot(aimVector, aimVector) <= 0.000001f) aimVector = forward;
 
-            bool fired = fire(world, app, weapon->getOwner(), aimVector, CollisionLayer::LAYER_PLAYER);
+            bool fired = fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER, weapon);
             if (fired) weapon->currentAmmo = std::max(0, weapon->currentAmmo - 1);
             return fired;
         }
