@@ -376,3 +376,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 endif()
+
+if(WIN32)
+    target_sources(${PROJECT_NAME} PRIVATE ArenaRush.rc)
+endif()
