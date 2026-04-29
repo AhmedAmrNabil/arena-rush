@@ -65,7 +65,19 @@ namespace gameplay {
                 // dash along moving direction if not stationary
                 dashDirection = glm::normalize(movement->velocity);
             }
-            playerPosition += dashDirection * movement->dashDistance;
+
+            // Raycast to prevent tunneling through walls
+            float actualDashDistance = movement->dashDistance;
+            if (collisionSystem) {
+                Ray dashRay{playerPosition - glm::vec3(0, movement->playerHeight / 2.0f, 0), dashDirection};
+                HitInfo hit = collisionSystem->raycast(dashRay, movement->dashDistance, CollisionLayer::LAYER_ENVIRONMENT);
+                
+                if (hit.hit) {
+                    actualDashDistance = glm::max(0.0f, hit.distance - 0.5f);
+                }
+            }
+
+            playerPosition += dashDirection * actualDashDistance;
             movement->dashCooldownTimer = movement->dashCooldown;
             movement->dashTriggeredThisFrame = true;
         }
