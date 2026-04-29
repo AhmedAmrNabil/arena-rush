@@ -246,43 +246,9 @@ namespace our {
         aiString matName;
         mat->Get(AI_MATKEY_NAME, matName);
 
-        // Check shading mode first — drives shader selection
-        // print shading mode string
-        std::string shadingModeStr = "not specified";
+        // Check shading mode first
         int shadingMode = 0;
-        if (AI_SUCCESS == mat->Get(AI_MATKEY_SHADING_MODEL, shadingMode)) {
-            switch (shadingMode) {
-                case aiShadingMode_Flat:
-                    shadingModeStr = "Flat";
-                    break;
-                case aiShadingMode_Gouraud:
-                    shadingModeStr = "Gouraud";
-                    break;
-                case aiShadingMode_Phong:
-                    shadingModeStr = "Phong";
-                    break;
-                case aiShadingMode_Blinn:
-                    shadingModeStr = "Blinn";
-                    break;
-                case aiShadingMode_CookTorrance:
-                    shadingModeStr = "Cook-Torrance";
-                    break;
-                case aiShadingMode_NoShading:
-                    shadingModeStr = "No Shading";
-                    break;
-                case aiShadingMode_Fresnel:
-                    shadingModeStr = "Fresnel";
-                    break;
-                case aiShadingMode_PBR_BRDF:
-                    shadingModeStr = "PBR BRDF";
-                    break;
-                default:
-                    shadingModeStr = "Unknown";
-            }
-        }
-
-        std::cout << "Processing material: " << matName.C_Str() << " (Shading mode: " << shadingModeStr << ")\n";
-
+        mat->Get(AI_MATKEY_SHADING_MODEL, shadingMode);
         material->shader = AssetLoader<ShaderProgram>::get(
             (shadingMode == aiShadingMode_PBR_BRDF || shadingMode == aiShadingMode_CookTorrance) ? "pbr" : "lit");
         if (!material->shader) {
