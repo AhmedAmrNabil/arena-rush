@@ -54,7 +54,7 @@
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/lit.frag"
                 },
-                "pbr":{
+                "pbr": {
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/pbr.frag"
                 }
@@ -75,7 +75,8 @@
             "sounds": {
                 "gunshot-player": "assets/sounds/gun_shot.wav",
                 "gunshot-enemy": "assets/sounds/drone_gun_shot.wav",
-                "reload": "assets/sounds/gun_reload.wav"
+                "reload": "assets/sounds/gun_reload.wav",
+                "deagle-shot": "assets/sounds/deagle.wav"
             },
             "samplers": {
                 "default": {},
@@ -148,7 +149,8 @@
                 "drone": "assets/gltf/drone/arcade_corki.glb",
                 "monster": "assets/gltf/monster/drmundo.glb",
                 "map": "assets/gltf/map/map.glb",
-                "gun": "assets/gltf/weapons/rifle.glb"
+                "rifle": "assets/gltf/weapons/rifle.glb",
+                "deagle": "assets/gltf/weapons/deagle.glb"
             }
         },
         "game": {
@@ -177,10 +179,10 @@
                     [-55.248, 2.483, -9.798],
                     [38.642, 0.467, -37.656],
                     [-1.527, 0.144, 5.357],
-                    [-20.244, 2.600, -26.874],
+                    [-20.244, 2.6, -26.874],
                     [-18.147, 0.136, -9.077],
                     [-37.834, 1.253, 31.636],
-                    [-47.990, 4.171, 9.926]
+                    [-47.99, 4.171, 9.926]
                 ],
                 "spawnInterval": 2.0,
                 "initialSpawnCount": 4,
@@ -254,7 +256,8 @@
                                 "bulletLifetime": 4.0,
                                 "bulletScale": 0.2,
                                 "muzzleOffset": [0.0, 0.0, -0.8],
-                                "fireSound": "gunshot-enemy"
+                                "fireSound": "gunshot-enemy",
+                                "isActive": true
                             }
                         ]
                     }
@@ -296,8 +299,7 @@
                     },
                     {
                         "type": "Player",
-                        "currentAmmo": 30,
-                        "maxAmmo": 120
+                        "currentActiveWeaponIndex": 0
                     },
                     {
                         "type": "Health",
@@ -312,23 +314,6 @@
                         "shape": "Capsule"
                     },
                     {
-                        "type": "Weapon",
-                        "cooldown": 0.18,
-                        "bulletSpeed": 100.0,
-                        "bulletDamage": 20.0,
-                        "bulletLifetime": 2.5,
-                        "bulletScale": 0.09,
-                        "muzzleOffset": [0.45, -0.45, -2.0],
-                        "fireSound": "gunshot-player",
-                        "reloadSound": "reload",
-                        "reloadTime": 1.0,
-                        "trailEnabled": true,
-                        "trailMaxSegments": 8,
-                        "trailSegmentLifetime": 0.08,
-                        "trailHeadScale": 0.1,
-                        "trailTailScale": 0.012
-                    },
-                    {
                         "type": "Post Process Effects Component"
                     }
                 ],
@@ -337,11 +322,31 @@
                         "position": [1, -1, -2],
                         "rotation": [0, 0, 0],
                         "scale": [0.3, 0.3, 0.3],
+                        "name": "rifle",
                         "components": [
                             {
                                 "type": "Model Renderer",
-                                "model": "gun",
+                                "model": "rifle",
                                 "firstPersonOverlay": true
+                            },
+                            {
+                                "type": "Weapon",
+                                "cooldown": 0.1,
+                                "bulletSpeed": 100.0,
+                                "bulletDamage": 20.0,
+                                "bulletLifetime": 2.5,
+                                "bulletScale": 0.12,
+                                "fireSound": "gunshot-player",
+                                "reloadSound": "reload",
+                                "reloadTime": 1.0,
+                                "automatic": true,
+                                "magSize": 30,
+                                "maxAmmo": 120,
+                                "trailEnabled": true,
+                                "trailMaxSegments": 8,
+                                "trailSegmentLifetime": 0.08,
+                                "trailHeadScale": 0.1,
+                                "trailTailScale": 0.012
                             }
                         ],
                         "children": [
@@ -356,6 +361,38 @@
                                         "spotAngles": [15, 20]
                                     }
                                 ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "deagle",
+                        "position": [1, -0.3, -2],
+                        "rotation": [0, 0, 0],
+                        "scale": [3, 3, 3],
+                        "components": [
+                            {
+                                "type": "Model Renderer",
+                                "model": "deagle",
+                                "firstPersonOverlay": true
+                            },
+                            {
+                                "type": "Weapon",
+                                "cooldown": 0.35,
+                                "bulletSpeed": 120.0,
+                                "bulletDamage": 50.0,
+                                "bulletLifetime": 3.0,
+                                "bulletScale": 0.15,
+                                "fireSound": "deagle-shot",
+                                "reloadSound": "reload",
+                                "reloadTime": 1.5,
+                                "automatic": false,
+                                "magSize": 8,
+                                "maxAmmo": 64,
+                                "trailEnabled": true,
+                                "trailMaxSegments": 8,
+                                "trailSegmentLifetime": 0.08,
+                                "trailHeadScale": 0.1,
+                                "trailTailScale": 0.012
                             }
                         ]
                     }

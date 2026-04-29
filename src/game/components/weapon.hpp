@@ -16,6 +16,11 @@ namespace gameplay {
         float bulletScale = 0.15f;
         float bulletColliderRadius = 0.15f;
         float reloadTime = 1.0f;
+        bool automatic = false;
+        int currentAmmo = 30;
+        int magSize = 30;
+        int maxAmmo = 120;
+        bool isActive = false;  // Whether this weapon is currently active (held by the player)
 
         // Trail effect
         bool trailEnabled = true;

@@ -18,6 +18,7 @@ namespace gameplay {
         our::Entity* cameraEntity = nullptr;
         our::Transform baseWeaponTransform{};
         bool hasBaseWeaponTransform = false;
+        our::Entity* playerEntity = nullptr;
 
         glm::vec3 recoilPosition = glm::vec3(0.0f);
         glm::vec3 recoilPositionVelocity = glm::vec3(0.0f);
@@ -48,12 +49,11 @@ namespace gameplay {
             return std::sin(glm::pi<float>() * x);
         }
 
-        static our::Entity* findWeaponEntity(our::World* world) {
-            for (our::Entity* entity : world->getEntities()) {
-                our::ModelRendererComponent* renderer = entity->getComponent<our::ModelRendererComponent>();
-                if (renderer && renderer->firstPersonOverlay) return entity;
-            }
-            return nullptr;
+        our::Entity* findWeaponEntity() {
+            if (!playerEntity) return nullptr;
+            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            if (!playerComp || !playerComp->currentWeapon) return nullptr;
+            return playerComp->currentWeapon->getOwner();
         }
 
         static our::Entity* findCameraEntity(our::World* world) {
@@ -63,10 +63,14 @@ namespace gameplay {
         }
 
     public:
+        void initlize(our::Entity* playerEntity, our::Entity* cameraEntity) {
+            this->playerEntity = playerEntity;
+            this->cameraEntity = cameraEntity;
+        }
+
         void destroy() {
             if (cameraEntity && glm::dot(appliedCameraRecoilRotation, appliedCameraRecoilRotation) > 0.0f)
                 cameraEntity->localTransform.rotation -= appliedCameraRecoilRotation;
-
             weaponEntity = nullptr;
             cameraEntity = nullptr;
             hasBaseWeaponTransform = false;
@@ -118,7 +122,7 @@ namespace gameplay {
             if (!world || deltaTime <= 0.0f) return;
             deltaTime = glm::min(deltaTime, 0.05f);
 
-            our::Entity* foundWeaponEntity = findWeaponEntity(world);
+            our::Entity* foundWeaponEntity = findWeaponEntity();
             if (foundWeaponEntity != weaponEntity) {
                 weaponEntity = foundWeaponEntity;
                 hasBaseWeaponTransform = false;
@@ -128,8 +132,6 @@ namespace gameplay {
                 baseWeaponTransform = weaponEntity->localTransform;
                 hasBaseWeaponTransform = true;
             }
-
-            cameraEntity = findCameraEntity(world);
 
             integrateSpring(recoilPosition, recoilPositionVelocity, 95.0f, 17.0f, deltaTime);
             integrateSpring(recoilRotation, recoilRotationVelocity, 110.0f, 19.0f, deltaTime);

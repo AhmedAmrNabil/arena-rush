@@ -22,6 +22,7 @@
 #include <systems/projectile-system.hpp>
 #include <systems/trail-system.hpp>
 #include <systems/ui-renderer.hpp>
+#include <systems/weapon-switcher-system.hpp>
 #include <systems/weapon-visual-system.hpp>
 #include <ui/play-overlay.hpp>
 
@@ -51,6 +52,7 @@ class Playstate : public our::State {
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
     gameplay::PlayerHUDSystem playerHud;
+    gameplay::WeaponSwitcherSystem weaponSwitcher;
 
     void displayFPS() const {
         ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
@@ -120,6 +122,7 @@ public:
         enemyHealthBars.deserialize(config);
         crosshair.deserialize(config);
         overlayStats = {};
+        weaponSwitcher.initialize(&world, playerEntity);
     }
 
     void onDraw(double deltaTime) override {
@@ -159,6 +162,9 @@ public:
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
+
+        // handle weapon swtiching
+        weaponSwitcher.update(getApp());
 
         bool reloadStarted = gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
         if (reloadStarted) {
@@ -224,6 +230,7 @@ public:
         textRenderer.destroy();
         playerHud.destroy();
         weaponVisuals.destroy();
+        weaponSwitcher.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         getApp()->getAudioSystem().stopAll();

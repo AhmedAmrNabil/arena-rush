@@ -21,6 +21,12 @@ namespace gameplay {
         fireSound = data.value("fireSound", fireSound);
         reloadSound = data.value("reloadSound", reloadSound);
         reloadTime = data.value("reloadTime", reloadTime);
+        automatic = data.value("automatic", automatic);
+        magSize = data.value("magSize", magSize);
+        maxAmmo = data.value("maxAmmo", maxAmmo);
+        currentAmmo = data.value("currentAmmo", currentAmmo);
+        isActive = data.value("isActive", isActive);
+        if (currentAmmo > magSize) currentAmmo = magSize;  // ensure current ammo does not exceed mag size
     }
 
 }  // namespace gameplay

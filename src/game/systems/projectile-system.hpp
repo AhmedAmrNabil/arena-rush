@@ -104,19 +104,18 @@ namespace gameplay {
         static bool handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
             if (!app || !playerEntity) return false;
 
-            WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            WeaponComponent* weapon = playerComp->currentWeapon;
             if (!weapon || !playerComp) return false;
             if (weapon->timer > 0.0f) return false;  // still in cooldown / already reloading
 
-            bool wantsReload =
-                app->getKeyboard().justPressed(GLFW_KEY_R) && playerComp->currentAmmo < playerComp->magSize;
-            bool needsAutoReload = playerComp->currentAmmo <= 0;
+            bool wantsReload = app->getKeyboard().justPressed(GLFW_KEY_R) && weapon->currentAmmo < weapon->magSize;
+            bool needsAutoReload = weapon->currentAmmo <= 0;
 
-            if ((wantsReload || needsAutoReload) && playerComp->maxAmmo > 0) {
-                int reloadAmt = std::min(playerComp->magSize - playerComp->currentAmmo, playerComp->maxAmmo);
-                playerComp->currentAmmo += reloadAmt;
-                playerComp->maxAmmo -= reloadAmt;
+            if ((wantsReload || needsAutoReload) && weapon->maxAmmo > 0) {
+                int reloadAmt = std::min(weapon->magSize - weapon->currentAmmo, weapon->maxAmmo);
+                weapon->currentAmmo += reloadAmt;
+                weapon->maxAmmo -= reloadAmt;
                 weapon->timer = weapon->reloadTime;
 
                 if (!weapon->reloadSound.empty())
@@ -130,7 +129,18 @@ namespace gameplay {
         static bool handlePlayerFire(our::World* world, our::Application* app, const CollisionSystem& collisions,
                                      our::Entity* playerEntity) {
             if (!world || !app || !playerEntity) return false;
-            if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+
+            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            if (!playerComp) return false;
+
+            WeaponComponent* weapon = playerComp->currentWeapon;
+            if (!weapon) return false;
+
+            if (weapon->automatic) {
+                if (!app->getMouse().isPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+            } else {
+                if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+            }
 
             glm::mat4 playerM = playerEntity->getLocalToWorldMatrix();
             glm::vec3 cameraPos = glm::vec3(playerM[3]);
@@ -141,19 +151,13 @@ namespace gameplay {
                                                 CollisionLayer::LAYER_ENVIRONMENT | CollisionLayer::LAYER_ENEMY);
             glm::vec3 aimPoint = aimHit.hit ? aimHit.point : (cameraPos + forward * aimDistance);
 
-            WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             glm::vec3 muzzleOrigin =
                 glm::vec3(playerM * glm::vec4(weapon ? weapon->muzzleOffset : glm::vec3(0.0f), 1.0f));
             glm::vec3 aimVector = aimPoint - muzzleOrigin;
             if (glm::dot(aimVector, aimVector) <= 0.000001f) aimVector = forward;
 
-            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
-            if (playerComp && playerComp->currentAmmo <= 0) return false;
-
-            bool fired = fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER);
-            if (fired && playerComp) {
-                playerComp->currentAmmo--;
-            }
+            bool fired = fire(world, app, weapon->getOwner(), aimVector, CollisionLayer::LAYER_PLAYER);
+            if (fired) weapon->currentAmmo = std::max(0, weapon->currentAmmo - 1);
             return fired;
         }
 
