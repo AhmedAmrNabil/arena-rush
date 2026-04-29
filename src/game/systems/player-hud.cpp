@@ -25,7 +25,7 @@ namespace gameplay {
 
         healthFrameMaterial = new our::TexturedMaterial();
         healthFrameMaterial->shader = texturedShader;
-        healthFrameMaterial->texture = our::texture_utils::loadImage(healthFramePath, true);
+        healthFrameMaterial->texture = our::texture_utils::loadImage(healthFramePath, false, true);
         if (healthFrameMaterial->texture) {
             healthFrameMaterial->texture->bind();
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -41,7 +41,7 @@ namespace gameplay {
 
         healthFillMaterial = new our::TexturedMaterial();
         healthFillMaterial->shader = progressShader;
-        healthFillMaterial->texture = our::texture_utils::loadImage(healthFillPath, true);
+        healthFillMaterial->texture = our::texture_utils::loadImage(healthFillPath, false, true);
         if (healthFillMaterial->texture) {
             healthFillMaterial->texture->bind();
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -57,7 +57,7 @@ namespace gameplay {
 
         weaponMaterial = new our::TexturedMaterial();
         weaponMaterial->shader = texturedShader;
-        weaponMaterial->texture = our::texture_utils::loadImage(weaponIconPath, false);
+        weaponMaterial->texture = our::texture_utils::loadImage(weaponIconPath, false, false);
         weaponMaterial->tint = glm::vec4(1.0f);
         weaponMaterial->pipelineState.depthTesting.enabled = false;
         weaponMaterial->pipelineState.faceCulling.enabled = false;

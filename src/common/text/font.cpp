@@ -53,7 +53,7 @@ namespace our {
             }
         }
 
-        textureAtlas = our::texture_utils::loadImage(texturePath, false);
+        textureAtlas = our::texture_utils::loadImage(texturePath, false, false);
         return textureAtlas != nullptr;
     }
 
