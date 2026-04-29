@@ -207,7 +207,6 @@ public:
             gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
             if (health)
                 health->currentHealth = std::min(health->currentHealth + healthResult.healthReward, health->maxHealth);
-            // TODO: should be adjusted
             if (player) player->maxAmmo = std::min(player->maxAmmo + healthResult.ammoReward, 999);
         }
 
@@ -226,7 +225,7 @@ public:
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
-        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer);
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;

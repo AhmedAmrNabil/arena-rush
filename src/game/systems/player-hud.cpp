@@ -97,7 +97,7 @@ namespace gameplay {
     }
 
     void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
-                                 our::TextRenderer* textRenderer) {
+                                 our::TextRenderer* textRenderer, const EnemySpawner& spawner) {
         if (!playerEntity) return;
 
         HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
@@ -196,6 +196,64 @@ namespace gameplay {
             textRenderer->drawText(&testFont, ammoText, br, windowSize, sTextScale, orthoVP, outlineColor);
 
             textRenderer->drawText(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP, ammoColor);
+        }
+
+        // wave HUD
+        glm::vec4 waveColor = glm::vec4(1.0f, 0.86f, 0.39f, 1.0f);
+        if (textRenderer) {
+            float uiScale = windowSize.y / 720.0f;
+            glm::mat4 orthoVP = glm::ortho(0.0f, (float)windowSize.x, (float)windowSize.y, 0.0f, 1.0f, -1.0f);
+
+            glm::vec4 black(glm::vec3(0.0f), 1.0f);
+
+            float spread = outlineSpread * uiScale;
+            if (spawner.getWaveState() == EnemySpawner::WaveState::Countdown) {
+                // big centered "Wave X" + countdown number
+                std::string waveText = "Wave " + std::to_string(spawner.getWaveDisplayNumber());
+                float bigScale = waveBigTextScale * uiScale;
+                our::UIRect bigRect;
+                bigRect.anchor = {0.5f, 0.5f};
+                bigRect.pivot = {0.5f, 0.5f};
+                bigRect.offset = {0.0f, -40.0f * uiScale};
+                bigRect.size = {0.0f, 0.0f};
+                // outline
+                for (auto off : std::vector<glm::vec2>{
+                         {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
+                    our::UIRect o = bigRect;
+                    o.offset += off;
+                    textRenderer->drawText(&testFont, waveText, o, windowSize, bigScale, orthoVP, black);
+                }
+                textRenderer->drawText(&testFont, waveText, bigRect, windowSize, bigScale, orthoVP, waveColor);
+                // countdown
+                int ct = std::max(1, (int)std::ceil(spawner.getCountdownTimer()));
+                std::string cdText = std::to_string(ct);
+                our::UIRect cdRect = bigRect;
+                cdRect.offset.y += 50.0f * uiScale;
+                for (auto off : std::vector<glm::vec2>{
+                         {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
+                    our::UIRect o = cdRect;
+                    o.offset += off;
+                    textRenderer->drawText(&testFont, cdText, o, windowSize, bigScale, orthoVP, black);
+                }
+                textRenderer->drawText(&testFont, cdText, cdRect, windowSize, bigScale, orthoVP, waveWhite);
+            } else {
+                // small top-center "Wave X  |  Enemies: N"
+                std::string info = "Wave " + std::to_string(spawner.getWaveDisplayNumber()) +
+                                   "   Enemies: " + std::to_string(spawner.getEnemiesRemaining(world));
+                float smallScale = waveTextScale * uiScale;
+                our::UIRect infoRect;
+                infoRect.anchor = {0.5f, 0.0f};
+                infoRect.pivot = {0.5f, 0.0f};
+                infoRect.offset = {0.0f, 20.0f * uiScale};
+                infoRect.size = {0.0f, 0.0f};
+                for (auto off : std::vector<glm::vec2>{
+                         {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
+                    our::UIRect o = infoRect;
+                    o.offset += off;
+                    textRenderer->drawText(&testFont, info, o, windowSize, smallScale, orthoVP, black);
+                }
+                textRenderer->drawText(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor);
+            }
         }
     }
 

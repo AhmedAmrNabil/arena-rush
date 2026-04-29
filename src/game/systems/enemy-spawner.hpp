@@ -55,7 +55,7 @@ namespace gameplay {
 
     class EnemySpawner {
     public:
-        enum class WaveState { Countdown, Active, Completed };
+        enum class WaveState { Countdown, Active };
 
     private:
         EnemySpawnConfig config;
@@ -237,36 +237,34 @@ namespace gameplay {
                 return false;
             }
 
-            if (waveState == WaveState::Active) {
-                if (enemiesToSpawn > 0) {
-                    spawnTimer -= dt;
-                    if (spawnTimer <= 0.0f && countAliveEnemies(world) < wave.maxAliveEnemies) {
-                        int idx = spawnQueue[spawnQueueIndex];
-                        idx = std::min(idx, (int)config.enemies.size() - 1);
-                        spawnEnemyAt(world, config.enemies[idx], config.spawnPoints[nextSpawnPoint], wave);
+            // Case Active
+            // If there are still enemies to spawn, spawn them according to the timer and maxAliveEnemies limit
+            if (enemiesToSpawn > 0) {
+                spawnTimer -= dt;
+                if (spawnTimer <= 0.0f && countAliveEnemies(world) < wave.maxAliveEnemies) {
+                    int idx = spawnQueue[spawnQueueIndex];
+                    idx = std::min(idx, (int)config.enemies.size() - 1);
+                    spawnEnemyAt(world, config.enemies[idx], config.spawnPoints[nextSpawnPoint], wave);
 
-                        nextSpawnPoint = (nextSpawnPoint + 1) % config.spawnPoints.size();
-                        spawnQueueIndex++;
-                        enemiesToSpawn--;
-                        enemiesSpawned++;
-                        spawnTimer = wave.spawnInterval;
-                    }
+                    nextSpawnPoint = (nextSpawnPoint + 1) % config.spawnPoints.size();
+                    spawnQueueIndex++;
+                    enemiesToSpawn--;
+                    enemiesSpawned++;
+                    spawnTimer = wave.spawnInterval;
                 }
-
-                if (enemiesToSpawn <= 0 && countAliveEnemies(world) == 0) {
-                    waveState = WaveState::Completed;
-                    waveJustCompleted = true;
-
-                    // go next wave
-                    currentWave++;
-                    waveDisplayNumber++;
-                    countdownTimer = 4.0f;  // countdown to next wave
-                    waveState = WaveState::Countdown;
-                }
-                return waveJustCompleted;
             }
 
-            return false;
+            // no more enemies to spawn and no more alive enemies means wave completed
+            if (enemiesToSpawn <= 0 && countAliveEnemies(world) == 0) {
+                waveJustCompleted = true;
+
+                // go next wave
+                currentWave++;
+                waveDisplayNumber++;
+                countdownTimer = 4.0f;  // countdown to next wave
+                waveState = WaveState::Countdown;
+            }
+            return waveJustCompleted;
         }
 
         // for HUD
