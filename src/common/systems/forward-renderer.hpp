@@ -47,12 +47,19 @@ namespace our {
         // Objects used for Postprocessing
         GLuint postProcessVertexArray = 0;
         Framebuffer* postprocessFrameBuffer = nullptr;
+        GLuint postprocessMsaaFrameBuffer = 0;
+        GLuint postprocessMsaaColor = 0;
+        GLuint postprocessMsaaDepth = 0;
+        int postprocessMsaaSamples = 0;
         std::unordered_map<std::string, float> postprocessUniforms;
         TexturedMaterial* postprocessMaterial = nullptr;
         BloomPostProcess* bloom = nullptr;
         std::vector<LightRenderData> sceneLights;
         static constexpr GLuint bonesBindingPoint = 0;
         UniformBuffer* bonesUniformBuffer = nullptr;
+
+        void setupPostprocessMsaa(glm::ivec2 size, bool hdr);
+        void destroyPostprocessMsaa();
 
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.

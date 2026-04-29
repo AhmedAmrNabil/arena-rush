@@ -10,6 +10,48 @@
 
 namespace our {
 
+    void ForwardRenderer::setupPostprocessMsaa(glm::ivec2 size, bool hdr) {
+        if (postprocessMsaaSamples <= 1) {
+            destroyPostprocessMsaa();
+            return;
+        }
+
+        if (postprocessMsaaFrameBuffer == 0) glGenFramebuffers(1, &postprocessMsaaFrameBuffer);
+        if (postprocessMsaaColor == 0) glGenTextures(1, &postprocessMsaaColor);
+        if (postprocessMsaaDepth == 0) glGenRenderbuffers(1, &postprocessMsaaDepth);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, postprocessMsaaFrameBuffer);
+
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, postprocessMsaaColor);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, postprocessMsaaSamples, hdr ? GL_RGBA16F : GL_RGBA8, size.x,
+                                size.y, GL_TRUE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, postprocessMsaaColor,
+                               0);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, postprocessMsaaDepth);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, postprocessMsaaSamples, GL_DEPTH_COMPONENT24, size.x, size.y);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, postprocessMsaaDepth);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    void ForwardRenderer::destroyPostprocessMsaa() {
+        if (postprocessMsaaFrameBuffer != 0) {
+            glDeleteFramebuffers(1, &postprocessMsaaFrameBuffer);
+            postprocessMsaaFrameBuffer = 0;
+        }
+        if (postprocessMsaaColor != 0) {
+            glDeleteTextures(1, &postprocessMsaaColor);
+            postprocessMsaaColor = 0;
+        }
+        if (postprocessMsaaDepth != 0) {
+            glDeleteRenderbuffers(1, &postprocessMsaaDepth);
+            postprocessMsaaDepth = 0;
+        }
+    }
+
     void ForwardRenderer::initialize(glm::ivec2 windowSize, const nlohmann::json& config) {
         // First, we store the window size for later use
         this->windowSize = windowSize;
@@ -89,6 +131,9 @@ namespace our {
             postprocessFrameBuffer = new Framebuffer();
             postprocessFrameBuffer->resize(windowSize, true);
 
+            postprocessMsaaSamples = config["postprocess"].value("msaaSamples", 4);
+            setupPostprocessMsaa(windowSize, true);
+
             // Create a vertex array to use for drawing the texture
             ensureFullscreenVertexArray();
 
@@ -142,6 +187,7 @@ namespace our {
 
         // Delete all objects related to post processing
         if (postprocessMaterial) {
+            destroyPostprocessMsaa();
             delete postprocessFrameBuffer;
             delete postprocessMaterial->sampler;
             delete postprocessMaterial->shader;
@@ -166,6 +212,7 @@ namespace our {
         if (this->windowSize != windowSize) {
             this->windowSize = windowSize;
             if (postprocessFrameBuffer) postprocessFrameBuffer->resize(windowSize, true);
+            if (postprocessFrameBuffer) setupPostprocessMsaa(windowSize, true);
             if (bloom) bloom->resize(windowSize);
         }
 
@@ -277,7 +324,11 @@ namespace our {
         if (bloom) {
             bloom->bindSceneFramebuffer();
         } else if (postprocessMaterial) {
-            postprocessFrameBuffer->bind();
+            if (postprocessMsaaSamples > 1 && postprocessMsaaFrameBuffer != 0) {
+                glBindFramebuffer(GL_FRAMEBUFFER, postprocessMsaaFrameBuffer);
+            } else {
+                postprocessFrameBuffer->bind();
+            }
         } else {
             Framebuffer::unbind();
         }
@@ -353,6 +404,14 @@ namespace our {
         // render weapon
         for (const RenderCommand& command : weaponCommands) {
             renderCommand(command);
+        }
+
+        if (postprocessMaterial && !bloom && postprocessMsaaSamples > 1 && postprocessMsaaFrameBuffer != 0) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, postprocessMsaaFrameBuffer);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, postprocessFrameBuffer->frameBuffer);
+            glBlitFramebuffer(0, 0, windowSize.x, windowSize.y, 0, 0, windowSize.x, windowSize.y, GL_COLOR_BUFFER_BIT,
+                              GL_NEAREST);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
         if (bloom) {
