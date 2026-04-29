@@ -12,7 +12,7 @@ in Varyings {
 
 out vec4 frag_color;
 
-// ── Material ─────────────────────────────────────────────────────────
+// Material
 struct Material {
     // factors (used when no texture)
     vec3 albedo;
@@ -39,12 +39,15 @@ struct Material {
 
     sampler2D textureEmissive;
     bool hasTextureEmissive;
+
+    sampler2D textureMetalnessRoughness;
+    bool hasMetalnessRoughness;
 };
 uniform Material material;
 uniform float alphaThreshold;
 uniform vec4 tint;
 
-// ── Lights ────────────────────────────────────────────────────────────
+// Lights
 #define MAX_LIGHTS 8
 
 #define LIGHT_DIRECTIONAL 0
@@ -64,9 +67,7 @@ uniform int numLights;
 
 uniform vec3 cameraPos;
 
-// ── Texture helpers ───────────────────────────────────────────────────
-// Albedo and emissive are sRGB → decode to linear with pow(x, 2.2).
-// All other maps (metallic, roughness, AO, normal) are linear data — no decode.
+// Texture helpers
 
 vec3 sampleAlbedo(vec2 uv) {
     vec3 base = material.hasTextureAlbedo ? pow(texture(material.textureAlbedo, uv).rgb, vec3(2.2)) : vec3(1.0);
@@ -74,11 +75,22 @@ vec3 sampleAlbedo(vec2 uv) {
 }
 
 float sampleMetallic(vec2 uv) {
-    return material.hasTextureMetallic ? texture(material.textureMetallic, uv).r * material.metallic : material.metallic;
+    if(material.hasMetalnessRoughness)
+        return texture(material.textureMetalnessRoughness, uv).b * material.metallic; // B channel
+    if(material.hasTextureMetallic)
+        return texture(material.textureMetallic, uv).r * material.metallic;
+    return material.metallic;
 }
 
 float sampleRoughness(vec2 uv) {
-    return material.hasTextureRoughness ? texture(material.textureRoughness, uv).r * material.roughness : material.roughness;
+    float r;
+    if(material.hasMetalnessRoughness)
+        r = texture(material.textureMetalnessRoughness, uv).g * material.roughness; // G channel
+    else if(material.hasTextureRoughness)
+        r = texture(material.textureRoughness, uv).r * material.roughness;
+    else
+        r = material.roughness;
+    return max(r, 0.05); // avoid perfectly smooth surfaces which cause singularities in the BRDF
 }
 
 float sampleAO(vec2 uv) {
@@ -98,7 +110,7 @@ vec3 sampleNormal(vec2 uv) {
     return normalize(fs_in.TBN * n);
 }
 
-// ── PBR — Cook-Torrance BRDF ──────────────────────────────────────────
+// PBR - Cook-Torrance BRDF
 
 // Normal Distribution Function — Trowbridge-Reitz GGX
 //   D(h) = alpha^2 / (PI * ((N·H)^2 * (alpha^2 - 1) + 1)^2)
@@ -127,7 +139,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-// ── Per-light PBR radiance contribution ──────────────────────────────
+// Per-light PBR radiance contribution
 vec3 calcLight(
     Light light,
     vec3 N,
@@ -200,8 +212,8 @@ void main() {
     vec3 V = normalize(cameraPos - fs_in.worldPos);
 
     // Base reflectance at normal incidence:
-    //   dielectrics → 0.04 (common non-metal approximation)
-    //   metals      → tinted by albedo
+    //   dielectrics -> 0.04 (common non-metal approximation)
+    //   metals      -> tinted by albedo
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     // Accumulate direct lighting from all lights
@@ -211,14 +223,13 @@ void main() {
         Lo += calcLight(lights[i], N, V, albedo, metallic, roughness, F0);
     }
 
-    // Ambient — simple image-based approximation via a flat ambient term.
-    // Replace with an irradiance map lookup when IBL is available.
+    // Ambient simple image-based approximation via a flat ambient term.
+    // should be with IBL but not implemented yet
     vec3 ambient = vec3(0.03) * albedo * ao;
 
     vec3 result = ambient + Lo + emission;
 
-    // Clamp tone-mapping (HDR → LDR) then gamma-encode for display
-    result = clamp(ambient + Lo + emission, 0.0, 1.0);
+    result = result / (result + vec3(1.0));  // simple Reinhard tone-mapping
     result = pow(result, vec3(1.0 / 2.2));
 
     // Alpha: sample from texture if present, otherwise use tint/vertex alpha

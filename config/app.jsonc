@@ -53,6 +53,10 @@
                 "lit": {
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/lit.frag"
+                },
+                "pbr":{
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/pbr.frag"
                 }
             },
             "textures": {
