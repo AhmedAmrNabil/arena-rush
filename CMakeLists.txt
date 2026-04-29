@@ -379,4 +379,5 @@ endif()
 
 if(WIN32)
     target_sources(${PROJECT_NAME} PRIVATE ArenaRush.rc)
+    target_link_libraries(${PROJECT_NAME} PRIVATE dwmapi)
 endif()

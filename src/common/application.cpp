@@ -30,6 +30,12 @@
 #define WAYLAND_APPID "arena-rush-dev"
 #endif
 
+#ifdef _WIN32
+#include <dwmapi.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
+
 std::string default_screenshot_filepath() {
     std::stringstream stream;
     auto time = std::time(nullptr);
@@ -242,6 +248,12 @@ int our::Application::run(int run_for_frames) {
         glfwSetWindowPos(window, windowPosX, windowPosY);
         glfwSetWindowSize(window, windowWidth, windowHeight);
     }
+
+#ifdef _WIN32
+    // Enable dark mode for the titlebar on Windows 10/11
+    BOOL darkMode = TRUE;
+    DwmSetWindowAttribute(glfwGetWin32Window(window), DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
+#endif
 
     glfwMakeContextCurrent(
         window);  // Tell GLFW to make the context of our window the main context on the current thread.
