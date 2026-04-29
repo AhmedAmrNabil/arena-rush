@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <material/material.hpp>
 #include <menu-layout.hpp>
+#include <mesh/mesh-utils.hpp>
 #include <mesh/mesh.hpp>
 #include <shader/shader.hpp>
 #include <sstream>
@@ -67,28 +68,31 @@ namespace gameplay {
         }
 
         void setupButtons() {
+            glm::vec2 pauseButtonSize = {0.40703125f, 0.08967015f};
+            glm::vec2 gameOverButtonSize = {0.31328150f, 0.09522569f};
+
             pauseButtons[0].normalizedPosition = {0.296875f, 0.3791667f};
-            pauseButtons[0].normalizedSize = {0.40625f, 0.0888889f};
+            pauseButtons[0].normalizedSize = pauseButtonSize;
             pauseButtons[0].action = [this]() { closePause(); };
 
             pauseButtons[1].normalizedPosition = {0.296875f, 0.5041667f};
-            pauseButtons[1].normalizedSize = {0.40625f, 0.0888889f};
+            pauseButtons[1].normalizedSize = pauseButtonSize;
             pauseButtons[1].action = [this]() { app->changeState("menu"); };
 
             pauseButtons[2].normalizedPosition = {0.296875f, 0.6291667f};
-            pauseButtons[2].normalizedSize = {0.40625f, 0.0888889f};
+            pauseButtons[2].normalizedSize = pauseButtonSize;
             pauseButtons[2].action = [this]() { app->close(); };
 
             gameOverButtons[0].normalizedPosition = {0.34375f, 0.6805556f};
-            gameOverButtons[0].normalizedSize = {0.3125f, 0.0944444f};
+            gameOverButtons[0].normalizedSize = gameOverButtonSize;
             gameOverButtons[0].action = [this]() { app->changeState("loading-play"); };
 
             gameOverButtons[1].normalizedPosition = {0.34375f, 0.7847222f};
-            gameOverButtons[1].normalizedSize = {0.3125f, 0.0944444f};
+            gameOverButtons[1].normalizedSize = gameOverButtonSize;
             gameOverButtons[1].action = [this]() { app->changeState("menu"); };
 
             gameOverButtons[2].normalizedPosition = {0.34375f, 0.8888889f};
-            gameOverButtons[2].normalizedSize = {0.3125f, 0.0944444f};
+            gameOverButtons[2].normalizedSize = gameOverButtonSize;
             gameOverButtons[2].action = [this]() { app->close(); };
         }
 
@@ -195,21 +199,7 @@ namespace gameplay {
             highlightMaterial->pipelineState.blending.sourceFactor = GL_ONE;
             highlightMaterial->pipelineState.blending.destinationFactor = GL_ONE;
 
-            rectangle = new our::Mesh(
-                {
-                    {{0.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                    {{1.0f, 0.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-                    {{1.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                    {{0.0f, 1.0f, 0.0f}, {255, 255, 255, 255}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-                },
-                {
-                    0,
-                    1,
-                    2,
-                    2,
-                    3,
-                    0,
-                });
+            rectangle = our::mesh_utils::generateQuad();
 
             pauseTexture = our::texture_utils::loadImage("assets/textures/menus/pause.png");
             gameOverTexture = our::texture_utils::loadImage("assets/textures/menus/game-over.png");

@@ -16,7 +16,7 @@ namespace gameplay {
 
         float x = std::min(amount, currentHealth);
         currentHealth -= x;
-        if (x > 0.0f) damageRevealTimer = 2.5f;
+        if (x > 0.0f) currentDamageRevealTimer = damageRevealTimer;
 
         if (currentHealth <= 0.0f) {
             currentHealth = 0.0f;

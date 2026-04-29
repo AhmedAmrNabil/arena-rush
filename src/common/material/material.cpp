@@ -161,10 +161,13 @@ namespace our {
             }
             shader->set("material.textureEmissive", static_cast<int>(TextureUnits::EMISSIVE));
         }
-        shader->set("material.hasTextureMetalnessRoughness", mask.hasMetalnessRoughness);
+        shader->set("material.hasMetalnessRoughness", mask.hasMetalnessRoughness);
         if (mask.hasMetalnessRoughness) {
             glActiveTexture(GL_TEXTURE0 + static_cast<int>(TextureUnits::METALLIC_ROUGHNESS));
             textureMetalnessRoughness->bind();
+            if (sampler) {
+                sampler->bind(static_cast<int>(TextureUnits::METALLIC_ROUGHNESS));
+            }
             shader->set("material.textureMetalnessRoughness", static_cast<int>(TextureUnits::METALLIC_ROUGHNESS));
         }
     }

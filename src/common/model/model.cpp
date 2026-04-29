@@ -4,6 +4,7 @@
 #include <assimp/scene.h>
 
 #include <algorithm>
+#include <asset-loader.hpp>
 #include <assimp/Importer.hpp>
 #include <iostream>
 #include <unordered_map>
@@ -13,6 +14,27 @@
 #include "texture/texture-utils.hpp"
 
 namespace our {
+
+    int Model::getAssetsCount(const std::string& path, bool countAnimations) {
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(
+            path, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals |
+                      aiProcess_JoinIdenticalVertices | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph |
+                      aiProcess_ImproveCacheLocality | aiProcess_LimitBoneWeights | aiProcess_PopulateArmatureData |
+                      aiProcess_GlobalScale | aiProcess_GenUVCoords | aiProcess_TransformUVCoords |
+                      aiProcess_SortByPType);
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+            return 0;
+        }
+        int count = 2;  // for the combined mesh and model itself
+        if (scene->HasAnimations() && countAnimations) {
+            count += scene->mNumAnimations;
+        }
+        count += scene->mNumMeshes;
+        count += scene->mNumMaterials;
+        return count;
+    }
 
     void Model::loadFromFile(const std::string& path, const std::unordered_set<std::string>& animationNames) {
         std::cout << "Loading model from file: " << path << std::endl;
@@ -94,6 +116,7 @@ namespace our {
             }
             submesh->nodeName = node->mName.C_Str();
             submeshes.push_back(submesh);
+            AssetLoaderStats::loadingCount++;  // count the mesh as an asset for loading progress purposes
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
             processNode(node->mChildren[i], scene, globalTransform, skeletonNodes, currentIndex);
@@ -175,6 +198,7 @@ namespace our {
             std::string name = this->name + "_" + std::to_string(i);
             if (material) {
                 AssetLoader<Material>::add(name, material);
+                AssetLoader<Sampler>::add(name, material->sampler);
             }
         }
     }
@@ -187,6 +211,7 @@ namespace our {
             }
             animations.emplace(animName, Animation(scene->mAnimations[i], *skeleton));
             std::cout << "Loaded animation: \"" << animName << "\"" << std::endl;
+            AssetLoaderStats::loadingCount++;
         }
     }
 
@@ -205,6 +230,7 @@ namespace our {
                     std::cerr << "[Model] Duplicate animation skipped: \"" << animName << "\"\n";
                 else
                     std::cout << "Loaded animation: \"" << animName << "\"\n";
+                AssetLoaderStats::loadingCount++;
             }
         }
     }
@@ -212,14 +238,20 @@ namespace our {
     LitMaterial* Model::loadMaterial(const aiScene* scene, const aiMaterial* mat) {
         LitMaterial* material = new LitMaterial();
         material->transparent = false;
-        material->metallic = 0.95f;
-        material->roughness = 0.1f;
+        material->metallic = 0.0f;
+        material->roughness = 0.5f;
+
+        Sampler* sampler = new Sampler();
+        material->sampler = sampler;
 
         aiString matName;
         mat->Get(AI_MATKEY_NAME, matName);
 
-        // Setup Shader
-        material->shader = AssetLoader<ShaderProgram>::get("lit");
+        // Check shading mode first
+        int shadingMode = 0;
+        mat->Get(AI_MATKEY_SHADING_MODEL, shadingMode);
+        material->shader = AssetLoader<ShaderProgram>::get(
+            (shadingMode == aiShadingMode_PBR_BRDF || shadingMode == aiShadingMode_CookTorrance) ? "pbr" : "lit");
         if (!material->shader) {
             std::cerr << "\033[31mFailed to load shader for material " << matName.C_Str() << "\033[0m" << std::endl;
             delete material;
@@ -236,6 +268,7 @@ namespace our {
         } else if (AI_SUCCESS == mat->Get(AI_MATKEY_COLOR_DIFFUSE, color)) {
             material->albedo = aiToGlm(color);
             material->tint.a = color.a;
+            std::cout << "\033[33m[Warning] Material " << matName.C_Str() << " using diffuse color as albedo.\033[0m\n";
         } else {
             material->albedo = glm::vec3(1.0f, 1.0f, 1.0f);
             material->tint.a = 1.0f;
@@ -245,7 +278,7 @@ namespace our {
         if (AI_SUCCESS == mat->Get(AI_MATKEY_METALLIC_FACTOR, material->metallic)) {
             material->metallic = std::clamp(material->metallic, 0.0f, 1.0f);
         } else {
-            material->metallic = 0.95f;
+            material->metallic = 0.0f;
         }
 
         // roughness factor
@@ -258,13 +291,48 @@ namespace our {
         // emission factor
         if (AI_SUCCESS == mat->Get(AI_MATKEY_COLOR_EMISSIVE, color)) {
             material->emission = aiToGlm(color);
+            float intensity = 1.0f;
+            mat->Get(AI_MATKEY_EMISSIVE_INTENSITY, intensity);
+            material->emission *= intensity;
         }
 
         // set default ambient occlusion
         material->ambientOcclusion = 1.0f;
 
-        // set textures
-        // set base color texture, if not found try diffuse texture
+        auto toGLWrap = [](int v, int fallback) -> int {
+            switch (v) {
+                case aiTextureMapMode_Wrap:
+                    return GL_REPEAT;
+                case aiTextureMapMode_Clamp:
+                    return GL_CLAMP_TO_EDGE;
+                case aiTextureMapMode_Mirror:
+                    return GL_MIRRORED_REPEAT;
+                case aiTextureMapMode_Decal:
+                    return GL_CLAMP_TO_BORDER;
+                default:
+                    return fallback;
+            }
+        };
+
+        // Query sampler from BASE_COLOR slot, fall back to DIFFUSE
+        auto querySlot = [&](aiTextureType type) {
+            int v;
+            if (mat->Get("$tex.mappingfiltermin", type, 0, v) == AI_SUCCESS) sampler->set(GL_TEXTURE_MIN_FILTER, v);
+            if (mat->Get("$tex.mappingfiltermag", type, 0, v) == AI_SUCCESS) sampler->set(GL_TEXTURE_MAG_FILTER, v);
+            if (mat->Get(AI_MATKEY_MAPPINGMODE_U(type, 0), v) == AI_SUCCESS)
+                sampler->set(GL_TEXTURE_WRAP_S, toGLWrap(v, GL_REPEAT));
+            if (mat->Get(AI_MATKEY_MAPPINGMODE_V(type, 0), v) == AI_SUCCESS)
+                sampler->set(GL_TEXTURE_WRAP_T, toGLWrap(v, GL_REPEAT));
+        };
+
+        // Try BASE_COLOR slot first, fall back to DIFFUSE
+        unsigned int texCount = mat->GetTextureCount(aiTextureType_BASE_COLOR);
+        if (texCount > 0)
+            querySlot(aiTextureType_BASE_COLOR);
+        else
+            querySlot(aiTextureType_DIFFUSE);
+
+        // Textures
         material->textureAlbedo = loadTextureFromMaterial(scene, mat, aiTextureType_BASE_COLOR);
         if (!material->textureAlbedo) {
             material->textureAlbedo = loadTextureFromMaterial(scene, mat, aiTextureType_DIFFUSE);
@@ -303,7 +371,7 @@ namespace our {
         material->mask.hasEmissive = material->textureEmissive != nullptr;
 
         // setting pipeline state
-        int twoSided;
+        int twoSided = 0;
         if (AI_SUCCESS == mat->Get(AI_MATKEY_TWOSIDED, twoSided)) {
             material->pipelineState.faceCulling.enabled = !twoSided;
             material->pipelineState.faceCulling.culledFace = GL_BACK;
@@ -329,7 +397,7 @@ namespace our {
             material->pipelineState.blending.enabled = true;
             material->pipelineState.blending.sourceFactor = GL_SRC_ALPHA;
             int blendFunc = 0;
-            if (mat->Get(AI_MATKEY_BLEND_FUNC, blendFunc)) {
+            if (AI_SUCCESS == mat->Get(AI_MATKEY_BLEND_FUNC, blendFunc)) {
                 if (blendFunc == aiBlendMode_Additive) {
                     material->pipelineState.blending.sourceFactor = GL_SRC_ALPHA;
                     material->pipelineState.blending.destinationFactor = GL_ONE;
@@ -382,15 +450,8 @@ namespace our {
         }
 
         if (!texture) return nullptr;
-
-        texture->bind();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        texture->unbind();
-
         AssetLoader<Texture2D>::add(cacheKey, texture);
+        AssetLoaderStats::totalCount++;
         return texture;
     }
 
@@ -471,6 +532,7 @@ namespace our {
             }
         }
         combinedMesh = new Mesh(combinedVertices, combinedIndices);
+        AssetLoaderStats::loadingCount++;  // count the combined mesh as an asset for loading progress purposes
     }
 
     Model::~Model() {

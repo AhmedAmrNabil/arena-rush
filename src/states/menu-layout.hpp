@@ -11,7 +11,8 @@
 namespace menu_ui {
 
     struct PixelRect {
-        glm::vec2 position, size;
+        glm::vec2 position{0, 0};
+        glm::vec2 size{0, 0};
 
         bool isInside(const glm::vec2& point) const {
             return position.x <= point.x && position.y <= point.y && point.x <= position.x + size.x &&
@@ -21,6 +22,10 @@ namespace menu_ui {
         glm::mat4 getLocalToWorld() const {
             return glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f)) *
                    glm::scale(glm::mat4(1.0f), glm::vec3(size.x, size.y, 1.0f));
+        }
+
+        glm::vec2 localToWorld(const glm::vec2& localPoint) const {
+            return position + localPoint * size;
         }
     };
 

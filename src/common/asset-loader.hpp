@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <json/json.hpp>
 #include <string>
 #include <unordered_map>
@@ -10,6 +11,12 @@ namespace our {
     // and can be called from anywhere to get an asset by its name.
     // Since we have different types of assets, this declared as a template class
     // and for each asset type, we define a specialization in "asset-loader.cpp"
+
+    class AssetLoaderStats {
+    public:
+        inline static std::atomic<int> loadingCount;
+        inline static std::atomic<int> totalCount;
+    };
     template <typename T>
     class AssetLoader {
         // This map stores a pointer to each asset identified by its name
@@ -36,6 +43,7 @@ namespace our {
 
         static void add(const std::string& name, T* asset) {
             assets[name] = asset;
+            AssetLoaderStats::loadingCount++;
         }
         // This function deletes all the assets held by this class and clear the assets map
         static void clear() {

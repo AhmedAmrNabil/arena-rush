@@ -12,7 +12,7 @@ class TextureTestState : public our::State {
     our::Mesh* mesh;
     our::Texture2D* texture;
 
-    void onInitialize() override {
+    void onInitialize(GLFWwindow*) override {
         // First of all, we get the scene configuration from the app config
         auto& config = getApp()->getConfig()["scene"];
         // Then we load the shader that will be used for this scene

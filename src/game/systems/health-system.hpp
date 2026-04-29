@@ -25,8 +25,8 @@ namespace gameplay {
                 HealthComponent* health = entity->getComponent<HealthComponent>();
                 if (!health) continue;
 
-                if (deltaTime > 0.0f && health->damageRevealTimer > 0.0f)
-                    health->damageRevealTimer = std::max(0.0f, health->damageRevealTimer - deltaTime);
+                if (deltaTime > 0.0f && health->currentDamageRevealTimer > 0.0f)
+                    health->currentDamageRevealTimer = std::max(0.0f, health->currentDamageRevealTimer - deltaTime);
 
                 if (!health->isDead) continue;
 

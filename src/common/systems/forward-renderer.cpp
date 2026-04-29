@@ -35,12 +35,6 @@ namespace our {
             // First, we create a sphere which will be used to draw the sky
             this->skySphere = mesh_utils::sphere(glm::ivec2(16, 16));
 
-            // We can draw the sky using the same shader used to draw textured objects
-            ShaderProgram* skyShader = new ShaderProgram();
-            skyShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
-            skyShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
-            skyShader->link();
-
             PipelineState skyPipelineState{};
             skyPipelineState.depthTesting.enabled = true;
             skyPipelineState.depthTesting.function = GL_LEQUAL;
@@ -52,20 +46,15 @@ namespace our {
             // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring
             // while rendering the sky)
             std::string skyTextureFile = config.value<std::string>("sky", "");
-            Texture2D* skyTexture = texture_utils::loadImage(skyTextureFile, false);
+            Texture2D* skyTexture = texture_utils::loadImage(skyTextureFile, true);
 
             // Setup a sampler for the sky
-            Sampler* skySampler = new Sampler();
-            skySampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            skySampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            skySampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
-            skySampler->set(GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             // Combine all the aforementioned objects (except the mesh) into a material
             this->skyMaterial = new TexturedMaterial();
-            this->skyMaterial->shader = skyShader;
+            this->skyMaterial->shader = AssetLoader<ShaderProgram>::get("textured");
             this->skyMaterial->texture = skyTexture;
-            this->skyMaterial->sampler = skySampler;
+            this->skyMaterial->sampler = AssetLoader<Sampler>::get("default");
             this->skyMaterial->pipelineState = skyPipelineState;
             this->skyMaterial->tint = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
             this->skyMaterial->alphaThreshold = 0.0f;
@@ -113,9 +102,7 @@ namespace our {
         // Delete all objects related to the sky
         if (skyMaterial) {
             delete skySphere;
-            delete skyMaterial->shader;
             delete skyMaterial->texture;
-            delete skyMaterial->sampler;
             delete skyMaterial;
             skySphere = nullptr;
             skyMaterial = nullptr;

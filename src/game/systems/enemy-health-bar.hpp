@@ -123,7 +123,7 @@ namespace gameplay {
                 glm::vec3 enemyPosition = glm::vec3(localToWorld * glm::vec4(0, 0, 0, 1));
                 float distance = glm::distance(enemyPosition, cameraPos);
 
-                bool visibleWhenDamaged = health->damageRevealTimer > 0.0f;
+                bool visibleWhenDamaged = health->currentDamageRevealTimer > 0.0f;
                 bool visibleWhenClose = distance <= config.maxDistance;
 
                 if (!(visibleWhenDamaged || visibleWhenClose)) continue;

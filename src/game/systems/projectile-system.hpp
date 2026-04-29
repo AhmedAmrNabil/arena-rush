@@ -13,10 +13,12 @@
 
 #include "../components/collider.hpp"
 #include "../components/health.hpp"
+#include "../components/projectile-trail.hpp"
 #include "../components/projectile.hpp"
 #include "../components/weapon.hpp"
 #include "collision-system.hpp"
 #include "components/player.hpp"
+#include "trail-system.hpp"
 
 namespace gameplay {
 
@@ -24,9 +26,9 @@ namespace gameplay {
         static our::Entity* spawnBullet(our::World* world, const WeaponComponent& weapon, const glm::vec3& origin,
                                         const glm::vec3& direction, CollisionLayer shooterLayer) {
             our::Mesh* mesh = our::AssetLoader<our::Mesh>::get("sphere");
-            our::Material* material = shooterLayer == CollisionLayer::LAYER_PLAYER
-                                          ? our::AssetLoader<our::Material>::get("projectile-player")
-                                          : our::AssetLoader<our::Material>::get("projectile-enemy");
+            const char* materialName =
+                shooterLayer == CollisionLayer::LAYER_PLAYER ? "projectile-player" : "projectile-enemy";
+            our::Material* material = our::AssetLoader<our::Material>::get(materialName);
             if (!mesh || !material) return nullptr;
 
             our::Entity* bullet = world->add();
@@ -50,6 +52,16 @@ namespace gameplay {
             proj->damage = weapon.bulletDamage;
             proj->lifetime = weapon.bulletLifetime;
             proj->shooterLayer = shooterLayer;
+
+            if (weapon.trailEnabled && weapon.trailMaxSegments > 0) {
+                ProjectileTrailComponent* trail = bullet->addComponent<ProjectileTrailComponent>();
+                trail->material = materialName;
+                trail->maxSegments = weapon.trailMaxSegments;
+                trail->segmentLifetime = weapon.trailSegmentLifetime;
+                trail->headScale = weapon.trailHeadScale;
+                trail->tailScale = weapon.trailTailScale;
+                trail->spawnTimer = 0.0f;
+            }
 
             return bullet;
         }
@@ -89,13 +101,13 @@ namespace gameplay {
             return true;
         }
 
-        static void handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
-            if (!app || !playerEntity) return;
+        static bool handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
+            if (!app || !playerEntity) return false;
 
             WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
-            if (!weapon || !playerComp) return;
-            if (weapon->timer > 0.0f) return;  // still in cooldown / already reloading
+            if (!weapon || !playerComp) return false;
+            if (weapon->timer > 0.0f) return false;  // still in cooldown / already reloading
 
             bool wantsReload =
                 app->getKeyboard().justPressed(GLFW_KEY_R) && playerComp->currentAmmo < playerComp->magSize;
@@ -110,7 +122,9 @@ namespace gameplay {
                 if (!weapon->reloadSound.empty())
                     if (our::AudioBuffer* buffer = our::AssetLoader<our::AudioBuffer>::get(weapon->reloadSound))
                         app->getAudioSystem().playSound2D(buffer, 1.0f, 1.0f, false);
+                return true;
             }
+            return false;
         }
 
         static bool handlePlayerFire(our::World* world, our::Application* app, const CollisionSystem& collisions,
@@ -173,6 +187,11 @@ namespace gameplay {
                     if (hit.hit && hit.entity) {
                         HealthComponent* health = hit.entity->getComponent<HealthComponent>();
                         if (health && !health->isDead) health->takeDamage(proj->damage);
+
+                        const char* sparkMaterial = proj->shooterLayer == CollisionLayer::LAYER_PLAYER
+                                                        ? "projectile-player"
+                                                        : "projectile-enemy";
+                        TrailSystem::spawnImpactSpark(world, hit.point, hit.normal, sparkMaterial);
 
                         entity->localTransform.position = hit.point;
                         proj->lifetime = 0.0f;

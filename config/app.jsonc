@@ -53,6 +53,10 @@
                 "lit": {
                     "vs": "assets/shaders/lit.vert",
                     "fs": "assets/shaders/lit.frag"
+                },
+                "pbr":{
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/pbr.frag"
                 }
             },
             "textures": {
@@ -169,14 +173,14 @@
             },
             "enemySpawner": {
                 "spawnPoints": [
-                    [30.0, 0.0, 30.0],
-                    [-30.0, 0.0, 30.0],
-                    [30.0, 0.0, -30.0],
-                    [-30.0, 0.0, -30.0],
-                    [42.0, 0.0, 0.0],
-                    [-42.0, 0.0, 0.0],
-                    [0.0, 0.0, 42.0],
-                    [0.0, 0.0, -42.0]
+                    [40.852, 4.241, -14.324],
+                    [-55.248, 2.483, -9.798],
+                    [38.642, 0.467, -37.656],
+                    [-1.527, 0.144, 5.357],
+                    [-20.244, 2.600, -26.874],
+                    [-18.147, 0.136, -9.077],
+                    [-37.834, 1.253, 31.636],
+                    [-47.990, 4.171, 9.926]
                 ],
                 "spawnInterval": 2.0,
                 "initialSpawnCount": 4,
@@ -303,7 +307,8 @@
                     },
                     {
                         "type": "Health",
-                        "maxHealth": 100.0
+                        "maxHealth": 100.0,
+                        "damageRevealTimer": 0.5
                     },
                     {
                         "type": "Collider",
@@ -318,11 +323,16 @@
                         "bulletSpeed": 100.0,
                         "bulletDamage": 20.0,
                         "bulletLifetime": 2.5,
-                        "bulletScale": 0.12,
+                        "bulletScale": 0.09,
                         "muzzleOffset": [0.45, -0.45, -2.0],
                         "fireSound": "gunshot-player",
                         "reloadSound": "reload",
-                        "reloadTime": 1.0
+                        "reloadTime": 1.0,
+                        "trailEnabled": true,
+                        "trailMaxSegments": 8,
+                        "trailSegmentLifetime": 0.08,
+                        "trailHeadScale": 0.1,
+                        "trailTailScale": 0.012
                     },
                     {
                         "type": "Post Process Effects Component"
