@@ -1,14 +1,14 @@
 #pragma once
 
+#include <components/weapon.hpp>
 #include <ecs/component.hpp>
 
 namespace gameplay {
 
     class PlayerComponent : public our::Component {
     public:
-        int currentAmmo = 30;
-        int magSize = 30;
-        int maxAmmo = 120;
+        int currentActiveWeaponIndex = 0;
+        gameplay::WeaponComponent* currentWeapon = nullptr;
         static std::string getID() {
             return "Player";
         }

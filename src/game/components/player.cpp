@@ -4,9 +4,7 @@ namespace gameplay {
 
     void PlayerComponent::deserialize(const nlohmann::json& data) {
         if (!data.is_object()) return;
-        magSize = data.value("magSize", magSize);
-        maxAmmo = data.value("maxAmmo", maxAmmo);
-        currentAmmo = magSize;
+        currentActiveWeaponIndex = data.value("currentActiveWeaponIndex", currentActiveWeaponIndex);
     }
 
 }  // namespace gameplay
