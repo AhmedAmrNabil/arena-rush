@@ -19,11 +19,10 @@
             },
             "bloom": {
                 "enabled": true,
-                "threshold": 1.0,
-                "blur": {
-                    "horizontal": 2.0,
-                    "vertical": 2.0
-                }
+                "threshold": 0.7,
+                "softKnee": 0.5,
+                "radius": 1.0,
+                "intensity": 2.0
             }
         },
         "hud": {
