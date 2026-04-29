@@ -133,7 +133,7 @@ namespace gameplay {
             if (!playerComp) return false;
 
             WeaponComponent* weapon = playerComp->currentWeapon;
-            if (!weapon) return false;
+            if (!weapon || weapon->currentAmmo <= 0) return false;
 
             if (weapon->automatic) {
                 if (!app->getMouse().isPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
