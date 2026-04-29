@@ -301,7 +301,8 @@
                     },
                     {
                         "type": "Health",
-                        "maxHealth": 100.0
+                        "maxHealth": 100.0,
+                        "damageRevealTimer": 0.5
                     },
                     {
                         "type": "Collider",
@@ -316,11 +317,16 @@
                         "bulletSpeed": 100.0,
                         "bulletDamage": 20.0,
                         "bulletLifetime": 2.5,
-                        "bulletScale": 0.12,
+                        "bulletScale": 0.09,
                         "muzzleOffset": [0.45, -0.45, -2.0],
                         "fireSound": "gunshot-player",
                         "reloadSound": "reload",
-                        "reloadTime": 1.0
+                        "reloadTime": 1.0,
+                        "trailEnabled": true,
+                        "trailMaxSegments": 8,
+                        "trailSegmentLifetime": 0.08,
+                        "trailHeadScale": 0.1,
+                        "trailTailScale": 0.012
                     },
                     {
                         "type": "Post Process Effects Component"

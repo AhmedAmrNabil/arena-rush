@@ -17,6 +17,13 @@ namespace gameplay {
         float bulletColliderRadius = 0.15f;
         float reloadTime = 1.0f;
 
+        // Trail effect
+        bool trailEnabled = true;
+        int trailMaxSegments = 8;
+        float trailSegmentLifetime = 0.12f;
+        float trailHeadScale = 0.12f;
+        float trailTailScale = 0.015f;
+
         glm::vec3 muzzleOffset = glm::vec3(0.0f, 0.0f, 0.0f);
         std::string fireSound;
         std::string reloadSound;
