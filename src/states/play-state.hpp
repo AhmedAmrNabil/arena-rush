@@ -172,8 +172,10 @@ public:
         if (reloadStarted) {
             float reloadDuration = 1.0f;
             if (playerEntity) {
-                if (gameplay::WeaponComponent* weapon = playerEntity->getComponent<gameplay::WeaponComponent>())
-                    reloadDuration = weapon->reloadTime;
+                gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+                if (player && player->currentWeapon) {
+                    reloadDuration = player->currentWeapon->reloadTime;
+                }
             }
             weaponVisuals.onReloadStart(reloadDuration);
         }
