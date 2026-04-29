@@ -198,6 +198,7 @@ namespace our {
             std::string name = this->name + "_" + std::to_string(i);
             if (material) {
                 AssetLoader<Material>::add(name, material);
+                AssetLoader<Sampler>::add(name, material->sampler);
             }
         }
     }
