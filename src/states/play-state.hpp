@@ -107,6 +107,8 @@ public:
             if (activeCamera && playerEntity) break;
         }
 
+        weaponVisuals.initlize(playerEntity, activeCamera ? activeCamera->getOwner() : nullptr);
+
         cameraController.enter(getApp());
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
