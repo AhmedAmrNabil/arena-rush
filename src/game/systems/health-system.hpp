@@ -35,34 +35,36 @@ namespace gameplay {
                 if (entity->getComponent<PlayerComponent>()) {
                     result.playerDied = true;
                 } else {
-                    EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
-                    if (enemy) {
-                        result.kills++;
-                        result.score += enemy->scoreValue;
-
-                        // per-kill rewards
-                        switch (enemy->type) {
-                            case EnemyType::Brute:
-                                result.healthReward += 5.0f;
-                                result.ammoReward += 8;
-                                break;
-                            case EnemyType::Charger:
-                                result.healthReward += 2.0f;
-                                result.ammoReward += 5;
-                                break;
-                            case EnemyType::Flyer:
-                                result.healthReward += 8.0f;
-                                result.ammoReward += 12;
-                                break;
-                        }
-                    }
                     our::AnimationComponent* anim = entity->getComponent<our::AnimationComponent>();
+                    bool shouldRemove = (anim == nullptr);
                     if (anim) {
                         anim->setNextState(our::AnimationState::Death);
-                        if (anim->getState() == our::AnimationState::Death && anim->animator.isFinished())
-                            world->markForRemoval(entity);
-                    } else
+                        shouldRemove = (anim->getState() == our::AnimationState::Death && anim->animator.isFinished());
+                    }
+
+                    if (shouldRemove) {
+                        EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
+                        if (enemy) {
+                            result.kills++;
+                            result.score += enemy->scoreValue;
+                            // per-kill rewards
+                            switch (enemy->type) {
+                                case EnemyType::Brute:
+                                    result.healthReward += 5.0f;
+                                    result.ammoReward += 8;
+                                    break;
+                                case EnemyType::Charger:
+                                    result.healthReward += 2.0f;
+                                    result.ammoReward += 5;
+                                    break;
+                                case EnemyType::Flyer:
+                                    result.healthReward += 8.0f;
+                                    result.ammoReward += 12;
+                                    break;
+                            }
+                        }
                         world->markForRemoval(entity);
+                    }
                 }
             }
 
