@@ -10,7 +10,7 @@ in Varyings {
 
 out vec4 frag_color;
 
-// ── Material ─────────────────────────────────────────────────────────
+// Material
 struct Material {
     // factors (used when no texture)
     vec3 albedo;
@@ -38,14 +38,14 @@ struct Material {
     sampler2D textureEmissive;
     bool hasTextureEmissive;
 
-    sampler2D hasTextureMetalnessRoughness;
+    sampler2D textureMetalnessRoughness;
     bool hasMetalnessRoughness;
 };
 uniform Material material;
 uniform float alphaThreshold;
 uniform vec4 tint;
 
-// ── Lights ───────────────────────────────────────────────────────────
+// Lights
 #define MAX_LIGHTS 8
 
 #define LIGHT_DIRECTIONAL 0
@@ -65,7 +65,7 @@ uniform int numLights;
 
 uniform vec3 cameraPos;
 
-// ── Helpers ───────────────────────────────────────────────────────────
+// Texture helpers
 vec3 sampleAlbedo(vec2 uv) {
     vec3 base = material.hasTextureAlbedo ? pow(texture(material.textureAlbedo, uv).rgb, vec3(2.2)) : vec3(1.0);
     return base * material.albedo;
@@ -73,7 +73,7 @@ vec3 sampleAlbedo(vec2 uv) {
 
 float sampleMetallic(vec2 uv) {
     if(material.hasMetalnessRoughness)
-        return texture(material.hasTextureMetalnessRoughness, uv).b * material.metallic; // B channel
+        return texture(material.textureMetalnessRoughness, uv).b * material.metallic; // B channel
     if(material.hasTextureMetallic)
         return texture(material.textureMetallic, uv).r * material.metallic;
     return material.metallic;
@@ -81,7 +81,7 @@ float sampleMetallic(vec2 uv) {
 
 float sampleRoughness(vec2 uv) {
     if(material.hasMetalnessRoughness)
-        return texture(material.hasTextureMetalnessRoughness, uv).g * material.roughness; // G channel
+        return texture(material.textureMetalnessRoughness, uv).g * material.roughness; // G channel
     if(material.hasTextureRoughness)
         return texture(material.textureRoughness, uv).r * material.roughness;
     return material.roughness;
@@ -104,7 +104,7 @@ vec3 sampleNormal(vec2 uv) {
     return normalize(fs_in.TBN * n);
 }
 
-// ── Blinn-Phong per light ─────────────────────────────────────────────
+// Blinn-Phong per light
 vec3 calcLight(
     Light light,
     vec3 N,
@@ -124,10 +124,6 @@ vec3 calcLight(
         vec3 toLight = light.position - fs_in.worldPos;
         float dist = length(toLight);
         L = normalize(toLight);
-        if(dot(toLight, N) <= 0.0) {
-            return vec3(0.0);
-        }
-
         // quadratic attenuation: 1 / (c + l*d + q*d^2)
         attenuation = 1.0 / (light.attenuation.x + light.attenuation.y * dist + light.attenuation.z * dist * dist);
 
@@ -143,11 +139,12 @@ vec3 calcLight(
 
     // diffuse
     float diff = max(dot(N, L), 0.0);
+    if(diff <= 0.0) return vec3(0.0);
     vec3 diffuse = diff * albedo * light.color;
 
     // specular (Blinn-Phong)
     // roughness → shininess: rough=1 → shininess=2, rough=0 → shininess=256
-    float shininess = mix(256.0, 2.0, roughness);
+    float shininess = mix(512.0, 2.0, roughness);
     vec3 H = normalize(L + V);
     float spec = pow(max(dot(N, H), 0.0), shininess);
     // metallic surfaces use albedo color for specular
