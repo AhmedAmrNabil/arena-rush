@@ -53,9 +53,16 @@ namespace our {
             // We get a reference to the entity's rotation
             glm::vec3& rotation = entity->localTransform.rotation;
 
+            glm::vec2 delta{0.0f};
             // While the play state is active, the mouse stays locked
             if (mouse_locked) {
-                glm::vec2 delta = app->getMouse().getMouseDelta();
+                delta = app->getMouse().getMouseDelta();
+                rotation.x -= delta.y * controller->rotationSensitivity;  // The y-axis controls the pitch
+                rotation.y -= delta.x * controller->rotationSensitivity;  // The x-axis controls the yaw
+            }
+
+            delta = app->getJoystick().getRightStick();
+            if (glm::length(delta) > 0.1f) {                              // deadzone
                 rotation.x -= delta.y * controller->rotationSensitivity;  // The y-axis controls the pitch
                 rotation.y -= delta.x * controller->rotationSensitivity;  // The x-axis controls the yaw
             }
@@ -71,6 +78,7 @@ namespace our {
             if (baseFov <= 0.0f) baseFov = camera->fovY;
 
             aiming = app->getMouse().isPressed(GLFW_MOUSE_BUTTON_RIGHT);
+            aiming |= app->getJoystick().isTriggerPressed(0);  // also check joystick input
 
             currentAimSpeed = controller->aimSpeed;
             float targetFov;
