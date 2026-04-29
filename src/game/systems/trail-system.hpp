@@ -16,6 +16,17 @@
 namespace gameplay {
 
     class TrailSystem {
+        struct SpawnRequest {
+            glm::vec3 position;
+            std::string material;
+            std::string mesh;
+            float lifetime;
+            float headScale;
+            float tailScale;
+        };
+
+        static inline std::vector<SpawnRequest> spawnRequests;
+
         static our::Entity* spawnSegment(our::World* world, const glm::vec3& position, const std::string& materialName,
                                          const std::string& meshName, float lifetime, float startScale,
                                          float endScale) {
@@ -56,43 +67,31 @@ namespace gameplay {
         static void update(our::World* world, float deltaTime) {
             if (!world || deltaTime <= 0.0f) return;
 
-            // update existing segments and remove expired ones
+            spawnRequests.clear();
+
             for (our::Entity* entity : world->getEntities()) {
                 TrailSegmentComponent* seg = entity->getComponent<TrailSegmentComponent>();
-                if (!seg) continue;
-                seg->age += deltaTime;
-                float t = glm::clamp(seg->age / seg->lifetime, 0.0f, 1.0f);
-                float scale = glm::mix(seg->startScale, seg->endScale, t);
-                entity->localTransform.scale = glm::vec3(scale);
-                if (seg->age >= seg->lifetime) world->markForRemoval(entity);
-            }
+                if (seg) {
+                    seg->age += deltaTime;
+                    float t = glm::clamp(seg->age / seg->lifetime, 0.0f, 1.0f);
+                    float scale = glm::mix(seg->startScale, seg->endScale, t);
+                    entity->localTransform.scale = glm::vec3(scale);
+                    if (seg->age >= seg->lifetime) world->markForRemoval(entity);
+                }
 
-            // spawn new segments for projectiles with trails
-            struct SpawnRequest {
-                glm::vec3 position;
-                std::string material;
-                std::string mesh;
-                float lifetime;
-                float headScale;
-                float tailScale;
-            };
-            std::vector<SpawnRequest> spawns;
-
-            for (our::Entity* entity : world->getEntities()) {
-                ProjectileComponent* proj = entity->getComponent<ProjectileComponent>();
-                if (!proj) continue;
+                if (!entity->getComponent<ProjectileComponent>()) continue;
                 ProjectileTrailComponent* trail = entity->getComponent<ProjectileTrailComponent>();
                 if (!trail || trail->maxSegments <= 0 || trail->material.empty()) continue;
 
                 trail->spawnTimer -= deltaTime;
                 if (trail->spawnTimer <= 0.0f) {
                     trail->spawnTimer = trail->segmentInterval();
-                    spawns.push_back({entity->localTransform.position, trail->material, trail->mesh,
-                                      trail->segmentLifetime, trail->headScale, trail->tailScale});
+                    spawnRequests.push_back({entity->localTransform.position, trail->material, trail->mesh,
+                                             trail->segmentLifetime, trail->headScale, trail->tailScale});
                 }
             }
 
-            for (const SpawnRequest& s : spawns) {
+            for (const SpawnRequest& s : spawnRequests) {
                 spawnSegment(world, s.position, s.material, s.mesh, s.lifetime, s.headScale, s.tailScale);
             }
         }
