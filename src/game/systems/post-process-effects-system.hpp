@@ -45,7 +45,7 @@ namespace gameplay {
             // Red vignette for the first 0.5s after taking damage
             float damageFlash = 0.0f;
             if (playerHealth) {
-                damageFlash = glm::clamp((playerHealth->damageRevealTimer - 2.0f) / 0.5f, 0.0f, 1.0f);
+                damageFlash = playerHealth->currentDamageRevealTimer / playerHealth->damageRevealTimer;
             }
             effects->uniforms["damageFlash"] = damageFlash;
         }
