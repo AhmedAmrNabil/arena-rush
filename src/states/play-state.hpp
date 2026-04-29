@@ -159,7 +159,17 @@ public:
         }
 
         // Spawning / AI
-        enemySpawner.update(&world, dt);
+        bool waveCompleted = enemySpawner.update(&world, dt);
+        if (waveCompleted && playerEntity) {
+            auto reward = enemySpawner.getWaveReward();
+
+            gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+
+            if (health) health->currentHealth = std::min(health->currentHealth + reward.health, health->maxHealth);
+            if (player) player->maxAmmo = std::min(player->maxAmmo + reward.ammo, 999);
+        }
+
         enemyAI.update(&world, playerEntity, getApp(), dt);
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
@@ -190,6 +200,17 @@ public:
         gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
         overlayStats.kills += healthResult.kills;
         overlayStats.score += healthResult.score;
+
+        // apply the rewards
+        if (playerEntity && (healthResult.healthReward != 0.0f || healthResult.ammoReward != 0)) {
+            gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (health)
+                health->currentHealth = std::min(health->currentHealth + healthResult.healthReward, health->maxHealth);
+            // TODO: should be adjusted
+            if (player) player->maxAmmo = std::min(player->maxAmmo + healthResult.ammoReward, 999);
+        }
+
         world.deleteMarkedEntities();
         if (healthResult.playerDied) {
             overlay.openGameOver();
