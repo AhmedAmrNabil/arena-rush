@@ -27,6 +27,7 @@ namespace gameplay {
         currentAmmo = data.value("currentAmmo", currentAmmo);
         isActive = data.value("isActive", isActive);
         order = data.value("order", order);
+        iconPath = data.value("iconPath", iconPath);
         if (currentAmmo > magSize) currentAmmo = magSize;  // ensure current ammo does not exceed mag size
     }
 
