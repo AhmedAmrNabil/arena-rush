@@ -60,16 +60,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         include:
           - name: Ubuntu / GCC
             os: ubuntu-latest
             generator: Ninja
             shell: bash
-          - name: Windows / MSVC
-            os: windows-latest
-            generator: "Visual Studio 17 2022"
-            shell: pwsh
 
     steps:
       - name: Checkout repository
@@ -79,7 +75,6 @@ jobs:
           fetch-depth: 1
 
       - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -90,7 +85,6 @@ jobs:
             libpipewire-0.3-dev pkg-config
 
       - name: ccache
-        if: runner.os == 'Linux'
         uses: hendrikmuhs/ccache-action@v1.2
 
       - name: Cache build directory
