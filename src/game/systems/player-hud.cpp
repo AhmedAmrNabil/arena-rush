@@ -233,7 +233,7 @@ namespace gameplay {
             scoreRect.size = {0.0f, 0.0f};
 
             textRenderer->drawTextWithOutline(&testFont, scoreText, scoreRect, windowSize, scoreScale, orthoVP,
-                                              waveColor, black, spread);
+                                              ammoColor, black, spread);
         }
     }
 
