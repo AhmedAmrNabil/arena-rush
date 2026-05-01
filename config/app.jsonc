@@ -158,10 +158,29 @@
                 }
             },
             "models": {
-                "drone": "assets/gltf/enemies/corki.glb",
-                "monster": "assets/gltf/enemies/mundo.glb",
-                "charger": "assets/gltf/enemies/shaco.glb",
-                "map": "assets/gltf/map/map.glb",
+                "drone": {
+                    "path": "assets/gltf/enemies/corki.glb",
+                    "animations": ["Idle01", "Run01", "Attack1", "Death"]
+                },
+                "monster": {
+                    "path": "assets/gltf/enemies/mundo.glb",
+                    "animations": [
+                        "IdleVariant1",
+                        "Run01",
+                        "Attack1",
+                        "Attack1_toIdle.anm",
+                        "Attack1_0.anm",
+                        "Death"
+                    ]
+                },
+                "charger": {
+                    "path": "assets/gltf/enemies/shaco.glb",
+                    "animations": ["Idle1", "Run", "Attack1", "Death"]
+                },
+                "map": {
+                    "path": "assets/gltf/map/map.glb",
+                    "animations": ["ufo_01"]
+                },
                 "rifle": "assets/gltf/weapons/rifle.glb",
                 "deagle": "assets/gltf/weapons/deagle.glb",
                 "hunter": "assets/gltf/weapons/hunter.glb"
@@ -223,7 +242,7 @@
                             {
                                 "type": "Collider",
                                 "layer": "enemy",
-                                 "shape": "Capsule",
+                                "shape": "Capsule",
                                 "worldSpace": true,
                                 "radius": 0.8,
                                 "height": 3.0,
@@ -294,35 +313,33 @@
                                 "layer": "enemy",
                                 "shape": "Model",
                                 "model": "charger"
-                            }
-                        ]
-                    },
-                    {
-                        "name": "Charger",
-                        "model": "charger",
-                        "rotation": [0.0, 0.0, 0.0],
-                        "scale": [0.015, 0.015, 0.015],
-                        "components": [
-                            {
-                                "type": "Enemy",
-                                "enemyType": "Charger",
-                                "moveSpeed": 7.0,
-                                "turnSpeed": 4.0,
-                                "aggroRange": 120.0,
-                                "attackRange": 1.8,
-                                "attackDamage": 5.0,
-                                "attackCooldown": 0.15,
-                                "scoreValue": 75
                             },
                             {
-                                "type": "Health",
-                                "maxHealth": 35.0
-                            },
-                            {
-                                "type": "Collider",
-                                "layer": "enemy",
-                                "shape": "Model",
-                                "model": "charger"
+                                "type": "Animation",
+                                "model": "charger",
+                                "default": "idle",
+                                "clips": {
+                                    "idle": {
+                                        "clip": "Idle1",
+                                        "speed": 1.0,
+                                        "loop": true
+                                    },
+                                    "walk": {
+                                        "clip": "Run",
+                                        "speed": 0.3333333333333333,
+                                        "loop": true
+                                    },
+                                    "attack": {
+                                        "clip": "Attack1",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    },
+                                    "death": {
+                                        "clip": "Death",
+                                        "speed": 1.0,
+                                        "loop": false
+                                    }
+                                }
                             }
                         ]
                     },
@@ -588,6 +605,18 @@
                         "layer": "environment",
                         "shape": "Model",
                         "model": "map"
+                    },
+                    {
+                        "type": "Animation",
+                        "model": "map",
+                        "default": "idle",
+                        "clips": {
+                            "idle": {
+                                "clip": "ufo_01",
+                                "speed": 1.0,
+                                "loop": true
+                            }
+                        }
                     }
                 ]
             },
