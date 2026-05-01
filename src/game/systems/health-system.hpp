@@ -35,28 +35,46 @@ namespace gameplay {
                 if (entity->getComponent<PlayerComponent>()) {
                     result.playerDied = true;
                 } else {
-                    EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
-                    if (enemy) {
-                        result.kills++;
-                        result.score += enemy->scoreValue;
-
-                        // per-kill rewards
-                        switch (enemy->type) {
-                            case EnemyType::Brute:
-                                result.healthReward += 5.0f;
-                                result.ammoReward += 8;
-                                break;
-                            case EnemyType::Charger:
-                                result.healthReward += 2.0f;
-                                result.ammoReward += 5;
-                                break;
-                            case EnemyType::Flyer:
-                                result.healthReward += 8.0f;
-                                result.ammoReward += 12;
-                                break;
+                    our::AnimationComponent* anim = entity->getComponent<our::AnimationComponent>();
+                    bool shouldRemove = (anim == nullptr);
+                    float deathPercent = 0.0f;  // funny variable name xd
+                    if (anim) {
+                        anim->setNextCommand({our::AnimationState::Death, -1.0f, 1.0f});
+                        shouldRemove = (anim->getState() == our::AnimationState::Death && anim->animator.isFinished());
+                        if (anim->currentClip == "death") {
+                            deathPercent = anim->animator.getPlaybackPercent();
                         }
                     }
-                    world->markForRemoval(entity);
+                    EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
+
+                    if (enemy && enemy->type == EnemyType::Flyer) {
+                        // change the height of the flyer as it dies to create a sinking effect
+                        our::Transform& transform = entity->localTransform;
+                        transform.position.y = enemy->baseHeight * (1 - std::min(deathPercent * 1.2f, 1.0f));
+                    }
+
+                    if (shouldRemove) {
+                        if (enemy) {
+                            result.kills++;
+                            result.score += enemy->scoreValue;
+                            // per-kill rewards
+                            switch (enemy->type) {
+                                case EnemyType::Brute:
+                                    result.healthReward += 5.0f;
+                                    result.ammoReward += 8;
+                                    break;
+                                case EnemyType::Charger:
+                                    result.healthReward += 2.0f;
+                                    result.ammoReward += 5;
+                                    break;
+                                case EnemyType::Flyer:
+                                    result.healthReward += 8.0f;
+                                    result.ammoReward += 12;
+                                    break;
+                            }
+                        }
+                        world->markForRemoval(entity);
+                    }
                 }
             }
 

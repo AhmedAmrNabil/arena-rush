@@ -60,10 +60,10 @@ namespace our {
         Animator() : finalBoneMatrices(MAX_BONES, glm::mat4(1.0f)) {}
 
         // speed should be affected by the scale and movement speed of the real entity
-        void play(const Animation* anim, bool loop = true, float speed = 1.0f, bool forceRestart = false) {
-            if (anim == currentAnimation && !forceRestart) return;  // skip if the same animation is already playing
+        void play(const Animation* anim, bool loop = true, float speed = 1.0f, bool resetCurrentTime = true) {
+            if (anim == currentAnimation && !isFinished()) return;  // skip if the same animation is already playing
             currentAnimation = anim;
-            currentTime = 0.0f;
+            if (resetCurrentTime) currentTime = 0.0f;
             this->loop = loop;
             this->speed = speed;
         }
@@ -90,11 +90,20 @@ namespace our {
         }
 
         bool isFinished() const {
-            return currentAnimation && currentTime >= currentAnimation->duration && !loop;
+            return currentAnimation && currentTime >= currentAnimation->duration;
+        }
+
+        bool isLooping() const {
+            return loop;
         }
 
         const std::string getCurrentAnimationName() const {
             return currentAnimation ? currentAnimation->name : "";
+        }
+
+        const float getPlaybackPercent() const {
+            if (!currentAnimation) return 0.0f;
+            return std::min(currentTime / currentAnimation->duration, 1.0f);
         }
     };
 }  // namespace our

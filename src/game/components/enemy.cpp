@@ -24,6 +24,7 @@ namespace gameplay {
         hoverAmplitude = data.value("hoverAmplitude", hoverAmplitude);
         baseHeight = data.value("baseHeight", baseHeight);
         scoreValue = data.value("scoreValue", scoreValue);
+        attackSound = data.value("attackSound", attackSound);
     }
 
 }  // namespace gameplay
