@@ -297,6 +297,40 @@ namespace gameplay {
     }
 
     // On-demand function
+    HitInfo CollisionSystem::sphereCast(const glm::vec3& from, const glm::vec3& to, float radius,
+                                        short targetLayer) const {
+        HitInfo hitInfo;
+        if (!collisionWorld) return hitInfo;
+
+        btSphereShape sphere(radius);
+
+        btTransform fromT;
+        fromT.setIdentity();
+        fromT.setOrigin(glmToBtVec3(from));
+
+        btTransform toT;
+        toT.setIdentity();
+        toT.setOrigin(glmToBtVec3(to));
+
+        btCollisionWorld::ClosestConvexResultCallback callback(glmToBtVec3(from), glmToBtVec3(to));
+        callback.m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
+        callback.m_collisionFilterMask = targetLayer;
+
+        collisionWorld->convexSweepTest(&sphere, fromT, toT, callback);
+
+        if (callback.hasHit()) {
+            hitInfo.hit = true;
+            hitInfo.point = btToGlmVec3(callback.m_hitPointWorld);
+            hitInfo.normal = btToGlmVec3(callback.m_hitNormalWorld);
+            hitInfo.entity = static_cast<our::Entity*>(callback.m_hitCollisionObject->getUserPointer());
+            float totalDistance = glm::length(to - from);
+            hitInfo.distance = callback.m_closestHitFraction * totalDistance;
+        }
+
+        return hitInfo;
+    }
+
+    // On-demand function
     std::vector<our::Entity*> CollisionSystem::overlapSphere(const glm::vec3& center, float radius, short targetLayer) {
         std::vector<our::Entity*> results;
         if (!collisionWorld) return results;

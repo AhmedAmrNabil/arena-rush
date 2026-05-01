@@ -1,5 +1,7 @@
 #include "player-movement-system.hpp"
 
+#include <components/collider.hpp>
+
 #include "collision-system.hpp"
 
 namespace gameplay {
@@ -58,14 +60,42 @@ namespace gameplay {
     }
 
     void PlayerMovementSystem::handleDashing(PlayerMovementComponent* movement, glm::vec3& playerPosition,
-                                             our::Keyboard& keyboard, const glm::vec3& frontXZ) {
+                                             our::Keyboard& keyboard, const glm::vec3& frontXZ,
+                                             const glm::vec3& moveDir) {
         if (keyboard.justPressed(GLFW_KEY_Q) && movement->dashCooldownTimer <= 0) {
             glm::vec3 dashDirection = glm::normalize(frontXZ);
-            if (glm::length(movement->velocity) > 0.001f) {
-                // dash along moving direction if not stationary
-                dashDirection = glm::normalize(movement->velocity);
+            if (glm::length(moveDir) > 0.001f) {
+                // Dash along active WASD input direction (not velocity, which may still be decaying)
+                dashDirection = glm::normalize(moveDir);
             }
-            playerPosition += dashDirection * movement->dashDistance;
+
+            // Sphere sweep to prevent tunneling through walls
+            float actualDashDistance = movement->dashDistance;
+            if (collisionSystem) {
+                float capsuleRadius = 0.5f;
+                float capsuleHeight = 1.0f;
+                if (ColliderComponent* collider = movement->getOwner()->getComponent<ColliderComponent>()) {
+                    capsuleRadius = collider->radius;
+                    capsuleHeight = collider->height;
+                }
+
+                // Sweep from body center
+                glm::vec3 bodyCenter = playerPosition;
+                bodyCenter.y = movement->groundLevel + capsuleHeight * 0.5f;
+
+                glm::vec3 sweepEnd = bodyCenter + dashDirection * movement->dashDistance;
+
+                HitInfo hit =
+                    collisionSystem->sphereCast(bodyCenter, sweepEnd, capsuleRadius, CollisionLayer::LAYER_ENVIRONMENT);
+
+                if (hit.hit) {
+                    // Small skin width to avoid ending flush against the wall (which would cause push-back)
+                    constexpr float SKIN_WIDTH = 0.05f;
+                    actualDashDistance = glm::max(0.0f, hit.distance - SKIN_WIDTH);
+                }
+            }
+
+            playerPosition += dashDirection * actualDashDistance;
             movement->dashCooldownTimer = movement->dashCooldown;
             movement->dashTriggeredThisFrame = true;
         }
@@ -176,7 +206,7 @@ namespace gameplay {
 
         playerPosition += movement->velocity * deltaTime;
 
-        handleDashing(movement, playerPosition, keyboard, frontXZ);
+        handleDashing(movement, playerPosition, keyboard, frontXZ, moveDir);
         handleJumpingAndGravity(movement, playerPosition, keyboard, deltaTime);
         handleHeightInterpolation(movement, playerPosition, deltaTime);
     }
