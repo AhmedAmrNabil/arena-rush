@@ -4,8 +4,9 @@
 
 #include "../ecs/component.hpp"
 
-#define MAX_LIGHTS 8  // we can increase later, but don't forget to update in frag shader too
 namespace our {
+    static inline constexpr size_t MAX_LIGHTS =
+        24;  // we can increase later, but don't forget to update in frag shader too
 
     enum class LightType { DIRECTIONAL, POINT, SPOT };
 

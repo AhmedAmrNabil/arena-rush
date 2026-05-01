@@ -1,5 +1,7 @@
 #include "forward-renderer.hpp"
 
+#include <string>
+
 #include "../components/model-renderer.hpp"
 #include "../components/post-process-effects.hpp"
 #include "../mesh/mesh-utils.hpp"
@@ -8,24 +10,6 @@
 #include "components/weapon.hpp"
 
 namespace our {
-
-    void ForwardRenderer::resizePostprocess(glm::ivec2 size) {
-        if (!postprocessMaterial) return;
-
-        glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
-
-        colorTarget->bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTarget->getOpenGLName(), 0);
-
-        depthTarget->bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size.x, size.y, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,
-                     nullptr);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTarget->getOpenGLName(), 0);
-
-        Texture2D::unbind();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
 
     void ForwardRenderer::initialize(glm::ivec2 windowSize, const nlohmann::json& config) {
         // First, we store the window size for later use
@@ -36,6 +20,29 @@ namespace our {
             // First, we create a sphere which will be used to draw the sky
             this->skySphere = mesh_utils::sphere(glm::ivec2(16, 16));
 
+            // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring
+            // while rendering the sky)
+            std::string skyTextureFile = config.value<std::string>("sky", "");
+
+            auto ends_with = [](const std::string& str, const std::string& suffix) {
+                if (str.size() < suffix.size()) return false;
+                return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+            };
+
+            Texture2D* skyTexture = nullptr;
+
+            ShaderProgram* skyShader = new ShaderProgram();
+            skyShader->attach("assets/shaders/textured.vert", GL_VERTEX_SHADER);
+            skyShader->attach("assets/shaders/textured.frag", GL_FRAGMENT_SHADER);
+
+            if (ends_with(skyTextureFile, ".hdr")) {
+                skyTexture = texture_utils::loadHDRImage(skyTextureFile, true);
+            } else {
+                skyTexture = texture_utils::loadImage(skyTextureFile, true, true);
+            }
+            // We can draw the sky using the same shader used to draw textured objects
+            skyShader->link();
+
             PipelineState skyPipelineState{};
             skyPipelineState.depthTesting.enabled = true;
             skyPipelineState.depthTesting.function = GL_LEQUAL;
@@ -44,12 +51,12 @@ namespace our {
             skyPipelineState.faceCulling.culledFace = GL_FRONT;
             skyPipelineState.faceCulling.frontFace = GL_CCW;
 
-            // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring
-            // while rendering the sky)
-            std::string skyTextureFile = config.value<std::string>("sky", "");
-            Texture2D* skyTexture = texture_utils::loadImage(skyTextureFile, true);
-
             // Setup a sampler for the sky
+            Sampler* skySampler = new Sampler();
+            skySampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            skySampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            skySampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
+            skySampler->set(GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             // Combine all the aforementioned objects (except the mesh) into a material
             this->skyMaterial = new TexturedMaterial();
@@ -62,14 +69,29 @@ namespace our {
             this->skyMaterial->transparent = false;
         }
 
+        auto ensureFullscreenVertexArray = [this]() {
+            if (postProcessVertexArray == 0) {
+                glGenVertexArrays(1, &postProcessVertexArray);
+            }
+        };
+
+        // Then we check if there is a bloom postprocess configuration
+        if (config.contains("bloom") && config["bloom"].is_object()) {
+            const auto& bloomConfig = config["bloom"];
+            if (bloomConfig.value("enabled", true)) {
+                ensureFullscreenVertexArray();
+                bloom = new BloomPostProcess();
+                bloom->initialize(windowSize, bloomConfig);
+            }
+        }
+
         // Then we check if there is a postprocessing shader in the configuration
         if (config.contains("postprocess")) {
-            glGenFramebuffers(1, &postprocessFrameBuffer);
-            colorTarget = new Texture2D();
-            depthTarget = new Texture2D();
+            postprocessFrameBuffer = new Framebuffer();
+            postprocessFrameBuffer->resize(windowSize, true);
 
             // Create a vertex array to use for drawing the texture
-            glGenVertexArrays(1, &postProcessVertexArray);
+            ensureFullscreenVertexArray();
 
             // Create a sampler to use for sampling the scene texture in the post processing shader
             Sampler* postprocessSampler = new Sampler();
@@ -81,19 +103,21 @@ namespace our {
             // Create the post processing shader
             ShaderProgram* postprocessShader = new ShaderProgram();
             postprocessShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
-            postprocessShader->attach(config.value<std::string>("postprocess", ""), GL_FRAGMENT_SHADER);
+            postprocessShader->attach(config["postprocess"].value<std::string>("fs", ""), GL_FRAGMENT_SHADER);
             postprocessShader->link();
+
+            for (auto& [uniformName, uniformValue] : config["postprocess"]["uniforms"].items()) {
+                postprocessUniforms[uniformName] = uniformValue.get<float>();
+            }
 
             // Create a post processing material
             postprocessMaterial = new TexturedMaterial();
             postprocessMaterial->shader = postprocessShader;
-            postprocessMaterial->texture = colorTarget;
+            postprocessMaterial->texture = postprocessFrameBuffer->getColorTarget();
             postprocessMaterial->sampler = postprocessSampler;
             // The default options are fine but we don't need to interact with the depth buffer
             // so it is more performant to disable the depth mask
             postprocessMaterial->pipelineState.depthMask = false;
-
-            resizePostprocess(windowSize);
         }
 
         bonesUniformBuffer = new UniformBuffer(MAX_BONES * sizeof(glm::mat4), bonesBindingPoint);
@@ -108,19 +132,25 @@ namespace our {
             skySphere = nullptr;
             skyMaterial = nullptr;
         }
+        // Delete all objects related to bloom
+        if (bloom) {
+            bloom->destroy();
+            delete bloom;
+            bloom = nullptr;
+        }
+
         // Delete all objects related to post processing
         if (postprocessMaterial) {
-            glDeleteFramebuffers(1, &postprocessFrameBuffer);
-            glDeleteVertexArrays(1, &postProcessVertexArray);
-            delete colorTarget;
-            delete depthTarget;
+            delete postprocessFrameBuffer;
             delete postprocessMaterial->sampler;
             delete postprocessMaterial->shader;
             delete postprocessMaterial;
-            colorTarget = nullptr;
-            depthTarget = nullptr;
             postprocessMaterial = nullptr;
-            postprocessFrameBuffer = 0;
+            postprocessFrameBuffer = nullptr;
+        }
+
+        if (postProcessVertexArray != 0) {
+            glDeleteVertexArrays(1, &postProcessVertexArray);
             postProcessVertexArray = 0;
         }
 
@@ -134,7 +164,8 @@ namespace our {
         if (windowSize.x <= 0 || windowSize.y <= 0) return;
         if (this->windowSize != windowSize) {
             this->windowSize = windowSize;
-            resizePostprocess(windowSize);
+            if (postprocessFrameBuffer) postprocessFrameBuffer->resize(windowSize, true);
+            if (bloom) bloom->resize(windowSize);
         }
 
         // First of all, we search for a camera and for all the mesh renderers
@@ -246,29 +277,33 @@ namespace our {
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDepthMask(GL_TRUE);
 
-        // If there is a postprocess material, bind the framebuffer
-        if (postprocessMaterial) {
-            glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
+        // If there is a bloom or postprocess target, bind it before rendering the scene
+        if (bloom) {
+            bloom->bindSceneFramebuffer();
+        } else if (postprocessMaterial) {
+            postprocessFrameBuffer->bind();
+        } else {
+            Framebuffer::unbind();
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Animator* lastUploadedAnimator = nullptr;
-        // draw all opaque objects first
-        for (const RenderCommand& command : opaqueCommands) {
+
+        auto renderCommand = [&](const RenderCommand& command) {
             command.material->setup();
             glm::mat4 MVP = VP * command.localToWorld;
             command.material->shader->set("transform", MVP);
+            if (bloom) bloom->applyBloomUniforms(command.material->shader);
+
             if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
                 litMaterial->setLightUniforms(sceneLights);
                 litMaterial->shader->set("cameraPos", cameraPosition);
                 litMaterial->shader->set("model", command.localToWorld);
             }
+
             if (command.animator) {
                 command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                // to optimize performance, we only update the bone matrices uniform buffer
-                // if the animator is different from the last drawn command's animator
                 if (command.animator != lastUploadedAnimator) {
                     const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
                     bonesUniformBuffer->bind();
@@ -279,7 +314,13 @@ namespace our {
             } else {
                 command.material->shader->set("hasBones", 0);
             }
+
             command.mesh->draw();
+        };
+
+        // draw all opaque objects first
+        for (const RenderCommand& command : opaqueCommands) {
+            renderCommand(command);
         }
 
         // If there is a sky material, draw the sky
@@ -299,30 +340,13 @@ namespace our {
             // clang-format on
 
             skyMaterial->shader->set("transform", alwaysBehindTransform * VP * model);
+            if (bloom) bloom->applyBloomUniforms(skyMaterial->shader);
             skySphere->draw();
         }
 
         // draw all the transparent commands
         for (const RenderCommand& command : transparentCommands) {
-            command.material->setup();
-            glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setLightUniforms(sceneLights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", command.localToWorld);
-            }
-            if (command.animator) {
-                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
-                bonesUniformBuffer->bind();
-                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
-                command.material->shader->set("hasBones", 1);
-            } else {
-                command.material->shader->set("hasBones", 0);
-            }
-            command.mesh->draw();
+            renderCommand(command);
         }
 
         // render weapon at the end with depth testing cleared
@@ -332,49 +356,17 @@ namespace our {
 
         // render weapon
         for (const RenderCommand& command : weaponCommands) {
-            command.material->setup();
-            glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setLightUniforms(sceneLights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", command.localToWorld);
-            }
-            if (command.animator) {
-                command.material->shader->bindUniformBlock("Bones", bonesBindingPoint);
-                const std::vector<glm::mat4>& boneMatrices = command.animator->getFinalBoneMatrices();
-                bonesUniformBuffer->bind();
-                bonesUniformBuffer->update(boneMatrices.data(), sizeof(glm::mat4) * boneMatrices.size());
-                command.material->shader->set("hasBones", 1);
-            } else {
-                command.material->shader->set("hasBones", 0);
-            }
-            command.mesh->draw();
+            renderCommand(command);
         }
 
-        // render weapon at the end with depth testing cleared
-        // enable depth mask again so it actually get cleared
-        glDepthMask(GL_TRUE);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        // render weapon
-        for (const RenderCommand& command : weaponCommands) {
-            command.material->setup();
-            glm::mat4 MVP = VP * command.localToWorld;
-            command.material->shader->set("transform", MVP);
-            if (LitMaterial* litMaterial = dynamic_cast<LitMaterial*>(command.material); litMaterial) {
-                // if the material is a lit material, we need to set the light uniforms
-                litMaterial->setLightUniforms(sceneLights);
-                litMaterial->shader->set("cameraPos", cameraPosition);
-                litMaterial->shader->set("model", command.localToWorld);
-            }
-            command.mesh->draw();
+        if (bloom) {
+            Framebuffer* bloomOutput = postprocessMaterial ? postprocessFrameBuffer : nullptr;
+            bloom->render(postProcessVertexArray, bloomOutput);
         }
 
         // If there is a postprocess material, apply postprocessing
         if (postprocessMaterial) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            Framebuffer::unbind();
             postprocessMaterial->setup();
 
             for (auto entity : world->getEntities()) {
@@ -385,6 +377,10 @@ namespace our {
                     break;  // handles gameplay driven postprocess effects, other ones (like bloom) should be handled
                             // separately outside this loop
                 }
+            }
+
+            for (auto& [uniformName, uniformValue] : postprocessUniforms) {
+                postprocessMaterial->shader->set(uniformName, uniformValue);
             }
 
             glBindVertexArray(postProcessVertexArray);

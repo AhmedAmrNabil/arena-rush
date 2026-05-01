@@ -6,12 +6,13 @@
 #include <iostream>
 
 namespace {
-    our::Texture2D* uploadImage(unsigned char* pixels, glm::ivec2 size, bool generate_mipmap) {
+    our::Texture2D* uploadImage(unsigned char* pixels, glm::ivec2 size, bool srgb, bool generate_mipmap) {
         our::Texture2D* texture = new our::Texture2D();
         texture->setSize(size.x, size.y);
         texture->bind();
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, srgb ? GL_SRGB8_ALPHA8 : GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     pixels);
         if (generate_mipmap) {
             glGenerateMipmap(GL_TEXTURE_2D);
         }
@@ -30,7 +31,7 @@ our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size) {
     return texture;
 }
 
-our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool generate_mipmap) {
+our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool srgb, bool generate_mipmap) {
     glm::ivec2 size;
     int channels;
     // Since OpenGL puts the texture origin at the bottom left while images typically has the origin at the top left,
@@ -50,12 +51,12 @@ our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool 
         return nullptr;
     }
 
-    Texture2D* texture = uploadImage(pixels, size, generate_mipmap);
+    Texture2D* texture = uploadImage(pixels, size, srgb, generate_mipmap);
     stbi_image_free(pixels);
     return texture;
 }
 
-our::Texture2D* our::texture_utils::loadImageFromMemory(const unsigned char* data, std::size_t size,
+our::Texture2D* our::texture_utils::loadImageFromMemory(const unsigned char* data, std::size_t size, bool srgb,
                                                         bool generate_mipmap) {
     glm::ivec2 imageSize;
     int channels;
@@ -67,7 +68,31 @@ our::Texture2D* our::texture_utils::loadImageFromMemory(const unsigned char* dat
         std::cerr << "Failed to load image from memory buffer" << std::endl;
         return nullptr;
     }
-    Texture2D* texture = uploadImage(pixels, imageSize, generate_mipmap);
+    Texture2D* texture = uploadImage(pixels, imageSize, srgb, generate_mipmap);
+    stbi_image_free(pixels);
+    return texture;
+}
+
+our::Texture2D* our::texture_utils::loadHDRImage(const std::string& filename, bool generate_mipmap) {
+    glm::ivec2 size;
+    int channels;
+    stbi_set_flip_vertically_on_load(true);
+    float* pixels = stbi_loadf(filename.c_str(), &size.x, &size.y, &channels, 4);
+    if (pixels == nullptr) {
+        std::cerr << "Failed to load HDR image: " << filename << " " << stbi_failure_reason() << std::endl;
+        return nullptr;
+    }
+
+    Texture2D* texture = new Texture2D();
+    texture->bind();
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, pixels);
+
+    if (generate_mipmap) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
+    texture->unbind();
     stbi_image_free(pixels);
     return texture;
 }

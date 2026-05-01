@@ -8,7 +8,8 @@ in Varyings {
     mat3 TBN;
 } fs_in;
 
-out vec4 frag_color;
+layout(location = 0) out vec4 frag_color;
+layout(location = 1) out vec4 frag_bright;
 
 // Material
 struct Material {
@@ -44,9 +45,11 @@ struct Material {
 uniform Material material;
 uniform float alphaThreshold;
 uniform vec4 tint;
+uniform float bloomThreshold;
+uniform float bloomSoftKnee;
 
 // Lights
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 24
 
 #define LIGHT_DIRECTIONAL 0
 #define LIGHT_POINT       1
@@ -67,7 +70,7 @@ uniform vec3 cameraPos;
 
 // Texture helpers
 vec3 sampleAlbedo(vec2 uv) {
-    vec3 base = material.hasTextureAlbedo ? pow(texture(material.textureAlbedo, uv).rgb, vec3(2.2)) : vec3(1.0);
+    vec3 base = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).rgb : vec3(1.0);
     return base * material.albedo;
 }
 
@@ -93,7 +96,7 @@ float sampleAO(vec2 uv) {
 
 vec3 sampleEmission(vec2 uv) {
     if(material.hasTextureEmissive)
-        return pow(texture(material.textureEmissive, uv).rgb, vec3(2.2)) * material.emission;
+        return texture(material.textureEmissive, uv).rgb * material.emission;
     return material.emission;
 }
 
@@ -102,6 +105,15 @@ vec3 sampleNormal(vec2 uv) {
         return normalize(fs_in.worldNormal);
     vec3 n = texture(material.textureNormal, uv).rgb * 2.0 - 1.0;
     return normalize(fs_in.TBN * n);
+}
+
+float bloomWeight(vec3 color) {
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    float knee = bloomThreshold * bloomSoftKnee;
+    if(knee > 0.0) {
+        return smoothstep(bloomThreshold - knee, bloomThreshold + knee, brightness);
+    }
+    return step(bloomThreshold, brightness);
 }
 
 // Blinn-Phong per light
@@ -139,7 +151,8 @@ vec3 calcLight(
 
     // diffuse
     float diff = max(dot(N, L), 0.0);
-    if(diff <= 0.0) return vec3(0.0);
+    if(diff <= 0.0)
+        return vec3(0.0);
     vec3 diffuse = diff * albedo * light.color;
 
     // specular (Blinn-Phong)
@@ -176,7 +189,6 @@ void main() {
     }
 
     vec3 result = ambient + lighting + emission;
-    result = pow(result, vec3(1.0 / 2.2)); // before writing frag_color, apply gamma correction (assuming albedo and emission are in linear space)
 
     // alpha from albedo texture or tint
     float alpha = material.hasTextureAlbedo ? texture(material.textureAlbedo, uv).a * tint.a * fs_in.color.a : tint.a * fs_in.color.a;
@@ -185,4 +197,6 @@ void main() {
         discard;
 
     frag_color = vec4(result, alpha);
+    float weight = bloomWeight(result);
+    frag_bright = vec4(result * weight, alpha);
 }

@@ -244,6 +244,8 @@ add_executable(${PROJECT_NAME}
     src/common/texture/texture-utils.cpp
     src/common/texture/screenshot.cpp
 
+    src/common/post-process/bloom.cpp
+
     src/common/material/pipeline-state.cpp
     src/common/material/material.cpp
 
