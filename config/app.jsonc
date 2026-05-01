@@ -79,7 +79,10 @@
                 "grass": "assets/textures/grass_ground_d.jpg",
                 "wood": "assets/textures/wood.jpg",
                 "glass": "assets/textures/glass-panels.png",
-                "monkey": "assets/textures/monkey.png"
+                "monkey": "assets/textures/monkey.png",
+                "rifle_icon": "assets/UI/rifle_icon.png",
+                "deagle_icon": "assets/UI/deagle_icon.png",
+                "hunter_icon": "assets/UI/hunter_icon.png"
             },
             "meshes": {
                 "cube": "assets/models/cube.obj",
@@ -543,7 +546,7 @@
                                 "trailHeadScale": 0.1,
                                 "trailTailScale": 0.012,
                                 "order": 0,
-                                "iconPath": "assets/UI/rifle_icon.png"
+                                "iconPath": "rifle_icon"
                             }
                         ],
                         "children": [
@@ -591,7 +594,8 @@
                                 "trailSegmentLifetime": 0.08,
                                 "trailHeadScale": 0.1,
                                 "trailTailScale": 0.012,
-                                "order": 1
+                                "order": 1,
+                                "iconPath": "hunter_icon"
                             }
                         ]
                     },
@@ -626,7 +630,7 @@
                                 "trailHeadScale": 0.1,
                                 "trailTailScale": 0.012,
                                 "order": 2,
-                                "iconPath": "assets/UI/deagle_icon.png"
+                                "iconPath": "deagle_icon"
                             }
                         ]
                     }

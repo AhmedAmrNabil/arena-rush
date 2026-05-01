@@ -1,5 +1,6 @@
 #include "player-hud.hpp"
 
+#include <asset-loader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <texture/texture-utils.hpp>
 
@@ -124,10 +125,7 @@ namespace gameplay {
 
         if (weapon) {
             if (!weapon->iconPath.empty()) {
-                if (textureCache.find(weapon->iconPath) == textureCache.end()) {
-                    textureCache[weapon->iconPath] = our::texture_utils::loadImage(weapon->iconPath, false);
-                }
-                weaponMaterial->texture = textureCache[weapon->iconPath];
+                weaponMaterial->texture = our::AssetLoader<our::Texture2D>::get(weapon->iconPath);
             } else {
                 weaponMaterial->texture = nullptr;
             }
@@ -268,11 +266,6 @@ namespace gameplay {
             weaponMaterial->texture = nullptr;
             delete weaponMaterial;
         }
-
-        for (auto& pair : textureCache) {
-            if (pair.second) delete pair.second;
-        }
-        textureCache.clear();
 
         testFont.destroy();
     }
