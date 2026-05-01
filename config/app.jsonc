@@ -158,8 +158,8 @@
                 }
             },
             "models": {
-                "drone": "assets/gltf/drone/arcade_corki.glb",
-                "monster": "assets/gltf/monster/drmundo.glb",
+                "drone": "assets/gltf/enemies/corki.glb",
+                "monster": "assets/gltf/enemies/mundo.glb",
                 "charger": "assets/gltf/enemies/shaco.glb",
                 "map": "assets/gltf/map/map.glb",
                 "rifle": "assets/gltf/weapons/rifle.glb",
