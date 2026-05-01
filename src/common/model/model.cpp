@@ -9,6 +9,7 @@
 #include <assimp/Importer.hpp>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "ai-glm-utils.hpp"
 #include "asset-loader.hpp"
