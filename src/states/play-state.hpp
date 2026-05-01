@@ -164,10 +164,13 @@ public:
             auto reward = enemySpawner.getWaveReward();
 
             gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
-            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
-
             if (health) health->currentHealth = std::min(health->currentHealth + reward.health, health->maxHealth);
-            if (player) player->maxAmmo = std::min(player->maxAmmo + reward.ammo, 999);
+
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (player && player->currentWeapon) {
+                gameplay::WeaponComponent* weapon = player->currentWeapon;
+                weapon->maxAmmo = std::min(weapon->maxAmmo + reward.ammo, 999);
+            }
         }
 
         enemyAI.update(&world, playerEntity, getApp(), dt);
@@ -204,10 +207,14 @@ public:
         // apply the rewards
         if (playerEntity && (healthResult.healthReward != 0.0f || healthResult.ammoReward != 0)) {
             gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
-            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
             if (health)
                 health->currentHealth = std::min(health->currentHealth + healthResult.healthReward, health->maxHealth);
-            if (player) player->maxAmmo = std::min(player->maxAmmo + healthResult.ammoReward, 999);
+
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (player && player->currentWeapon) {
+                gameplay::WeaponComponent* weapon = player->currentWeapon;
+                weapon->maxAmmo = std::min(weapon->maxAmmo + healthResult.ammoReward, 999);
+            }
         }
 
         world.deleteMarkedEntities();
