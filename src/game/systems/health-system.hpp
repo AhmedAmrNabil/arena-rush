@@ -39,7 +39,7 @@ namespace gameplay {
                     bool shouldRemove = (anim == nullptr);
                     float deathPercent = 0.0f;  // funny variable name xd
                     if (anim) {
-                        anim->play("death", 1.0f, false);
+                        anim->setNextCommand({our::AnimationState::Death, -1.0f, 1.0f});
                         shouldRemove = (anim->getState() == our::AnimationState::Death && anim->animator.isFinished());
                         if (anim->currentClip == "death") {
                             deathPercent = anim->animator.getPlaybackPercent();
