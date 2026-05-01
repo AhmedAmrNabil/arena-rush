@@ -160,10 +160,6 @@ public:
         }
 
         // Spawning / AI
-<<<<<<< feat/enemy-following
-        enemySpawner.update(&world, dt);
-        enemyAI.update(&world, playerEntity, getApp(), dt, &collisionSystem);
-=======
         bool waveCompleted = enemySpawner.update(&world, dt);
         if (waveCompleted && playerEntity) {
             auto reward = enemySpawner.getWaveReward();
@@ -178,8 +174,7 @@ public:
             }
         }
 
-        enemyAI.update(&world, playerEntity, getApp(), dt);
->>>>>>> main
+        enemyAI.update(&world, playerEntity, getApp(), dt, &collisionSystem);
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
