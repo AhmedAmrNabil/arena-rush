@@ -6,8 +6,9 @@
 #include <text/font.hpp>
 #include <text/text-renderer.hpp>
 
-namespace gameplay {
+#include "systems/enemy-spawner.hpp"
 
+namespace gameplay {
     class PlayerHUDSystem {
         our::Mesh* rectangleMesh = nullptr;
         our::ShaderProgram* progressShader = nullptr;
@@ -34,11 +35,16 @@ namespace gameplay {
         std::string fontPath = "assets/fonts/GTASA_font/GTASA_font.json";
         std::string fontTexturePath = "assets/fonts/GTASA_font/GTASA_font.png";
 
+        // wave HUD
+        float waveTextScale = 0.5f;
+        float waveBigTextScale = 1.0f;
+        glm::vec4 waveWhite = glm::vec4(glm::vec3(0.95f), 1.0f);
+
     public:
         void initialize();
         void deserialize(const nlohmann::json& data);
         void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
-                    our::TextRenderer* textRenderer);
+                    our::TextRenderer* textRenderer, const EnemySpawner& spawner);
         void destroy();
     };
 

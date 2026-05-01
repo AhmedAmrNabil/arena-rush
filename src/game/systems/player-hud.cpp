@@ -97,7 +97,7 @@ namespace gameplay {
     }
 
     void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
-                                 our::TextRenderer* textRenderer) {
+                                 our::TextRenderer* textRenderer, const EnemySpawner& spawner) {
         if (!playerEntity) return;
 
         HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
@@ -177,25 +177,51 @@ namespace gameplay {
             float scaledSpread = outlineSpread * uiScale;
             float sTextScale = textScale * uiScale;
 
-            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough
-            // :) (draws the text blackened four times to create an outline)
-            our::UIRect tr = scaledAmmoTextRect;
-            tr.offset += glm::vec2(scaledSpread, scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, tr, windowSize, sTextScale, orthoVP, outlineColor);
+            textRenderer->drawTextWithOutline(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP,
+                                              ammoColor, outlineColor, scaledSpread);
+        }
 
-            our::UIRect bl = scaledAmmoTextRect;
-            bl.offset += glm::vec2(-scaledSpread, -scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, bl, windowSize, sTextScale, orthoVP, outlineColor);
+        // wave HUD
+        glm::vec4 waveColor = glm::vec4(1.0f, 0.86f, 0.39f, 1.0f);
+        if (textRenderer) {
+            glm::mat4 orthoVP = glm::ortho(0.0f, (float)windowSize.x, (float)windowSize.y, 0.0f, 1.0f, -1.0f);
 
-            our::UIRect tl = scaledAmmoTextRect;
-            tl.offset += glm::vec2(-scaledSpread, scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, tl, windowSize, sTextScale, orthoVP, outlineColor);
+            glm::vec4 black(glm::vec3(0.0f), 1.0f);
 
-            our::UIRect br = scaledAmmoTextRect;
-            br.offset += glm::vec2(scaledSpread, -scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, br, windowSize, sTextScale, orthoVP, outlineColor);
+            float spread = outlineSpread * uiScale;
+            if (spawner.getWaveState() == EnemySpawner::WaveState::Countdown) {
+                // big centered "Wave X" + countdown number
+                std::string waveText = "Wave " + std::to_string(spawner.getWaveDisplayNumber());
+                float bigScale = waveBigTextScale * uiScale;
+                our::UIRect bigRect;
+                bigRect.anchor = {0.5f, 0.5f};
+                bigRect.pivot = {0.5f, 0.5f};
+                bigRect.offset = {0.0f, -100.0f * uiScale};
+                bigRect.size = {0.0f, 0.0f};
+                // outline
+                textRenderer->drawTextWithOutline(&testFont, waveText, bigRect, windowSize, bigScale, orthoVP,
+                                                  waveColor, black, spread);
+                // countdown
+                int ct = std::max(1, (int)std::ceil(spawner.getCountdownTimer()));
+                std::string cdText = std::to_string(ct);
+                our::UIRect cdRect = bigRect;
+                cdRect.offset.y += 100.0f * uiScale;
+                textRenderer->drawTextWithOutline(&testFont, cdText, cdRect, windowSize, bigScale, orthoVP, waveWhite,
+                                                  black, spread);
+            } else {
+                // small top-center "Wave X  |  Enemies: N"
+                std::string info = "Wave " + std::to_string(spawner.getWaveDisplayNumber()) +
+                                   "   Enemies: " + std::to_string(spawner.getEnemiesRemaining(world));
+                float smallScale = waveTextScale * uiScale;
+                our::UIRect infoRect;
+                infoRect.anchor = {0.5f, 0.0f};
+                infoRect.pivot = {0.5f, 0.0f};
+                infoRect.offset = {0.0f, 20.0f * uiScale};
+                infoRect.size = {0.0f, 0.0f};
 
-            textRenderer->drawText(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP, ammoColor);
+                textRenderer->drawTextWithOutline(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor,
+                                                  black, spread);
+            }
         }
     }
 

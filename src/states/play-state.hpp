@@ -159,7 +159,20 @@ public:
         }
 
         // Spawning / AI
-        enemySpawner.update(&world, dt);
+        bool waveCompleted = enemySpawner.update(&world, dt);
+        if (waveCompleted && playerEntity) {
+            auto reward = enemySpawner.getWaveReward();
+
+            gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
+            if (health) health->currentHealth = std::min(health->currentHealth + reward.health, health->maxHealth);
+
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (player && player->currentWeapon) {
+                gameplay::WeaponComponent* weapon = player->currentWeapon;
+                weapon->maxAmmo = std::min(weapon->maxAmmo + reward.ammo, 999);
+            }
+        }
+
         enemyAI.update(&world, playerEntity, getApp(), dt);
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
@@ -190,6 +203,20 @@ public:
         gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
         overlayStats.kills += healthResult.kills;
         overlayStats.score += healthResult.score;
+
+        // apply the rewards
+        if (playerEntity && (healthResult.healthReward != 0.0f || healthResult.ammoReward != 0)) {
+            gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
+            if (health)
+                health->currentHealth = std::min(health->currentHealth + healthResult.healthReward, health->maxHealth);
+
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (player && player->currentWeapon) {
+                gameplay::WeaponComponent* weapon = player->currentWeapon;
+                weapon->maxAmmo = std::min(weapon->maxAmmo + healthResult.ammoReward, 999);
+            }
+        }
+
         world.deleteMarkedEntities();
         if (healthResult.playerDied) {
             overlay.openGameOver();
@@ -205,7 +232,7 @@ public:
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
-        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer);
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;

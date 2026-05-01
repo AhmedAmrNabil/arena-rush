@@ -23,19 +23,26 @@ namespace gameplay {
         std::string model = "monster";
         glm::vec3 rotationDegrees = glm::vec3(0.0f, 0.0f, 0.0f);
         glm::vec3 scale = glm::vec3(0.012f);
-        nlohmann::json components = nlohmann::json::array({
-            {{"type", "Enemy"},
-             {"enemyType", "Brute"},
-             {"moveSpeed", 2.8f},
-             {"turnSpeed", 5.5f},
-             {"aggroRange", 120.0f},
-             {"attackRange", 2.0f},
-             {"attackDamage", 10.0f},
-             {"attackCooldown", 1.2f},
-             {"scoreValue", 100}},
-            {{"type", "Health"}, {"maxHealth", 60.0f}},
-            {{"type", "Collider"}, {"layer", "enemy"}, {"radius", 1.0f}},
-        });
+        nlohmann::json components = nlohmann::json::array();
+    };
+
+    struct WaveEntry {
+        int templateIndex;  // index of the enemy template in the EnemySpawnerConfig's enemies vector
+        int count;
+    };
+
+    struct WaveConfig {
+        std::vector<WaveEntry> entries;
+        float spawnInterval = 2.0f;
+        int maxAliveEnemies = 12;
+        float healthMul = 1.0f;
+        float damageMul = 1.0f;
+        float speedMul = 1.0f;
+    };
+
+    struct WaveReward {
+        float health = 10.0f;
+        int ammo = 20;
     };
 
     struct EnemySpawnConfig {
@@ -43,17 +50,52 @@ namespace gameplay {
             {30.0f, 0.0f, 30.0f}, {-30.0f, 0.0f, 30.0f}, {30.0f, 0.0f, -30.0f}, {-30.0f, 0.0f, -30.0f},
             {42.0f, 0.0f, 0.0f},  {-42.0f, 0.0f, 0.0f},  {0.0f, 0.0f, 42.0f},   {0.0f, 0.0f, -42.0f},
         };
-        float spawnInterval = 2.0f;
-        int initialSpawnCount = 4;
-        int maxAliveEnemies = 12;
         std::vector<EnemyTemplateConfig> enemies;
     };
 
     class EnemySpawner {
+    public:
+        enum class WaveState { Countdown, Active };
+
+    private:
         EnemySpawnConfig config;
+        std::vector<WaveConfig> waves;
+
+        int currentWave = 0;
+        int waveDisplayNumber = 1;
+        WaveState waveState = WaveState::Countdown;
+        float countdownTimer = 4.0f;
+
+        int enemiesToSpawn = 0;  // remaining to spawn this wave
+        int enemiesSpawned = 0;  // total spawned so far
+        int totalInWave = 0;     // total for the wave
         float spawnTimer = 0.0f;
-        int nextSpawn = 0;
-        int nextEnemy = 0;
+        int nextSpawnPoint = 0;
+        int spawnQueueIndex = 0;      // index into the flattened queue
+        std::vector<int> spawnQueue;  // queue of enemy template indices to spawn for the current wave
+
+        bool waveJustCompleted = false;
+
+        // utility to build the wave table
+        void buildWaveTable() {
+            int B = 0;
+            int C = std::min(1, (int)config.enemies.size() - 1);
+            int F = std::min(2, (int)config.enemies.size() - 1);
+
+            waves.clear();
+
+            // interval, maxAlive, hpMax, dmgMax, speedMax
+            waves.push_back({{{B, 4}}, 3.0f, 4, 1.0f, 1.0f, 1.0f});
+            waves.push_back({{{B, 5}, {C, 1}}, 2.5f, 5, 1.0f, 1.0f, 1.0f});
+            waves.push_back({{{B, 5}, {C, 2}, {F, 1}}, 2.5f, 6, 1.15f, 1.1f, 1.05f});
+            waves.push_back({{{B, 5}, {C, 3}, {F, 2}}, 2.0f, 7, 1.3f, 1.2f, 1.1f});
+            waves.push_back({{{B, 5}, {C, 4}, {F, 3}}, 2.0f, 8, 1.5f, 1.3f, 1.15f});
+            waves.push_back({{{B, 6}, {C, 4}, {F, 4}}, 1.8f, 9, 1.7f, 1.4f, 1.2f});
+            waves.push_back({{{B, 6}, {C, 5}, {F, 5}}, 1.5f, 10, 1.9f, 1.5f, 1.25f});
+            waves.push_back({{{B, 7}, {C, 5}, {F, 6}}, 1.5f, 11, 2.2f, 1.6f, 1.3f});
+            waves.push_back({{{B, 7}, {C, 6}, {F, 7}}, 1.2f, 12, 2.5f, 1.8f, 1.35f});
+            waves.push_back({{{B, 8}, {C, 8}, {F, 8}}, 1.0f, 14, 3.0f, 2.0f, 1.4f});
+        }
 
         int countAliveEnemies(our::World* world) const {
             if (!world) return 0;
@@ -70,7 +112,8 @@ namespace gameplay {
             return alive;
         }
 
-        void spawnEnemyAt(our::World* world, const EnemyTemplateConfig& config, const glm::vec3& position) const {
+        void spawnEnemyAt(our::World* world, const EnemyTemplateConfig& config, const glm::vec3& position,
+                          const WaveConfig& wave) const {
             if (!world) return;
 
             our::Model* model = our::AssetLoader<our::Model>::get(config.model);
@@ -90,27 +133,49 @@ namespace gameplay {
                 std::string type = componentConfig.value("type", "");
                 if (type == "Enemy") {
                     EnemyComponent* enemy = enemyEntity->addComponent<EnemyComponent>();
+
                     enemy->deserialize(componentConfig);
+                    enemy->moveSpeed *= wave.speedMul;
+                    enemy->attackDamage *= wave.damageMul;
                 } else if (type == "Health") {
                     HealthComponent* health = enemyEntity->addComponent<HealthComponent>();
+
                     health->deserialize(componentConfig);
+                    health->maxHealth *= wave.healthMul;
+                    health->currentHealth = health->maxHealth;
                 } else if (type == "Collider") {
                     ColliderComponent* collider = enemyEntity->addComponent<ColliderComponent>();
+
                     collider->deserialize(componentConfig);
                     collider->shapeCacheId = std::string("enemy:") + config.name + ":" + config.model;
                 } else if (type == "Weapon") {
                     WeaponComponent* weapon = enemyEntity->addComponent<WeaponComponent>();
+
                     weapon->deserialize(componentConfig);
+                    weapon->bulletDamage *= wave.damageMul;
                 }
             }
         }
 
-        void spawnNextEnemy(our::World* world) {
-            if (!world || config.spawnPoints.empty() || config.enemies.empty()) return;
+        void buildSpawnQueue(const WaveConfig& wave) {
+            spawnQueue.clear();
 
-            spawnEnemyAt(world, config.enemies[nextEnemy], config.spawnPoints[nextSpawn]);
-            nextSpawn = (nextSpawn + 1) % config.spawnPoints.size();
-            nextEnemy = (nextEnemy + 1) % config.enemies.size();
+            for (const WaveEntry& entry : wave.entries) {
+                for (int i = 0; i < entry.count; i++) spawnQueue.push_back(entry.templateIndex);
+            }
+            totalInWave = (int)spawnQueue.size();
+            enemiesToSpawn = totalInWave;
+            enemiesSpawned = 0;
+            spawnQueueIndex = 0;
+        }
+
+        void startWave(our::World* world) {
+            const WaveConfig& wave = waves[std::min(currentWave, (int)waves.size() - 1)];
+            buildSpawnQueue(wave);
+
+            spawnTimer = 0.0f;  // first enemy should spawn immediately
+            waveState = WaveState::Active;
+            waveJustCompleted = false;
         }
 
     public:
@@ -118,9 +183,6 @@ namespace gameplay {
             if (!(sceneConfig.contains("game") && sceneConfig["game"].contains("enemySpawner"))) return;
 
             const nlohmann::json& spawnerConfig = sceneConfig["game"]["enemySpawner"];
-            config.spawnInterval = spawnerConfig.value("spawnInterval", config.spawnInterval);
-            config.initialSpawnCount = spawnerConfig.value("initialSpawnCount", config.initialSpawnCount);
-            config.maxAliveEnemies = spawnerConfig.value("maxAliveEnemies", config.maxAliveEnemies);
 
             if (spawnerConfig.contains("spawnPoints") && spawnerConfig["spawnPoints"].is_array()) {
                 config.spawnPoints.clear();
@@ -151,26 +213,83 @@ namespace gameplay {
         }
 
         void initialize(our::World* world) {
-            nextSpawn = 0;
-            nextEnemy = 0;
-            spawnTimer = config.spawnInterval;
-
-            for (int i = 0; i < config.initialSpawnCount; i++) spawnNextEnemy(world);
+            buildWaveTable();
+            currentWave = 0;
+            waveDisplayNumber = 1;
+            waveState = WaveState::Countdown;
+            countdownTimer = 4.0f;
+            nextSpawnPoint = 0;
+            waveJustCompleted = false;
         }
 
-        void update(our::World* world, float diffTime) {
-            if (!world || diffTime <= 0.0f) return;
+        // returns true if a wave was just completed this frame, false otherwise
+        bool update(our::World* world, float dt) {
+            if (!world || dt <= 0.0f || config.spawnPoints.empty() || config.enemies.empty()) return false;
 
-            spawnTimer -= diffTime;
-            if (spawnTimer > 0.0f) return;
+            waveJustCompleted = false;
+            int waveIndex = std::min(currentWave, (int)waves.size() - 1);
+            const WaveConfig& wave = waves[waveIndex];
 
-            if (countAliveEnemies(world) >= config.maxAliveEnemies) {
-                spawnTimer = 0.5f;
-                return;
+            if (waveState == WaveState::Countdown) {
+                countdownTimer -= dt;
+                if (countdownTimer <= 0.0f) {
+                    startWave(world);
+                }
+                return false;
             }
 
-            spawnNextEnemy(world);
-            spawnTimer = config.spawnInterval;
+            // Case Active
+            // If there are still enemies to spawn, spawn them according to the timer and maxAliveEnemies limit
+            if (enemiesToSpawn > 0) {
+                spawnTimer -= dt;
+                if (spawnTimer <= 0.0f && countAliveEnemies(world) < wave.maxAliveEnemies) {
+                    int idx = spawnQueue[spawnQueueIndex];
+                    idx = std::min(idx, (int)config.enemies.size() - 1);
+                    spawnEnemyAt(world, config.enemies[idx], config.spawnPoints[nextSpawnPoint], wave);
+
+                    nextSpawnPoint = (nextSpawnPoint + 1) % config.spawnPoints.size();
+                    spawnQueueIndex++;
+                    enemiesToSpawn--;
+                    enemiesSpawned++;
+                    spawnTimer = wave.spawnInterval;
+                }
+            }
+
+            // no more enemies to spawn and no more alive enemies means wave completed
+            if (enemiesToSpawn <= 0 && countAliveEnemies(world) == 0) {
+                waveJustCompleted = true;
+
+                // go next wave
+                currentWave++;
+                waveDisplayNumber++;
+                countdownTimer = 4.0f;  // countdown to next wave
+                waveState = WaveState::Countdown;
+            }
+            return waveJustCompleted;
+        }
+
+        // for HUD
+        int getWaveDisplayNumber() const {
+            return waveDisplayNumber;
+        }
+
+        WaveState getWaveState() const {
+            return waveState;
+        }
+
+        float getCountdownTimer() const {
+            return countdownTimer;
+        }
+
+        int getEnemiesRemaining(our::World* world) const {
+            if (!world) return 0;
+
+            int alive = countAliveEnemies(world);
+            return alive + enemiesToSpawn;
+        }
+
+        WaveReward getWaveReward() const {
+            return {10.0f, 20};
         }
     };
 
