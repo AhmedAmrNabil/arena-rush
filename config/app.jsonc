@@ -163,7 +163,8 @@
                 "charger": "assets/gltf/enemies/shaco.glb",
                 "map": "assets/gltf/map/map.glb",
                 "rifle": "assets/gltf/weapons/rifle.glb",
-                "deagle": "assets/gltf/weapons/deagle.glb"
+                "deagle": "assets/gltf/weapons/deagle.glb",
+                "hunter": "assets/gltf/weapons/hunter.glb"
             }
         },
         "game": {
@@ -364,9 +365,9 @@
                 ],
                 "children": [
                     {
-                        "position": [1, -1, -2],
+                        "position": [1, -0.7, -2],
                         "rotation": [0, 0, 0],
-                        "scale": [0.3, 0.3, 0.3],
+                        "scale": [0.2, 0.2, 0.2],
                         "name": "rifle",
                         "components": [
                             {
@@ -387,7 +388,7 @@
                                 "automatic": true,
                                 "magSize": 30,
                                 "maxAmmo": 120,
-                                "muzzleOffset": [1, -1, -2],
+                                "muzzleOffset": [1, -0.7, -3],
                                 "trailEnabled": true,
                                 "trailMaxSegments": 8,
                                 "trailSegmentLifetime": 0.08,
@@ -412,8 +413,42 @@
                         ]
                     },
                     {
+                        "name": "hunter",
+                        "position": [0.8, -0.5, -1],
+                        "rotation": [0, 180, 0],
+                        "scale": [3.5, 3.5, 3.5],
+                        "components": [
+                            {
+                                "type": "Model Renderer",
+                                "model": "hunter",
+                                "firstPersonOverlay": true
+                            },
+                            {
+                                "type": "Weapon",
+                                "cooldown": 0.5,
+                                "bulletSpeed": 520.0,
+                                "bulletDamage": 50.0,
+                                "bulletLifetime": 3.0,
+                                "bulletScale": 0.05,
+                                "fireSound": "deagle-shot",
+                                "reloadSound": "reload",
+                                "reloadTime": 1.5,
+                                "automatic": false,
+                                "magSize": 8,
+                                "maxAmmo": 64,
+                                "muzzleOffset":  [0.8, -0.5, -3.8],
+                                "trailEnabled": true,
+                                "trailMaxSegments": 8,
+                                "trailSegmentLifetime": 0.08,
+                                "trailHeadScale": 0.1,
+                                "trailTailScale": 0.012,
+                                "order": 1
+                            }
+                        ]
+                    },
+                    {
                         "name": "deagle",
-                        "position": [1, -0.3, -2],
+                        "position": [1, -0.5, -2],
                         "rotation": [0, 0, 0],
                         "scale": [3, 3, 3],
                         "components": [
@@ -435,13 +470,13 @@
                                 "automatic": false,
                                 "magSize": 8,
                                 "maxAmmo": 64,
-                                "muzzleOffset": [1, -0.3, -2],
+                                "muzzleOffset": [1, -0.5, -2.3],
                                 "trailEnabled": true,
                                 "trailMaxSegments": 8,
                                 "trailSegmentLifetime": 0.08,
                                 "trailHeadScale": 0.1,
                                 "trailTailScale": 0.012,
-                                "order": 1
+                                "order": 2
                             }
                         ]
                     }
