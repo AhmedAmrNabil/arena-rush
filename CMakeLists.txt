@@ -327,6 +327,13 @@ if(USE_SYSTEM_ASSIMP AND assimp_FOUND)
     )
 endif()
 
+if(USE_SYSTEM_BULLET AND Bullet_FOUND)
+    target_include_directories(${PROJECT_NAME}
+        PRIVATE
+            ${BULLET_INCLUDE_DIRS}
+    )
+endif()
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:COLLISION_DEBUG_DRAW>
