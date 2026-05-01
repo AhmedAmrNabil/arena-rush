@@ -14,8 +14,8 @@
 #include "../components/enemy.hpp"
 #include "../components/health.hpp"
 #include "../components/weapon.hpp"
-#include "components/animation.hpp"
 #include "collision-system.hpp"
+#include "components/animation.hpp"
 #include "components/audio-source.hpp"
 #include "projectile-system.hpp"
 
@@ -266,7 +266,6 @@ namespace gameplay {
                             break;
 
                         case S::Aggro: {
-                            if (anim) anim->setNextCommand({our::AnimationState::Walk, -1.0f, movementSpeed});
                             bool dangerDetected = false;
                             glm::vec3 steerDir =
                                 contextSteer(enemyPos, toPlayerDir, enemy->moveSpeed, collisionSystem, dangerDetected);
@@ -276,6 +275,7 @@ namespace gameplay {
 
                             // Face avoidance direction when dodging, player when clear
                             faceDir = dangerDetected ? steerDir : toPlayerDir;
+                            if (anim) anim->setNextCommand({our::AnimationState::Walk, -1.0f, movementSpeed});
                             break;
                         }
 
