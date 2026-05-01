@@ -393,6 +393,8 @@ int our::Application::run(int run_for_frames) {
             nextState = nullptr;
             // Initialize the new scene
             currentState->onInitialize(sharedContextWindow);
+
+            last_frame_time = glfwGetTime();
         }
 
         ++current_frame;
