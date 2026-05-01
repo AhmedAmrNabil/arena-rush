@@ -5,6 +5,7 @@
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 #include "components/animation.hpp"
+#include "components/weapon.hpp"
 
 namespace our {
 
@@ -190,6 +191,11 @@ namespace our {
                 if (!modelRenderer->model) {
                     continue;  // model failed to load, skip rendering
                 }
+
+                if (gameplay::WeaponComponent* weapon = entity->getComponent<gameplay::WeaponComponent>(); weapon) {
+                    if (!weapon->isActive) continue;  // if the weapon is not active, skip rendering
+                }
+
                 glm::mat4 modelMatrix = modelRenderer->getOwner()->getLocalToWorldMatrix();
                 for (MeshRendererComponent* submesh : modelRenderer->model->getSubmeshes()) {
                     RenderCommand command;

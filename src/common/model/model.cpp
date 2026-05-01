@@ -32,7 +32,7 @@ namespace our {
             count += scene->mNumAnimations;
         }
         count += scene->mNumMeshes;
-        count += scene->mNumMaterials;
+        count += scene->mNumMaterials * 2;  // each material have a sampler too
         return count;
     }
 

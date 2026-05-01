@@ -22,6 +22,7 @@
 #include <systems/projectile-system.hpp>
 #include <systems/trail-system.hpp>
 #include <systems/ui-renderer.hpp>
+#include <systems/weapon-switcher-system.hpp>
 #include <systems/weapon-visual-system.hpp>
 #include <ui/play-overlay.hpp>
 
@@ -51,6 +52,7 @@ class Playstate : public our::State {
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
     gameplay::PlayerHUDSystem playerHud;
+    gameplay::WeaponSwitcherSystem weaponSwitcher;
 
     void displayFPS() const {
         ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
@@ -105,6 +107,8 @@ public:
             if (activeCamera && playerEntity) break;
         }
 
+        weaponVisuals.initlize(playerEntity, activeCamera ? activeCamera->getOwner() : nullptr);
+
         cameraController.enter(getApp());
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
@@ -121,6 +125,7 @@ public:
         enemyHealthBars.deserialize(config);
         crosshair.deserialize(config);
         overlayStats = {};
+        weaponSwitcher.initialize(&world, playerEntity);
     }
 
     void onDraw(double deltaTime) override {
@@ -155,18 +160,41 @@ public:
         }
 
         // Spawning / AI
+<<<<<<< feat/enemy-following
         enemySpawner.update(&world, dt);
         enemyAI.update(&world, playerEntity, getApp(), dt, &collisionSystem);
+=======
+        bool waveCompleted = enemySpawner.update(&world, dt);
+        if (waveCompleted && playerEntity) {
+            auto reward = enemySpawner.getWaveReward();
+
+            gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
+            if (health) health->currentHealth = std::min(health->currentHealth + reward.health, health->maxHealth);
+
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (player && player->currentWeapon) {
+                gameplay::WeaponComponent* weapon = player->currentWeapon;
+                weapon->maxAmmo = std::min(weapon->maxAmmo + reward.ammo, 999);
+            }
+        }
+
+        enemyAI.update(&world, playerEntity, getApp(), dt);
+>>>>>>> main
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
+
+        // handle weapon swtiching
+        weaponSwitcher.update(getApp());
 
         bool reloadStarted = gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
         if (reloadStarted) {
             float reloadDuration = 1.0f;
             if (playerEntity) {
-                if (gameplay::WeaponComponent* weapon = playerEntity->getComponent<gameplay::WeaponComponent>())
-                    reloadDuration = weapon->reloadTime;
+                gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+                if (player && player->currentWeapon) {
+                    reloadDuration = player->currentWeapon->reloadTime;
+                }
             }
             weaponVisuals.onReloadStart(reloadDuration);
         }
@@ -181,6 +209,20 @@ public:
         gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
         overlayStats.kills += healthResult.kills;
         overlayStats.score += healthResult.score;
+
+        // apply the rewards
+        if (playerEntity && (healthResult.healthReward != 0.0f || healthResult.ammoReward != 0)) {
+            gameplay::HealthComponent* health = playerEntity->getComponent<gameplay::HealthComponent>();
+            if (health)
+                health->currentHealth = std::min(health->currentHealth + healthResult.healthReward, health->maxHealth);
+
+            gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+            if (player && player->currentWeapon) {
+                gameplay::WeaponComponent* weapon = player->currentWeapon;
+                weapon->maxAmmo = std::min(weapon->maxAmmo + healthResult.ammoReward, 999);
+            }
+        }
+
         world.deleteMarkedEntities();
         if (healthResult.playerDied) {
             overlay.openGameOver();
@@ -196,7 +238,7 @@ public:
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
-        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer);
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
@@ -225,6 +267,7 @@ public:
         textRenderer.destroy();
         playerHud.destroy();
         weaponVisuals.destroy();
+        weaponSwitcher.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         getApp()->getAudioSystem().stopAll();
