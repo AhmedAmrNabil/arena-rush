@@ -19,7 +19,7 @@
             },
             "bloom": {
                 "enabled": true,
-                "threshold": 0.7,
+                "threshold": 1.0,
                 "softKnee": 0.5,
                 "radius": 1.0,
                 "intensity": 2.0
@@ -516,7 +516,7 @@
                                         "lightType": "spot",
                                         "color": [5, 5, 7],
                                         "attenuation": [1.0, 0.14, 0.07],
-                                        "spotAngles": [15, 20]
+                                        "spotAngles": [12.5, 15]
                                     }
                                 ]
                             }
@@ -546,7 +546,7 @@
                                 "automatic": false,
                                 "magSize": 8,
                                 "maxAmmo": 64,
-                                "muzzleOffset":  [0.8, -0.5, -3.8],
+                                "muzzleOffset": [0.8, -0.5, -3.8],
                                 "trailEnabled": true,
                                 "trailMaxSegments": 8,
                                 "trailSegmentLifetime": 0.08,
@@ -621,73 +621,6 @@
                 ],
                 "children": [
                     {
-                        "position": [16.544, 4, 7.8],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [16.544, 4.1, -4.1],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [16.544, 4.1, -16.17],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [29.645, 4.1, -16.17],
-                        "rotation": [0, 0, 0],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [29.645, 4.1, -4.1],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [29.645, 4.1, 7.8],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
                         "position": [-1.6, 46, 0],
                         "rotation": [-90, 0, 0],
                         "components": [
@@ -701,162 +634,261 @@
                         ]
                     },
                     {
-                        "position": [7.02, 4.1, -21.625],
-                        "scale": [0.5, 0.5, 0.5],
+                        "position": [60, 50, 50],
                         "components": [
                             {
                                 "type": "light",
                                 "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
+                                "color": [3, 3, 2],
+                                "attenuation": [1.0, 0.022, 0.0019]
+                            },
+                            {
+                                "type": "Mesh Renderer",
+                                "mesh": "sphere",
+                                "material": "projectile-player"
                             }
                         ]
                     },
                     {
-                        "position": [-33.123, 4.1, 22.255],
-                        "scale": [0.5, 0.5, 0.5],
+                        "position": [-60, 50, -50],
                         "components": [
                             {
                                 "type": "light",
                                 "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-35.035, 6.55, -5.565],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
+                                "color": [3, 3, 2],
+                                "attenuation": [1.0, 0.022, 0.0019]
+                            },
                             {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-45.035, 6.55, -5.565],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-55.285, 6.55, -5.565],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-35.035, 6.55, -14.575],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-45.035, 6.55, -14.575],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-55.275, 6.55, -14.575],
-                        "scale": [0.5, 0.5, 0.5],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [-3.225, 4.1, -21.625],
-                        "scale": [1, 1, 1],
-                        "rotation": [-90, 0, 0],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [7.02, 4.1, -30.606],
-                        "scale": [1, 1, 1],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [2.977, 4.1, -30.606],
-                        "scale": [1, 1, 1],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [45.159, 8.1, -0.987],
-                        "scale": [1, 1, 1],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
-                            }
-                        ]
-                    },
-                    {
-                        "position": [45.159, 8.1, -9.237],
-                        "scale": [1, 1, 1],
-                        "components": [
-                            {
-                                "type": "light",
-                                "lightType": "point",
-                                "color": [0.7, 0.6, 0.3],
-                                "attenuation": [1.0, 0.09, 0.032]
+                                "type": "Mesh Renderer",
+                                "mesh": "sphere",
+                                "material": "projectile-player"
                             }
                         ]
                     }
+                    // {
+                    //     "position": [16.544, 4, 7.8],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [16.544, 4.1, -4.1],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [16.544, 4.1, -16.17],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [29.645, 4.1, -16.17],
+                    //     "rotation": [0, 0, 0],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [29.645, 4.1, -4.1],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [29.645, 4.1, 7.8],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [7.02, 4.1, -21.625],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-33.123, 4.1, 22.255],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-35.035, 6.55, -5.565],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-45.035, 6.55, -5.565],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-55.285, 6.55, -5.565],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-35.035, 6.55, -14.575],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-45.035, 6.55, -14.575],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-55.275, 6.55, -14.575],
+                    //     "scale": [0.5, 0.5, 0.5],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [-3.225, 4.1, -21.625],
+                    //     "scale": [1, 1, 1],
+                    //     "rotation": [-90, 0, 0],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [7.02, 4.1, -30.606],
+                    //     "scale": [1, 1, 1],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [2.977, 4.1, -30.606],
+                    //     "scale": [1, 1, 1],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [45.159, 8.1, -0.987],
+                    //     "scale": [1, 1, 1],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // },
+                    // {
+                    //     "position": [45.159, 8.1, -9.237],
+                    //     "scale": [1, 1, 1],
+                    //     "components": [
+                    //         {
+                    //             "type": "light",
+                    //             "lightType": "point",
+                    //             "color": [0.7, 0.6, 0.3],
+                    //             "attenuation": [1.0, 0.09, 0.032]
+                    //         }
+                    //     ]
+                    // }
                 ]
             }
         ]
