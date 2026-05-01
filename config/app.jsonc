@@ -128,24 +128,6 @@
                         "depthMask": false
                     }
                 },
-                "hit-marker-material": {
-                    "type": "textured",
-                    "shader": "textured",
-                    "texture": "hit-marker",
-                    "sampler": "default",
-                    "tint": [0.75, 0.015, 0.015, 1.0],
-                    "transparent": true,
-                    "pipelineState": {
-                        "faceCulling": { "enabled": false },
-                        "depthTesting": { "enabled": false },
-                        "blending": {
-                            "enabled": true,
-                            "sourceFactor": "GL_SRC_ALPHA",
-                            "destinationFactor": "GL_ONE_MINUS_SRC_ALPHA"
-                        },
-                        "depthMask": false
-                    }
-                },
                 "projectile-player": {
                     "type": "lit",
                     "shader": "lit",
