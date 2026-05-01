@@ -91,7 +91,8 @@
                 "deagle-shot": "assets/sounds/deagle.wav",
                 "heartsteel": "assets/sounds/heartsteel.wav",
                 "shaco-attack": "assets/sounds/shaco_attack.wav",
-                "ssg": "assets/sounds/ssg.wav"
+                "ssg": "assets/sounds/ssg.wav",
+                "ambient": "assets/sounds/ambient.wav"
             },
             "samplers": {
                 "default": {},
@@ -439,6 +440,15 @@
                         "fovY": 60,
                         "near": 0.1,
                         "far": 500.0
+                    },
+                    {
+                        "type": "AudioSource",
+                        "soundName": "ambient",
+                        "playOnStart": true,
+                        "loop": true,
+                        "spatial": false,
+                        "gain": 0.5,
+                        "pitch": 1.0
                     },
                     {
                         "type": "Free Camera Controller",
