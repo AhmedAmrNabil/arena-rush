@@ -285,6 +285,13 @@ namespace gameplay {
                             if (enemy->attackTimer <= 0.0f) {
                                 playerHealth->takeDamage(enemy->attackDamage);
                                 if (anim) anim->playAttack(enemy->attackCooldown);
+
+                                // Play sound
+                                our::AudioBuffer* buffer = our::AssetLoader<our::AudioBuffer>::get(enemy->attackSound);
+                                if (buffer) {
+                                    app->getAudioSystem().playSound(buffer, enemyPos, 0.5f, 1.0f, false, 6.0f, 60.0f);
+                                }
+
                                 enemy->attackTimer = enemy->attackCooldown;
                             } else {
                                 if (anim) anim->setNextState(our::AnimationState::Idle);

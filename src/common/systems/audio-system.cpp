@@ -48,6 +48,7 @@ namespace our {
         // This is common practice
         sourcePool.resize(SOURCE_POOL_SIZE);
         alGenSources(SOURCE_POOL_SIZE, sourcePool.data());
+        alGenSources(1, &ambientSource);  // create a dedicated source for ambient music
         checkALError("Generating source pool");
     }
 
@@ -106,6 +107,11 @@ namespace our {
                 startSource(audioSource, entity);
             }
 
+            // Play ambient if not playing
+            if (ambientSource != 0 && !isPlaying(ambientSource)) {
+                playAmbientSound();
+            }
+
             // Update the source's 3D position every frame (if it has a source assigned and is spatial)
             if (audioSource->alSource != 0 && audioSource->spatial) {
                 glm::mat4 M = entity->getLocalToWorldMatrix();
@@ -113,6 +119,23 @@ namespace our {
                 alSource3f(audioSource->alSource, AL_POSITION, sourcePos.x, sourcePos.y, sourcePos.z);
             }
         }
+    }
+
+    void AudioSystem::playAmbientSound() {
+        AudioBuffer* buffer = AssetLoader<AudioBuffer>::get("ambient");
+        if (!buffer) {
+            return;
+        }
+
+        // Configure the ambient source
+        alSourcei(ambientSource, AL_BUFFER, static_cast<ALint>(buffer->getBufferID()));
+        alSourcef(ambientSource, AL_GAIN, 0.5f);  // lower volume for ambient music
+        alSourcef(ambientSource, AL_PITCH, 1.0f);
+        alSourcei(ambientSource, AL_LOOPING, AL_TRUE);          // loop indefinitely
+        alSourcei(ambientSource, AL_SOURCE_RELATIVE, AL_TRUE);  // non-spatial
+
+        alSourcePlay(ambientSource);
+        checkALError("Playing ambient sound");
     }
 
     void AudioSystem::startSource(AudioSourceComponent* audioSource, Entity* entity) {
@@ -226,6 +249,10 @@ namespace our {
             alSourceStop(source);
             alSourcei(source, AL_BUFFER, AL_NONE);  // detach buffer so it can be safely deleted
         }
+
+        // Stop ambient sound
+        alSourceStop(ambientSource);
+        alSourcei(ambientSource, AL_BUFFER, AL_NONE);
         checkALError("Stopping all sounds");
     }
 
