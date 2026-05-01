@@ -1,0 +1,31 @@
+FROM archlinux:latest
+
+RUN pacman -Syu --noconfirm && pacman -S --noconfirm \
+    cmake gcc ninja \
+    glfw assimp openal bullet \
+    libgl mesa \
+    base-devel
+
+RUN pacman -S --noconfirm \
+    git \
+    pipewire wayland-protocols egl-wayland libdecor \
+    libxcursor libxrandr libxi libxinerama \
+    sudo extra-cmake-modules
+
+RUN useradd -m builder && \
+    echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+COPY --chown=builder . /home/builder/src/arena-rush
+COPY --chown=builder PKGBUILD /home/builder/PKGBUILD
+
+
+USER builder
+WORKDIR /home/builder
+
+RUN sed -i 's|source=.*|source=()|' PKGBUILD && \
+    sed -i 's|sha256sums=.*|sha256sums=()|' PKGBUILD && \
+    sed -i 's|git submodule.*||' PKGBUILD
+RUN makepkg --noconfirm  # no -s, deps already installed
+
+USER root
+RUN pacman -U --noconfirm *.pkg.tar.zst
