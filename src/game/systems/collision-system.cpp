@@ -78,6 +78,21 @@ static btTransform entityToBtTransformYawOnly(our::Entity* entity) {
 
 namespace gameplay {
 
+    static btTransform entityToColliderBtTransform(our::Entity* entity, const ColliderComponent* collider) {
+        btTransform transform;
+        if (entity->getComponent<PlayerComponent>()) {
+            transform = entityToBtTransformYawOnly(entity);
+        } else {
+            transform = entityToBtTransform(entity);
+        }
+
+        if (collider && glm::dot(collider->centerOffset, collider->centerOffset) > 0.0f) {
+            transform.setOrigin(transform.getOrigin() + transform.getBasis() * glmToBtVec3(collider->centerOffset));
+        }
+
+        return transform;
+    }
+
     short getMaskForLayer(short group) {
         switch (group) {
             case LAYER_PLAYER:
@@ -317,7 +332,9 @@ namespace gameplay {
 
         btVector3 minPoint;
         btVector3 maxPoint;
-        obj->getCollisionShape()->getAabb(entityToBtTransform(const_cast<our::Entity*>(entity)), minPoint, maxPoint);
+        auto* mutableEntity = const_cast<our::Entity*>(entity);
+        auto* collider = mutableEntity->getComponent<ColliderComponent>();
+        obj->getCollisionShape()->getAabb(entityToColliderBtTransform(mutableEntity, collider), minPoint, maxPoint);
 
         bounds.min = btToGlmVec3(minPoint);
         bounds.max = btToGlmVec3(maxPoint);
@@ -390,20 +407,7 @@ namespace gameplay {
         btCollisionObject* obj = new btCollisionObject();
         obj->setCollisionShape(shape);
 
-        auto* player = entity->getComponent<PlayerComponent>();
-        btTransform transform;
-        if (player) {
-            transform = entityToBtTransformYawOnly(entity);
-        } else {
-            transform = entityToBtTransform(entity);
-        }
-
-        // Apply center offset (shift capsule up so bottom aligns with model feet)
-        if (collider->centerOffset != glm::vec3(0.0f)) {
-            btVector3 offset = glmToBtVec3(collider->centerOffset);
-            transform.setOrigin(transform.getOrigin() + offset);
-        }
-
+        btTransform transform = entityToColliderBtTransform(entity, collider);
         obj->setWorldTransform(transform);
 
         obj->setUserPointer(entity);  // so we can go back to the entity
@@ -465,24 +469,9 @@ namespace gameplay {
 
         if (!obj) return;
 
-        auto* player = entity->getComponent<PlayerComponent>();
         auto* collider = entity->getComponent<ColliderComponent>();
 
-        btTransform transform;
-        if (player) {
-            // for players, we only update the yaw rotation to prevent them from tipping over when walking on slopes or
-            // getting hit by hazards. This is a common technique in character controllers to improve stability.
-            transform = entityToBtTransformYawOnly(entity);
-        } else {
-            transform = entityToBtTransform(entity);
-        }
-
-        // Apply center offset
-        if (collider && collider->centerOffset != glm::vec3(0.0f)) {
-            btVector3 offset = glmToBtVec3(collider->centerOffset);
-            transform.setOrigin(transform.getOrigin() + offset);
-        }
-
+        btTransform transform = entityToColliderBtTransform(entity, collider);
         obj->setWorldTransform(transform);
 
         // Update the broadphase AABB so Bullet uses the new position for collision detection
