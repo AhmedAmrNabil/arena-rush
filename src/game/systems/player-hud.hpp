@@ -38,7 +38,6 @@ namespace gameplay {
         // wave HUD
         float waveTextScale = 0.5f;
         float waveBigTextScale = 1.0f;
-        glm::vec4 vecColor = glm::vec4(1.0f, 0.86f, 0.39f, 1.0f);
         glm::vec4 waveWhite = glm::vec4(glm::vec3(0.95f), 1.0f);
 
     public:

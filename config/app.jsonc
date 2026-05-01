@@ -185,9 +185,6 @@
                     [-37.834, 1.253, 31.636],
                     [-47.99, 4.171, 9.926]
                 ],
-                "spawnInterval": 2.0,
-                "initialSpawnCount": 4,
-                "maxAliveEnemies": 12,
                 "enemies": [
                     {
                         "name": "Monster",
@@ -226,7 +223,7 @@
                         "components": [
                             {
                                 "type": "Enemy",
-                                "enemyType": "Brute",
+                                "enemyType": "Charger",
                                 "moveSpeed": 7.0,
                                 "turnSpeed": 4.0,
                                 "aggroRange": 120.0,
