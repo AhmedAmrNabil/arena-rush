@@ -427,7 +427,7 @@
                                 "type": "Weapon",
                                 "cooldown": 0.5,
                                 "bulletSpeed": 520.0,
-                                "bulletDamage": 50.0,
+                                "bulletDamage": 60.0,
                                 "bulletLifetime": 3.0,
                                 "bulletScale": 0.05,
                                 "fireSound": "deagle-shot",
