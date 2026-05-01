@@ -58,6 +58,10 @@
                     "vs": "assets/shaders/tinted.vert",
                     "fs": "assets/shaders/tinted.frag"
                 },
+                "splatter": {
+                    "vs": "assets/shaders/splatter.vert",
+                    "fs": "assets/shaders/splatter.frag"
+                },
                 "textured": {
                     "vs": "assets/shaders/textured.vert",
                     "fs": "assets/shaders/textured.frag"
@@ -76,7 +80,9 @@
                 "grass": "assets/textures/grass_ground_d.jpg",
                 "wood": "assets/textures/wood.jpg",
                 "glass": "assets/textures/glass-panels.png",
-                "monkey": "assets/textures/monkey.png"
+                "monkey": "assets/textures/monkey.png",
+                "hit-marker": "assets/UI/hit_marker.png",
+                "blood-splatter": "assets/UI/blood_splatter.png"
             },
             "meshes": {
                 "cube": "assets/models/cube.obj",
@@ -108,6 +114,40 @@
                 }
             },
             "materials": {
+                "blood-splatter-material": {
+                    "type": "tinted",
+                    "shader": "splatter",
+                    "tint": [0.45, 0.02, 0.02, 1.0],
+                    "transparent": true,
+                    "pipelineState": {
+                        "faceCulling": { "enabled": false },
+                        "depthTesting": { "enabled": false },
+                        "blending": {
+                            "enabled": true,
+                            "sourceFactor": "GL_SRC_ALPHA",
+                            "destinationFactor": "GL_ONE_MINUS_SRC_ALPHA"
+                        },
+                        "depthMask": false
+                    }
+                },
+                "hit-marker-material": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "texture": "hit-marker",
+                    "sampler": "default",
+                    "tint": [0.75, 0.015, 0.015, 1.0],
+                    "transparent": true,
+                    "pipelineState": {
+                        "faceCulling": { "enabled": false },
+                        "depthTesting": { "enabled": false },
+                        "blending": {
+                            "enabled": true,
+                            "sourceFactor": "GL_SRC_ALPHA",
+                            "destinationFactor": "GL_ONE_MINUS_SRC_ALPHA"
+                        },
+                        "depthMask": false
+                    }
+                },
                 "projectile-player": {
                     "type": "lit",
                     "shader": "lit",

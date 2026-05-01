@@ -18,6 +18,7 @@
 #include "../components/weapon.hpp"
 #include "collision-system.hpp"
 #include "components/player.hpp"
+#include "hit-marker-system.hpp"
 #include "trail-system.hpp"
 
 namespace gameplay {
@@ -190,7 +191,12 @@ namespace gameplay {
 
                     if (hit.hit && hit.entity) {
                         HealthComponent* health = hit.entity->getComponent<HealthComponent>();
-                        if (health && !health->isDead) health->takeDamage(proj->damage);
+                        if (health && !health->isDead) {
+                            health->takeDamage(proj->damage);
+                            if (proj->shooterLayer == CollisionLayer::LAYER_PLAYER) {
+                                HitMarkerSystem::spawn(world, hit.point);
+                            }
+                        }
 
                         const char* sparkMaterial = proj->shooterLayer == CollisionLayer::LAYER_PLAYER
                                                         ? "projectile-player"

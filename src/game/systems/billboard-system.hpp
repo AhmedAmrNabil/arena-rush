@@ -7,7 +7,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "../components/billboard.hpp"
-#include "../components/trail-segment.hpp"
+#include "../components/hit-marker.hpp"
 
 namespace gameplay {
 
@@ -31,9 +31,9 @@ namespace gameplay {
                 glm::quat faceCamera = glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), toCamera / distance);
                 entity->localTransform.rotation = glm::eulerAngles(faceCamera);
 
-                if (TrailSegmentComponent* seg = entity->getComponent<TrailSegmentComponent>()) {
-                    float t = glm::clamp(seg->age / seg->lifetime, 0.0f, 1.0f);
-                    float baseScale = glm::mix(seg->startScale, seg->endScale, t);
+                if (HitMarkerComponent* marker = entity->getComponent<HitMarkerComponent>()) {
+                    float t = glm::clamp(marker->age / marker->lifetime, 0.0f, 1.0f);
+                    float baseScale = glm::mix(marker->startScale, marker->endScale, t);
                     float distanceScale = glm::clamp(distance / referenceDistance, minScaleFactor, maxScaleFactor);
                     entity->localTransform.scale = glm::vec3(baseScale * distanceScale);
                 }
