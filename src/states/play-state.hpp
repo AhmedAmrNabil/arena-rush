@@ -117,6 +117,7 @@ public:
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
+        collisionSystem.update(&world);  // make sure spawner colliders are registered before enemyHealthBars
         enemyHealthBars.deserialize(config);
         crosshair.deserialize(config);
         overlayStats = {};
