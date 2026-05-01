@@ -53,6 +53,7 @@ namespace gameplay {
             {42.0f, 0.0f, 0.0f},  {-42.0f, 0.0f, 0.0f},  {0.0f, 0.0f, 42.0f},   {0.0f, 0.0f, -42.0f},
         };
         std::vector<EnemyTemplateConfig> enemies;
+        float countdownDuration = 4.0f;
     };
 
     class EnemySpawner {
@@ -62,6 +63,7 @@ namespace gameplay {
     private:
         EnemySpawnConfig config;
         std::vector<WaveConfig> waves;
+        WaveReward waveReward;
 
         int currentWave = 0;
         int waveDisplayNumber = 1;
@@ -78,25 +80,12 @@ namespace gameplay {
 
         bool waveJustCompleted = false;
 
-        // utility to build the wave table
-        void buildWaveTable() {
-            int B = 0;
-            int C = std::min(1, (int)config.enemies.size() - 1);
-            int F = std::min(2, (int)config.enemies.size() - 1);
-
-            waves.clear();
-
-            // interval, maxAlive, hpMax, dmgMax, speedMax
-            waves.push_back({{{B, 4}}, 3.0f, 4, 1.0f, 1.0f, 1.0f});
-            waves.push_back({{{B, 5}, {C, 1}}, 2.5f, 5, 1.0f, 1.0f, 1.0f});
-            waves.push_back({{{B, 5}, {C, 2}, {F, 1}}, 2.5f, 6, 1.15f, 1.1f, 1.05f});
-            waves.push_back({{{B, 5}, {C, 3}, {F, 2}}, 2.0f, 7, 1.3f, 1.2f, 1.1f});
-            waves.push_back({{{B, 5}, {C, 4}, {F, 3}}, 2.0f, 8, 1.5f, 1.3f, 1.15f});
-            waves.push_back({{{B, 6}, {C, 4}, {F, 4}}, 1.8f, 9, 1.7f, 1.4f, 1.2f});
-            waves.push_back({{{B, 6}, {C, 5}, {F, 5}}, 1.5f, 10, 1.9f, 1.5f, 1.25f});
-            waves.push_back({{{B, 7}, {C, 5}, {F, 6}}, 1.5f, 11, 2.2f, 1.6f, 1.3f});
-            waves.push_back({{{B, 7}, {C, 6}, {F, 7}}, 1.2f, 12, 2.5f, 1.8f, 1.35f});
-            waves.push_back({{{B, 8}, {C, 8}, {F, 8}}, 1.0f, 14, 3.0f, 2.0f, 1.4f});
+        // resolve an enemy name to its index in config.enemies, returns 0 if not found
+        int resolveEnemyIndex(const std::string& name) const {
+            for (int i = 0; i < (int)config.enemies.size(); i++) {
+                if (config.enemies[i].name == name) return i;
+            }
+            return 0;
         }
 
         int countAliveEnemies(our::World* world) const {
@@ -192,6 +181,8 @@ namespace gameplay {
 
             const nlohmann::json& spawnerConfig = sceneConfig["game"]["enemySpawner"];
 
+            config.countdownDuration = spawnerConfig.value("countdownDuration", config.countdownDuration);
+
             if (spawnerConfig.contains("spawnPoints") && spawnerConfig["spawnPoints"].is_array()) {
                 config.spawnPoints.clear();
                 for (const nlohmann::json& spawnPoint : spawnerConfig["spawnPoints"])
@@ -218,14 +209,61 @@ namespace gameplay {
             } else {
                 config.enemies = {};
             }
+
+            // Deserialize waves
+            if (spawnerConfig.contains("waves") && spawnerConfig["waves"].is_array()) {
+                waves.clear();
+                for (const nlohmann::json& waveJson : spawnerConfig["waves"]) {
+                    if (!waveJson.is_object()) continue;
+
+                    WaveConfig wave;
+                    wave.spawnInterval = waveJson.value("spawnInterval", wave.spawnInterval);
+                    wave.maxAliveEnemies = waveJson.value("maxAliveEnemies", wave.maxAliveEnemies);
+                    wave.healthMul = waveJson.value("healthMul", wave.healthMul);
+                    wave.damageMul = waveJson.value("damageMul", wave.damageMul);
+                    wave.speedMul = waveJson.value("speedMul", wave.speedMul);
+
+                    if (waveJson.contains("entries") && waveJson["entries"].is_array()) {
+                        for (const nlohmann::json& entryJson : waveJson["entries"]) {
+                            if (!entryJson.is_object()) continue;
+
+                            WaveEntry entry;
+                            entry.count = entryJson.value("count", 0);
+
+                            // resolve enemy by name, fall back to index
+                            if (entryJson.contains("enemy") && entryJson["enemy"].is_string()) {
+                                entry.templateIndex = resolveEnemyIndex(entryJson["enemy"].get<std::string>());
+                            } else {
+                                entry.templateIndex = entryJson.value("templateIndex", 0);
+                            }
+
+                            wave.entries.push_back(entry);
+                        }
+                    }
+
+                    waves.push_back(wave);
+                }
+            }
+
+            // Deserialize wave reward
+            if (spawnerConfig.contains("waveReward") && spawnerConfig["waveReward"].is_object()) {
+                const nlohmann::json& rewardJson = spawnerConfig["waveReward"];
+                waveReward.health = rewardJson.value("health", waveReward.health);
+                waveReward.ammo = rewardJson.value("ammo", waveReward.ammo);
+            }
         }
 
         void initialize(our::World* world) {
-            buildWaveTable();
+            // ensure at least one fallback wave if none were deserialized
+            if (waves.empty()) {
+                WaveConfig fallback;
+                fallback.entries = {{0, 4}};
+                waves.push_back(fallback);
+            }
             currentWave = 0;
             waveDisplayNumber = 1;
             waveState = WaveState::Countdown;
-            countdownTimer = 4.0f;
+            countdownTimer = config.countdownDuration;
             nextSpawnPoint = 0;
             waveJustCompleted = false;
         }
@@ -270,7 +308,7 @@ namespace gameplay {
                 // go next wave
                 currentWave++;
                 waveDisplayNumber++;
-                countdownTimer = 4.0f;  // countdown to next wave
+                countdownTimer = config.countdownDuration;
                 waveState = WaveState::Countdown;
             }
             return waveJustCompleted;
@@ -297,7 +335,7 @@ namespace gameplay {
         }
 
         WaveReward getWaveReward() const {
-            return {10.0f, 20};
+            return waveReward;
         }
     };
 
