@@ -1,5 +1,6 @@
 #include "model.hpp"
 
+#include <assimp/GltfMaterial.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
@@ -389,6 +390,19 @@ namespace our {
         if (AI_SUCCESS == mat->Get(AI_MATKEY_TRANSPARENCYFACTOR, transparency)) {
             material->tint.a *= (1.0f - transparency);
         }
+
+        // check for alpha mode and alpha cutoff for GLTF models, we only check for alpha mode if the material has an
+        // albedo texture as it's the only case where it matters
+        if (material->textureAlbedo) {
+            aiString alphaMode;
+            if (mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaMode) == AI_SUCCESS) {
+                float alphaCutoff = 0.0f;
+                if (AI_SUCCESS == mat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alphaCutoff)) {
+                    material->alphaThreshold = alphaCutoff;
+                }
+            }
+        }
+
         material->transparent = material->tint.a < 0.999f;
 
         if (material->transparent) {
