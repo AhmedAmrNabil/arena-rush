@@ -233,7 +233,8 @@ public:
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
         enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
-        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner);
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner,
+                         overlayStats.score);
 
         // HUD
         float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;

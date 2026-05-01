@@ -44,7 +44,7 @@ namespace gameplay {
         void initialize();
         void deserialize(const nlohmann::json& data);
         void render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
-                    our::TextRenderer* textRenderer, const EnemySpawner& spawner);
+                    our::TextRenderer* textRenderer, const EnemySpawner& spawner, int score);
         void destroy();
     };
 

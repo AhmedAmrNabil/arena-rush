@@ -97,7 +97,7 @@ namespace gameplay {
     }
 
     void PlayerHUDSystem::render(our::World* world, our::Entity* playerEntity, glm::ivec2 windowSize,
-                                 our::TextRenderer* textRenderer, const EnemySpawner& spawner) {
+                                 our::TextRenderer* textRenderer, const EnemySpawner& spawner, int score) {
         if (!playerEntity) return;
 
         HealthComponent* playerHealth = playerEntity->getComponent<HealthComponent>();
@@ -222,6 +222,18 @@ namespace gameplay {
                 textRenderer->drawTextWithOutline(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor,
                                                   black, spread);
             }
+
+            // score HUD
+            std::string scoreText = "Score: " + std::to_string(score);
+            float scoreScale = waveTextScale * uiScale;
+            our::UIRect scoreRect;
+            scoreRect.anchor = {0.0f, 1.0f};
+            scoreRect.pivot = {0.0f, 1.0f};
+            scoreRect.offset = {20.0f * uiScale, -50.0f * uiScale};
+            scoreRect.size = {0.0f, 0.0f};
+
+            textRenderer->drawTextWithOutline(&testFont, scoreText, scoreRect, windowSize, scoreScale, orthoVP,
+                                              ammoColor, black, spread);
         }
     }
 
