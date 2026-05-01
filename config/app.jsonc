@@ -685,11 +685,6 @@
                                 "lightType": "point",
                                 "color": [3, 3, 2],
                                 "attenuation": [1.0, 0.022, 0.0019]
-                            },
-                            {
-                                "type": "Mesh Renderer",
-                                "mesh": "sphere",
-                                "material": "projectile-player"
                             }
                         ]
                     },
@@ -701,11 +696,6 @@
                                 "lightType": "point",
                                 "color": [3, 3, 2],
                                 "attenuation": [1.0, 0.022, 0.0019]
-                            },
-                            {
-                                "type": "Mesh Renderer",
-                                "mesh": "sphere",
-                                "material": "projectile-player"
                             }
                         ]
                     }
