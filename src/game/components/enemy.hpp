@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/component.hpp>
+#include <glm/glm.hpp>
 
 namespace gameplay {
 
@@ -17,6 +18,9 @@ namespace gameplay {
         float attackCooldown = 2.0f;
         float attackTimer = 0.0f;
         float attackDamage = 10.0f;
+        float jumpForce = 11.0f;
+        float gravity = 20.0f;
+        float jumpCooldown = 1.0f;
         float preferredDistance = 4.0f;
         float hoverFrequency = 2.0f;
         float hoverAmplitude = 0.5f;
@@ -29,6 +33,12 @@ namespace gameplay {
         // Runtime state (not serialized)
         enum class AIState { Idle, Aggro, Attacking };
         AIState aiState = AIState::Idle;
+        float verticalVelocity = 0.0f;
+        bool isGrounded = true;
+        float jumpCooldownTimer = 0.0f;
+        float stuckTimer = 0.0f;
+        bool lastPositionSet = false;
+        glm::vec3 lastPosition = glm::vec3(0.0f);
 
         // Flyer orbit-strafe
         int strafeDirection = 1;          // +1 CW, −1 CCW around player

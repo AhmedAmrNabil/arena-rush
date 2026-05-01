@@ -261,7 +261,10 @@
                                 "attackDamage": 10.0,
                                 "attackCooldown": 0.8,
                                 "scoreValue": 100,
-                                "attackSound": "heartsteel"
+                                "attackSound": "heartsteel",
+                                "jumpForce": 11.0,
+                                "gravity": 20.0,
+                                "jumpCooldown": 1.0
                             },
                             {
                                 "type": "Health",
@@ -331,7 +334,10 @@
                                 "attackDamage": 5.0,
                                 "attackCooldown": 0.4,
                                 "scoreValue": 75,
-                                "attackSound": "shaco-attack"
+                                "attackSound": "shaco-attack",
+                                "jumpForce": 12.0,
+                                "gravity": 20.0,
+                                "jumpCooldown": 0.8
                             },
                             {
                                 "type": "Health",

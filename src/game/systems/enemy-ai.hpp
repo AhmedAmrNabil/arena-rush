@@ -30,6 +30,12 @@ namespace gameplay {
         static constexpr float WHISKER_HEIGHT_LOW = 0.4f;       // knee-level ray
         static constexpr float DANGER_WEIGHT = 1.5f;            // danger-vs-interest multiplier
         static constexpr float STRAFE_OBSTACLE_RAY_LEN = 5.0f;  // flyer obstacle check
+        static constexpr float STUCK_JUMP_DELAY = 0.35f;
+        static constexpr float STUCK_MOVEMENT_RATIO = 0.35f;
+        static constexpr float STUCK_MOVEMENT_EPSILON = 0.03f;
+        static constexpr float JUMP_OBSTACLE_RAY_LEN = 1.8f;
+        static constexpr float JUMP_OBSTACLE_LOW_HEIGHT = 0.65f;
+        static constexpr float JUMP_OBSTACLE_HIGH_HEIGHT = 2.7f;
 
         // Whisker Danger
         // Cast one horizontal ray from (enemyPos + height offset) in `dir`.
@@ -105,6 +111,27 @@ namespace gameplay {
             }
 
             return dirs[bestSlot];
+        }
+
+        static bool canJumpLowObstacle(const glm::vec3& enemyPos, const glm::vec3& dir, CollisionSystem* collision) {
+            if (!collision) return false;
+
+            glm::vec3 forward = glm::vec3(dir.x, 0.0f, dir.z);
+            if (glm::dot(forward, forward) <= 0.000001f) return false;
+            forward = glm::normalize(forward);
+
+            Ray lowRay;
+            lowRay.origin = enemyPos + glm::vec3(0.0f, JUMP_OBSTACLE_LOW_HEIGHT, 0.0f);
+            lowRay.direction = forward;
+            HitInfo lowHit = collision->raycast(lowRay, JUMP_OBSTACLE_RAY_LEN, CollisionLayer::LAYER_ENVIRONMENT);
+            if (!(lowHit.hit && lowHit.normal.y < 0.7f)) return false;
+
+            Ray highRay;
+            highRay.origin = enemyPos + glm::vec3(0.0f, JUMP_OBSTACLE_HIGH_HEIGHT, 0.0f);
+            highRay.direction = forward;
+            HitInfo highHit = collision->raycast(highRay, JUMP_OBSTACLE_RAY_LEN, CollisionLayer::LAYER_ENVIRONMENT);
+
+            return !highHit.hit;
         }
 
         // Orbit-Strafe (flyers)
@@ -199,6 +226,17 @@ namespace gameplay {
                 if (health && health->isDead) continue;
 
                 glm::vec3 enemyPos = glm::vec3(enemyEntity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1));
+                float movedSinceLastFrame = 0.0f;
+                if (enemy->lastPositionSet) {
+                    glm::vec3 lastMove = enemyPos - enemy->lastPosition;
+                    lastMove.y = 0.0f;
+                    movedSinceLastFrame = glm::length(lastMove);
+                } else {
+                    enemy->lastPositionSet = true;
+                }
+                enemy->lastPosition = enemyPos;
+                enemy->jumpCooldownTimer = glm::max(0.0f, enemy->jumpCooldownTimer - deltaTime);
+
                 glm::vec3 toPlayer = playerPos - enemyPos;
                 float distanceToPlayer = glm::length(toPlayer);
 
@@ -300,19 +338,60 @@ namespace gameplay {
                         }
                     }
 
-                    // Ground tracking
+                    bool wantsToMove =
+                        movementSpeed > 0.0f && glm::dot(movementDirection, movementDirection) > 0.000001f;
+
+                    if (wantsToMove && enemy->isGrounded && distanceToPlayer > enemy->attackRange + 0.5f) {
+                        float expectedMove = movementSpeed * deltaTime;
+                        float stuckThreshold = glm::max(STUCK_MOVEMENT_EPSILON, expectedMove * STUCK_MOVEMENT_RATIO);
+                        if (movedSinceLastFrame < stuckThreshold) {
+                            enemy->stuckTimer += deltaTime;
+                        } else {
+                            enemy->stuckTimer = 0.0f;
+                        }
+
+                        if (enemy->stuckTimer >= STUCK_JUMP_DELAY && enemy->jumpCooldownTimer <= 0.0f &&
+                            canJumpLowObstacle(enemyPos, movementDirection, collisionSystem)) {
+                            enemy->verticalVelocity = enemy->jumpForce;
+                            enemy->isGrounded = false;
+                            enemy->jumpCooldownTimer = enemy->jumpCooldown;
+                            enemy->stuckTimer = 0.0f;
+                        }
+                    } else {
+                        enemy->stuckTimer = 0.0f;
+                    }
+
+                    // Ground tracking and jump gravity
                     if (collisionSystem) {
                         float lookAheadDist = 0.5f;  // to overcome simple obstacles like the pavement
+                        float targetY = enemyEntity->localTransform.position.y;
+                        bool foundGround = false;
 
                         Ray downRay;
                         downRay.origin = enemyPos + glm::vec3(0.0f, 1.0f, 0.0f) + (faceDir * lookAheadDist);
                         downRay.direction = glm::vec3(0.0f, -1.0f, 0.0f);
                         HitInfo groundHit = collisionSystem->raycast(downRay, 50.0f, CollisionLayer::LAYER_ENVIRONMENT);
                         if (groundHit.hit) {
-                            float targetY = groundHit.point.y;
-                            float currentY = enemyEntity->localTransform.position.y;
-                            enemyEntity->localTransform.position.y =
-                                glm::mix(currentY, targetY, glm::clamp(15.0f * deltaTime, 0.0f, 1.0f));
+                            targetY = groundHit.point.y;
+                            foundGround = true;
+                        }
+
+                        if (enemy->isGrounded) {
+                            if (foundGround) {
+                                float currentY = enemyEntity->localTransform.position.y;
+                                enemyEntity->localTransform.position.y =
+                                    glm::mix(currentY, targetY, glm::clamp(15.0f * deltaTime, 0.0f, 1.0f));
+                            }
+                        } else {
+                            enemy->verticalVelocity -= enemy->gravity * deltaTime;
+                            enemyEntity->localTransform.position.y += enemy->verticalVelocity * deltaTime;
+
+                            if (foundGround && enemy->verticalVelocity <= 0.0f &&
+                                enemyEntity->localTransform.position.y <= targetY) {
+                                enemyEntity->localTransform.position.y = targetY;
+                                enemy->verticalVelocity = 0.0f;
+                                enemy->isGrounded = true;
+                            }
                         }
                     }
                 }

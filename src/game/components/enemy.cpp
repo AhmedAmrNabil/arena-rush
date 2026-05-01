@@ -19,6 +19,9 @@ namespace gameplay {
         attackRange = data.value("attackRange", attackRange);
         attackCooldown = data.value("attackCooldown", attackCooldown);
         attackDamage = data.value("attackDamage", attackDamage);
+        jumpForce = data.value("jumpForce", jumpForce);
+        gravity = data.value("gravity", gravity);
+        jumpCooldown = data.value("jumpCooldown", jumpCooldown);
         preferredDistance = data.value("preferredDistance", preferredDistance);
         hoverFrequency = data.value("hoverFrequency", hoverFrequency);
         hoverAmplitude = data.value("hoverAmplitude", hoverAmplitude);
