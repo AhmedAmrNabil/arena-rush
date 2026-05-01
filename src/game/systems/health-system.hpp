@@ -45,6 +45,7 @@ namespace gameplay {
                             deathPercent = anim->animator.getPlaybackPercent();
                         }
                     }
+                    EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
 
                     if (enemy && enemy->type == EnemyType::Flyer) {
                         // change the height of the flyer as it dies to create a sinking effect
@@ -53,7 +54,6 @@ namespace gameplay {
                     }
 
                     if (shouldRemove) {
-                        EnemyComponent* enemy = entity->getComponent<EnemyComponent>();
                         if (enemy) {
                             result.kills++;
                             result.score += enemy->scoreValue;
