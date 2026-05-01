@@ -265,7 +265,7 @@
                             },
                             {
                                 "type": "Health",
-                                "maxHealth": 60.0
+                                "maxHealth": 100.0
                             },
                             {
                                 "type": "Collider",
@@ -335,7 +335,7 @@
                             },
                             {
                                 "type": "Health",
-                                "maxHealth": 35.0
+                                "maxHealth": 60.0
                             },
                             {
                                 "type": "Collider",
@@ -398,7 +398,7 @@
                             },
                             {
                                 "type": "Health",
-                                "maxHealth": 35.0
+                                "maxHealth": 40.0
                             },
                             {
                                 "type": "Collider",
@@ -448,6 +448,106 @@
                                 }
                             }
                         ]
+                    }
+                ],
+                "countdownDuration": 3.0,
+                "waveReward": {
+                    "health": 10.0,
+                    "ammo": 20
+                },
+                "waves": [
+                    {
+                        "entries": [{ "enemy": "Monster", "count": 6 }],
+                        "spawnInterval": 2,
+                        "maxAliveEnemies": 6
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Monster", "count": 4 },
+                            { "enemy": "Charger", "count": 3 }
+                        ],
+                        "spawnInterval": 2,
+                        "maxAliveEnemies": 7
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Monster", "count": 4 },
+                            { "enemy": "Charger", "count": 2 },
+                            { "enemy": "Drone", "count": 2 }
+                        ],
+                        "spawnInterval": 2,
+                        "maxAliveEnemies": 7,
+                        "healthMul": 1.15,
+                        "damageMul": 1.1,
+                        "speedMul": 1.05
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Monster", "count": 5 },
+                            { "enemy": "Charger", "count": 3 },
+                            { "enemy": "Drone", "count": 3 }
+                        ],
+                        "spawnInterval": 2.0,
+                        "maxAliveEnemies": 8,
+                        "healthMul": 1.2,
+                        "damageMul": 1.2,
+                        "speedMul": 1.1
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Charger", "count": 10 }
+                        ],
+                        "spawnInterval": 2.0,
+                        "maxAliveEnemies": 10,
+                        "healthMul": 1.3,
+                        "damageMul": 1.3,
+                        "speedMul": 1.15
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Monster", "count": 6 },
+                            { "enemy": "Charger", "count": 5 },
+                            { "enemy": "Drone", "count": 5 }
+                        ],
+                        "spawnInterval": 1.8,
+                        "maxAliveEnemies": 10,
+                        "healthMul": 1.5,
+                        "damageMul": 1.5,
+                        "speedMul": 1.2
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Monster", "count": 10 },
+                            { "enemy": "Charger", "count": 6 },
+                            { "enemy": "Drone", "count": 6 }
+                        ],
+                        "spawnInterval": 1.5,
+                        "maxAliveEnemies": 10,
+                        "healthMul": 1.8,
+                        "damageMul": 1.8,
+                        "speedMul": 1.25
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Drone", "count": 15 }
+                        ],
+                        "spawnInterval": 1.5,
+                        "maxAliveEnemies": 10,
+                        "healthMul": 2.2,
+                        "damageMul": 1.6,
+                        "speedMul": 1.3
+                    },
+                    {
+                        "entries": [
+                            { "enemy": "Monster", "count": 10 },
+                            { "enemy": "Charger", "count": 10 },
+                            { "enemy": "Drone", "count": 10 }
+                        ],
+                        "spawnInterval": 1.2,
+                        "maxAliveEnemies": 10,
+                        "healthMul": 2.5,
+                        "damageMul": 1.8,
+                        "speedMul": 1.35
                     }
                 ]
             }
@@ -530,7 +630,7 @@
                                 "type": "Weapon",
                                 "cooldown": 0.1,
                                 "bulletSpeed": 100.0,
-                                "bulletDamage": 20.0,
+                                "bulletDamage": 40.0,
                                 "bulletLifetime": 2.5,
                                 "bulletScale": 0.12,
                                 "fireSound": "gunshot-player",
@@ -538,7 +638,7 @@
                                 "reloadTime": 1.0,
                                 "automatic": true,
                                 "magSize": 30,
-                                "maxAmmo": 120,
+                                "maxAmmo": 60,
                                 "muzzleOffset": [1, -0.7, -3],
                                 "trailEnabled": true,
                                 "trailMaxSegments": 8,
@@ -579,7 +679,7 @@
                                 "type": "Weapon",
                                 "cooldown": 0.5,
                                 "bulletSpeed": 520.0,
-                                "bulletDamage": 60.0,
+                                "bulletDamage": 100.0,
                                 "bulletLifetime": 3.0,
                                 "bulletScale": 0.05,
                                 "fireSound": "ssg",
@@ -587,7 +687,7 @@
                                 "reloadTime": 1.5,
                                 "automatic": false,
                                 "magSize": 8,
-                                "maxAmmo": 64,
+                                "maxAmmo": 16,
                                 "muzzleOffset": [0.8, -0.5, -3.8],
                                 "trailEnabled": true,
                                 "trailMaxSegments": 8,
@@ -614,7 +714,7 @@
                                 "type": "Weapon",
                                 "cooldown": 0.35,
                                 "bulletSpeed": 120.0,
-                                "bulletDamage": 50.0,
+                                "bulletDamage": 80.0,
                                 "bulletLifetime": 3.0,
                                 "bulletScale": 0.15,
                                 "fireSound": "deagle-shot",
@@ -622,7 +722,7 @@
                                 "reloadTime": 1.5,
                                 "automatic": false,
                                 "magSize": 8,
-                                "maxAmmo": 64,
+                                "maxAmmo": 16,
                                 "muzzleOffset": [1, -0.5, -2.3],
                                 "trailEnabled": true,
                                 "trailMaxSegments": 8,
