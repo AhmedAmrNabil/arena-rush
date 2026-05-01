@@ -160,7 +160,7 @@
             "models": {
                 "drone": {
                     "path": "assets/gltf/enemies/corki.glb",
-                    "animations": ["Idle01", "Run01", "Attack1", "Death"]
+                    "animations": ["Idle1", "Run", "Spell1", "Death"]
                 },
                 "monster": {
                     "path": "assets/gltf/enemies/mundo.glb",
@@ -394,17 +394,17 @@
                                 "default": "idle",
                                 "clips": {
                                     "idle": {
-                                        "clip": "Idle01",
+                                        "clip": "Idle1",
                                         "speed": 1.0,
                                         "loop": true
                                     },
                                     "walk": {
-                                        "clip": "Run01",
+                                        "clip": "Run",
                                         "speed": 0.3333333333333333,
                                         "loop": true
                                     },
                                     "attack": {
-                                        "clip": "Attack1",
+                                        "clip": "Spell1",
                                         "speed": 1.0,
                                         "loop": false
                                     },
