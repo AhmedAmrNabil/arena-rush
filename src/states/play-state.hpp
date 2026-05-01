@@ -57,6 +57,19 @@ class Playstate : public our::State {
     gameplay::PlayOverlayStats overlayStats;
     gameplay::PlayerHUDSystem playerHud;
     gameplay::WeaponSwitcherSystem weaponSwitcher;
+    bool waitFirstFrame = false;
+
+    void renderFrame(float dt) {
+        renderer.render(&world, getApp()->getFrameBufferSize());
+        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
+        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner,
+                         overlayStats.score);
+
+        float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
+        float aimSpeed = cameraController.getAimSpeed();
+        aimBlend = glm::mix(aimBlend, aimTarget, glm::clamp(aimSpeed * dt, 0.0f, 1.0f));
+        crosshair.render(getApp(), uiRenderer, aimBlend);
+    }
 
     void displayFPS() const {
         ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
@@ -130,11 +143,18 @@ public:
         crosshair.deserialize(config);
         overlayStats = {};
         weaponSwitcher.initialize(&world, playerEntity);
+        waitFirstFrame = true;
     }
 
     void onDraw(double deltaTime) override {
         float dt = static_cast<float>(deltaTime);
         our::Keyboard& keyboard = getApp()->getKeyboard();
+
+        if (waitFirstFrame) {
+            waitFirstFrame = false;
+            renderFrame(0.0f);
+            return;
+        }
 
         if (overlay.handleActiveFrame(deltaTime)) return;
 
@@ -236,17 +256,7 @@ public:
         getApp()->getAudioSystem().update(&world);
         billboardSystem.update(&world, activeCamera ? activeCamera->getOwner() : nullptr);
 
-        // Rendering
-        renderer.render(&world, getApp()->getFrameBufferSize());
-        enemyHealthBars.render(&world, getApp(), uiRenderer, activeCamera, collisionSystem);
-        playerHud.render(&world, playerEntity, getApp()->getFrameBufferSize(), &textRenderer, enemySpawner,
-                         overlayStats.score);
-
-        // HUD
-        float aimTarget = cameraController.isAiming() ? 1.0f : 0.0f;
-        float aimSpeed = cameraController.getAimSpeed();
-        aimBlend = glm::mix(aimBlend, aimTarget, glm::clamp(aimSpeed * dt, 0.0f, 1.0f));
-        crosshair.render(getApp(), uiRenderer, aimBlend);
+        renderFrame(dt);
 #ifdef COLLISION_DEBUG_DRAW
         if (keyboard.justPressed(GLFW_KEY_F3)) {
             collisionSystem.setDebugDrawEnabled(!collisionSystem.isDebugDrawEnabled());
