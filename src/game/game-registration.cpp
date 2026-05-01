@@ -2,9 +2,11 @@
 
 #include <ecs/component-registry.hpp>
 
+#include "components/billboard.hpp"
 #include "components/collider.hpp"
 #include "components/enemy.hpp"
 #include "components/health.hpp"
+#include "components/hit-marker.hpp"
 #include "components/player-movement.hpp"
 #include "components/player.hpp"
 #include "components/post-process-effects.hpp"
@@ -28,6 +30,8 @@ namespace gameplay {
         our::ComponentRegistry::registerType<ProjectileTrailComponent>();
         our::ComponentRegistry::registerType<TrailSegmentComponent>();
         our::ComponentRegistry::registerType<WeaponComponent>();
+        our::ComponentRegistry::registerType<BillboardComponent>();
+        our::ComponentRegistry::registerType<HitMarkerComponent>();
 
         initialized = true;
     }

@@ -6,6 +6,7 @@
 #include <ecs/world.hpp>
 #include <glm/common.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <string>
 #include <vector>
 
@@ -27,14 +28,13 @@ namespace gameplay {
 
         static inline std::vector<SpawnRequest> spawnRequests;
 
-        static our::Entity* spawnSegment(our::World* world, const glm::vec3& position, const std::string& materialName,
+        static our::Entity* spawnSegment(our::World* world, const glm::vec3& position, our::Material* material,
                                          const std::string& meshName, float lifetime, float startScale,
                                          float endScale) {
-            if (!world || materialName.empty() || lifetime <= 0.0f) return nullptr;
+            if (!world || !material || lifetime <= 0.0f) return nullptr;
 
             our::Mesh* mesh = our::AssetLoader<our::Mesh>::get(meshName);
-            our::Material* material = our::AssetLoader<our::Material>::get(materialName);
-            if (!mesh || !material) return nullptr;
+            if (!mesh) return nullptr;
 
             our::Entity* segment = world->add();
             segment->name = "TrailSegment";
@@ -53,6 +53,17 @@ namespace gameplay {
             seg->endScale = endScale;
 
             return segment;
+        }
+
+        static our::Entity* spawnSegment(our::World* world, const glm::vec3& position, const std::string& materialName,
+                                         const std::string& meshName, float lifetime, float startScale,
+                                         float endScale) {
+            if (!world || materialName.empty() || lifetime <= 0.0f) return nullptr;
+
+            our::Material* material = our::AssetLoader<our::Material>::get(materialName);
+            if (!material) return nullptr;
+
+            return spawnSegment(world, position, material, meshName, lifetime, startScale, endScale);
         }
 
     public:
@@ -76,7 +87,20 @@ namespace gameplay {
                     float t = glm::clamp(seg->age / seg->lifetime, 0.0f, 1.0f);
                     float scale = glm::mix(seg->startScale, seg->endScale, t);
                     entity->localTransform.scale = glm::vec3(scale);
-                    if (seg->age >= seg->lifetime) world->markForRemoval(entity);
+                    if (seg->ownedMaterial) {
+                        if (auto* tinted = dynamic_cast<our::TintedMaterial*>(seg->ownedMaterial)) {
+                            glm::vec4 tint = tinted->tint;
+                            tint.a = glm::mix(seg->startAlpha, seg->endAlpha, t);
+                            tinted->tint = tint;
+                        }
+                    }
+                    if (seg->age >= seg->lifetime) {
+                        if (seg->ownedMaterial) {
+                            delete seg->ownedMaterial;
+                            seg->ownedMaterial = nullptr;
+                        }
+                        world->markForRemoval(entity);
+                    }
                 }
 
                 if (!entity->getComponent<ProjectileComponent>()) continue;

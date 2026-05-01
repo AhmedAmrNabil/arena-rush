@@ -5,18 +5,18 @@
 
 namespace gameplay {
 
-    class TrailSegmentComponent : public our::Component {
+    class HitMarkerComponent : public our::Component {
     public:
         float age = 0.0f;
-        float lifetime = 0.12f;
-        float startScale = 0.12f;
-        float endScale = 0.0f;
+        float lifetime = 0.3f;
+        float startScale = 0.7f;
+        float endScale = 0.1f;
         float startAlpha = 1.0f;
         float endAlpha = 0.0f;
         our::Material* ownedMaterial = nullptr;
 
         static std::string getID() {
-            return "Trail Segment";
+            return "Hit Marker";
         }
 
         void deserialize(const nlohmann::json& data) override {

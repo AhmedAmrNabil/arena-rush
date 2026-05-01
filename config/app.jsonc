@@ -58,6 +58,10 @@
                     "vs": "assets/shaders/tinted.vert",
                     "fs": "assets/shaders/tinted.frag"
                 },
+                "splatter": {
+                    "vs": "assets/shaders/splatter.vert",
+                    "fs": "assets/shaders/splatter.frag"
+                },
                 "textured": {
                     "vs": "assets/shaders/textured.vert",
                     "fs": "assets/shaders/textured.frag"
@@ -108,6 +112,22 @@
                 }
             },
             "materials": {
+                "blood-splatter-material": {
+                    "type": "tinted",
+                    "shader": "splatter",
+                    "tint": [0.45, 0.02, 0.02, 1.0],
+                    "transparent": true,
+                    "pipelineState": {
+                        "faceCulling": { "enabled": false },
+                        "depthTesting": { "enabled": false },
+                        "blending": {
+                            "enabled": true,
+                            "sourceFactor": "GL_SRC_ALPHA",
+                            "destinationFactor": "GL_ONE_MINUS_SRC_ALPHA"
+                        },
+                        "depthMask": false
+                    }
+                },
                 "projectile-player": {
                     "type": "lit",
                     "shader": "lit",

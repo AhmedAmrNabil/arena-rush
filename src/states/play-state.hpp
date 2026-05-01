@@ -8,6 +8,7 @@
 #include <ecs/world.hpp>
 #include <systems/animation-system.hpp>
 #include <systems/audio-system.hpp>
+#include <systems/billboard-system.hpp>
 #include <systems/collision-system.hpp>
 #include <systems/crosshair-renderer.hpp>
 #include <systems/enemy-ai.hpp>
@@ -16,6 +17,7 @@
 #include <systems/forward-renderer.hpp>
 #include <systems/free-camera-controller.hpp>
 #include <systems/health-system.hpp>
+#include <systems/hit-marker-system.hpp>
 #include <systems/movement.hpp>
 #include <systems/player-movement-system.hpp>
 #include <systems/post-process-effects-system.hpp>
@@ -48,6 +50,8 @@ class Playstate : public our::State {
     gameplay::PostProcessEffectsSystem postProcessEffects;
     gameplay::CrosshairRenderer crosshair;
     gameplay::WeaponVisualSystem weaponVisuals;
+    gameplay::BillboardSystem billboardSystem;
+    gameplay::HitMarkerSystem hitMarkerSystem;
     float aimBlend = 0.0f;
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
@@ -199,6 +203,7 @@ public:
 
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
         gameplay::TrailSystem::update(&world, dt);
+        gameplay::HitMarkerSystem::update(&world, dt);
 
         // Death / effects / audio
         gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
@@ -229,6 +234,7 @@ public:
         weaponVisuals.update(&world, dt, playerVelocity, playerOnGround, cameraController.isAiming());
         animationSystem.update(&world, dt);
         getApp()->getAudioSystem().update(&world);
+        billboardSystem.update(&world, activeCamera ? activeCamera->getOwner() : nullptr);
 
         // Rendering
         renderer.render(&world, getApp()->getFrameBufferSize());
