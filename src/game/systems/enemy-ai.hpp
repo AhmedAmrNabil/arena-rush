@@ -111,15 +111,14 @@ namespace gameplay {
         // the forward path is blocked by an obstacle.
         static glm::vec3 orbitStrafe(const glm::vec3& enemyPos, const glm::vec3& playerPos, EnemyComponent* enemy,
                                      float deltaTime, CollisionSystem* collision) {
-            glm::vec3 toPlayer = playerPos - enemyPos;
+            glm::vec3 toPlayer = glm::vec3(playerPos.x - enemyPos.x, 0.0f, playerPos.z - enemyPos.z);
             float dist = glm::length(toPlayer);
-            if (dist < 0.001f) return glm::vec3(0.0f);
-
-            glm::vec3 toPlayerDir = toPlayer / dist;
+            glm::vec3 toPlayerDir = (dist > 0.001f) ? (toPlayer / dist) : glm::vec3(0.0f, 0.0f, 1.0f);
 
             // Tangent = perpendicular on XZ, gives circular orbit
-            glm::vec3 tangent = glm::normalize(glm::cross(glm::vec3(0, 1, 0), toPlayerDir)) *
-                                static_cast<float>(enemy->strafeDirection);
+            glm::vec3 tangent = glm::cross(glm::vec3(0, 1, 0), toPlayerDir);
+            if (glm::dot(tangent, tangent) <= 0.0001f) tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+            tangent = glm::normalize(tangent) * static_cast<float>(enemy->strafeDirection);
 
             // Radial correction pushes toward/away from player to hold preferred distance
             float radialError = dist - enemy->preferredDistance;
@@ -292,7 +291,8 @@ namespace gameplay {
                         if (groundHit.hit) {
                             float targetY = groundHit.point.y;
                             float currentY = enemyEntity->localTransform.position.y;
-                            enemyEntity->localTransform.position.y = glm::mix(currentY, targetY, 15.0f * deltaTime);
+                            enemyEntity->localTransform.position.y =
+                                glm::mix(currentY, targetY, glm::clamp(15.0f * deltaTime, 0.0f, 1.0f));
                         }
                     }
                 }
