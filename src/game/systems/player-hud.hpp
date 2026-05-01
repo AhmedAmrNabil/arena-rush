@@ -29,7 +29,8 @@ namespace gameplay {
         float outlineSpread = 2.0f;
         glm::vec4 ammoColor = glm::vec4(124.0f / 255.0f, 136.0f / 255.0f, 158.0f / 255.0f, 1.0f);
 
-        std::string weaponIconPath = "assets/UI/GTASA_AK.png";
+        std::unordered_map<std::string, our::Texture2D*> textureCache;
+
         std::string healthFramePath = "assets/UI/health_bar.png";
         std::string healthFillPath = "assets/UI/heatlh.png";
         std::string fontPath = "assets/fonts/GTASA_font/GTASA_font.json";

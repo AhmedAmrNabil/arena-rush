@@ -48,7 +48,6 @@
             "outlineSpread": 2.0,
             "outlineThickness": 3.0,
             "ammoColor": [0.8, 0.8, 0.8, 1.0],
-            "weaponIconPath": "assets/UI/rifle_icon.png",
             "fontPath": "assets/fonts/GTASA_font/GTASA_font.json",
             "fontTexturePath": "assets/fonts/GTASA_font/GTASA_font.png"
         },
@@ -543,7 +542,8 @@
                                 "trailSegmentLifetime": 0.08,
                                 "trailHeadScale": 0.1,
                                 "trailTailScale": 0.012,
-                                "order": 0
+                                "order": 0,
+                                "iconPath": "assets/UI/rifle_icon.png"
                             }
                         ],
                         "children": [
@@ -625,7 +625,8 @@
                                 "trailSegmentLifetime": 0.08,
                                 "trailHeadScale": 0.1,
                                 "trailTailScale": 0.012,
-                                "order": 2
+                                "order": 2,
+                                "iconPath": "assets/UI/deagle_icon.png"
                             }
                         ]
                     }

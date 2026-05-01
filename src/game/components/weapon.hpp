@@ -33,6 +33,7 @@ namespace gameplay {
         glm::vec3 muzzleOffset = glm::vec3(0.0f, 0.0f, 0.0f);
         std::string fireSound;
         std::string reloadSound;
+        std::string iconPath;
         static std::string getID() {
             return "Weapon";
         }

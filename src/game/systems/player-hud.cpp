@@ -57,7 +57,6 @@ namespace gameplay {
 
         weaponMaterial = new our::TexturedMaterial();
         weaponMaterial->shader = texturedShader;
-        weaponMaterial->texture = our::texture_utils::loadImage(weaponIconPath, false, false);
         weaponMaterial->tint = glm::vec4(1.0f);
         weaponMaterial->pipelineState.depthTesting.enabled = false;
         weaponMaterial->pipelineState.faceCulling.enabled = false;
@@ -91,7 +90,6 @@ namespace gameplay {
             ammoColor = glm::vec4(arr[0], arr[1], arr[2], arr[3]);
         }
 
-        weaponIconPath = data.value("weaponIconPath", weaponIconPath);
         fontPath = data.value("fontPath", fontPath);
         fontTexturePath = data.value("fontTexturePath", fontTexturePath);
     }
@@ -124,15 +122,31 @@ namespace gameplay {
 
         WeaponComponent* weapon = playerComp->currentWeapon;
 
-        if (weapon && (float)weapon->currentAmmo / weapon->magSize <= 0.2f) {
-            weaponMaterial->tint = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
+        if (weapon) {
+            if (!weapon->iconPath.empty()) {
+                if (textureCache.find(weapon->iconPath) == textureCache.end()) {
+                    textureCache[weapon->iconPath] = our::texture_utils::loadImage(weapon->iconPath, false);
+                }
+                weaponMaterial->texture = textureCache[weapon->iconPath];
+            } else {
+                weaponMaterial->texture = nullptr;
+            }
+
+            if ((float)weapon->currentAmmo / weapon->magSize <= 0.2f) {
+                weaponMaterial->tint = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
+            } else {
+                weaponMaterial->tint = glm::vec4(1.0f);
+            }
         } else {
+            weaponMaterial->texture = nullptr;
             weaponMaterial->tint = glm::vec4(1.0f);
         }
 
-        weaponMaterial->setup();
-        weaponMaterial->shader->set("transform", orthoVP * weaponTransform);
-        rectangleMesh->draw();
+        if (weaponMaterial->texture) {
+            weaponMaterial->setup();
+            weaponMaterial->shader->set("transform", orthoVP * weaponTransform);
+            rectangleMesh->draw();
+        }
 
         // local copy to not accumlate the multiplies each frame
         our::UIRect scaledHealthRect = healthBarRect;
@@ -251,9 +265,14 @@ namespace gameplay {
         }
 
         if (weaponMaterial) {
-            if (weaponMaterial->texture) delete weaponMaterial->texture;
+            weaponMaterial->texture = nullptr;
             delete weaponMaterial;
         }
+
+        for (auto& pair : textureCache) {
+            if (pair.second) delete pair.second;
+        }
+        textureCache.clear();
 
         testFont.destroy();
     }
