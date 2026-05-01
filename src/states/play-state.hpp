@@ -121,6 +121,7 @@ public:
 
         enemySpawner.deserialize(config);
         enemySpawner.initialize(&world);
+        collisionSystem.update(&world);  // make sure spawner colliders are registered before enemyHealthBars
         enemyHealthBars.deserialize(config);
         crosshair.deserialize(config);
         overlayStats = {};
@@ -173,7 +174,7 @@ public:
             }
         }
 
-        enemyAI.update(&world, playerEntity, getApp(), dt);
+        enemyAI.update(&world, playerEntity, getApp(), dt, &collisionSystem);
 
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);

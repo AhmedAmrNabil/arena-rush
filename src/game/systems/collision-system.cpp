@@ -78,12 +78,27 @@ static btTransform entityToBtTransformYawOnly(our::Entity* entity) {
 
 namespace gameplay {
 
+    static btTransform entityToColliderBtTransform(our::Entity* entity, const ColliderComponent* collider) {
+        btTransform transform;
+        if (entity->getComponent<PlayerComponent>()) {
+            transform = entityToBtTransformYawOnly(entity);
+        } else {
+            transform = entityToBtTransform(entity);
+        }
+
+        if (collider && glm::dot(collider->centerOffset, collider->centerOffset) > 0.0f) {
+            transform.setOrigin(transform.getOrigin() + transform.getBasis() * glmToBtVec3(collider->centerOffset));
+        }
+
+        return transform;
+    }
+
     short getMaskForLayer(short group) {
         switch (group) {
             case LAYER_PLAYER:
                 return LAYER_ENEMY | LAYER_ENVIRONMENT | LAYER_TRIGGER | LAYER_PROJECTILE;
             case LAYER_ENEMY:
-                return LAYER_PLAYER | LAYER_PROJECTILE | LAYER_ENVIRONMENT;
+                return LAYER_PLAYER | LAYER_PROJECTILE | LAYER_ENVIRONMENT | LAYER_ENEMY;
             case LAYER_ENVIRONMENT:
                 return LAYER_PLAYER | LAYER_ENEMY | LAYER_PROJECTILE;
             case LAYER_PROJECTILE:
@@ -317,7 +332,9 @@ namespace gameplay {
 
         btVector3 minPoint;
         btVector3 maxPoint;
-        obj->getCollisionShape()->getAabb(entityToBtTransform(const_cast<our::Entity*>(entity)), minPoint, maxPoint);
+        auto* mutableEntity = const_cast<our::Entity*>(entity);
+        auto* collider = mutableEntity->getComponent<ColliderComponent>();
+        obj->getCollisionShape()->getAabb(entityToColliderBtTransform(mutableEntity, collider), minPoint, maxPoint);
 
         bounds.min = btToGlmVec3(minPoint);
         bounds.max = btToGlmVec3(maxPoint);
@@ -333,7 +350,8 @@ namespace gameplay {
         btCollisionShape* shape = nullptr;
 
         std::string shapeKey;
-        const std::string scaleSuffix = makeShapeScaleSuffix(entity->localTransform.scale);
+        const std::string scaleSuffix =
+            collider->worldSpace ? "_WS" : makeShapeScaleSuffix(entity->localTransform.scale);
         if (!collider->shapeCacheId.empty()) {
             shapeKey = std::string("ID_") + collider->shapeCacheId + scaleSuffix;
         } else {
@@ -378,7 +396,9 @@ namespace gameplay {
                     }
                     break;
             }
-            shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
+            if (!collider->worldSpace) {
+                shape->setLocalScaling(glmToBtVec3(entity->localTransform.scale));
+            }
             shapesCache[shapeKey] = shape;
             ownedShapes[shape] = 1;
         }
@@ -387,12 +407,8 @@ namespace gameplay {
         btCollisionObject* obj = new btCollisionObject();
         obj->setCollisionShape(shape);
 
-        auto* player = entity->getComponent<PlayerComponent>();
-        if (player) {
-            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
-        } else {
-            obj->setWorldTransform(entityToBtTransform(entity));
-        }
+        btTransform transform = entityToColliderBtTransform(entity, collider);
+        obj->setWorldTransform(transform);
 
         obj->setUserPointer(entity);  // so we can go back to the entity
 
@@ -453,15 +469,10 @@ namespace gameplay {
 
         if (!obj) return;
 
-        auto* player = entity->getComponent<PlayerComponent>();
+        auto* collider = entity->getComponent<ColliderComponent>();
 
-        if (player) {
-            // for players, we only update the yaw rotation to prevent them from tipping over when walking on slopes or
-            // getting hit by hazards. This is a common technique in character controllers to improve stability.
-            obj->setWorldTransform(entityToBtTransformYawOnly(entity));
-        } else {
-            obj->setWorldTransform(entityToBtTransform(entity));
-        }
+        btTransform transform = entityToColliderBtTransform(entity, collider);
+        obj->setWorldTransform(transform);
 
         // Update the broadphase AABB so Bullet uses the new position for collision detection
         collisionWorld->updateSingleAabb(obj);

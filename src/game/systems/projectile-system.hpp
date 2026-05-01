@@ -180,7 +180,8 @@ namespace gameplay {
                 if (moveDistance > 0.0001f) {
                     glm::vec3 dir = movement / moveDistance;
 
-                    short hitMask = getMaskForLayer(proj->shooterLayer) & ~CollisionLayer::LAYER_PROJECTILE;
+                    short hitMask =
+                        getMaskForLayer(proj->shooterLayer) & ~CollisionLayer::LAYER_PROJECTILE & ~proj->shooterLayer;
 
                     ColliderComponent* bulletCollider = entity->getComponent<ColliderComponent>();
                     float extra = bulletCollider ? bulletCollider->radius : 0.0f;
