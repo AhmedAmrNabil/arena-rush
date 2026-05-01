@@ -88,7 +88,10 @@
                 "gunshot-player": "assets/sounds/gun_shot.wav",
                 "gunshot-enemy": "assets/sounds/drone_gun_shot.wav",
                 "reload": "assets/sounds/gun_reload.wav",
-                "deagle-shot": "assets/sounds/deagle.wav"
+                "deagle-shot": "assets/sounds/deagle.wav",
+                "heartsteel": "assets/sounds/heartsteel.wav",
+                "shaco-attack": "assets/sounds/shaco_attack.wav",
+                "ssg": "assets/sounds/ssg.wav"
             },
             "samplers": {
                 "default": {},
@@ -234,7 +237,8 @@
                                 "attackRange": 3.0,
                                 "attackDamage": 10.0,
                                 "attackCooldown": 0.8,
-                                "scoreValue": 100
+                                "scoreValue": 100,
+                                "attackSound": "heartsteel"
                             },
                             {
                                 "type": "Health",
@@ -303,7 +307,8 @@
                                 "attackRange": 2.5,
                                 "attackDamage": 5.0,
                                 "attackCooldown": 0.4,
-                                "scoreValue": 75
+                                "scoreValue": 75,
+                                "attackSound": "shaco-attack"
                             },
                             {
                                 "type": "Health",
@@ -544,7 +549,7 @@
                                 "bulletDamage": 60.0,
                                 "bulletLifetime": 3.0,
                                 "bulletScale": 0.05,
-                                "fireSound": "deagle-shot",
+                                "fireSound": "ssg",
                                 "reloadSound": "reload",
                                 "reloadTime": 1.5,
                                 "automatic": false,
