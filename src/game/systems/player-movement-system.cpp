@@ -1,5 +1,7 @@
 #include "player-movement-system.hpp"
 
+#include <components/collider.hpp>
+
 #include "collision-system.hpp"
 
 namespace gameplay {
@@ -69,12 +71,17 @@ namespace gameplay {
             // Raycast to prevent tunneling through walls
             float actualDashDistance = movement->dashDistance;
             if (collisionSystem) {
-                Ray dashRay{playerPosition - glm::vec3(0, movement->playerHeight / 2.0f, 0), dashDirection};
-                HitInfo hit =
-                    collisionSystem->raycast(dashRay, movement->dashDistance, CollisionLayer::LAYER_ENVIRONMENT);
+                float capsuleRadius = 0.5f;
+                if (ColliderComponent* collider = movement->getOwner()->getComponent<ColliderComponent>()) {
+                    capsuleRadius = collider->radius;
+                }
+
+                Ray dashRay{playerPosition, dashDirection};
+                HitInfo hit = collisionSystem->raycast(dashRay, movement->dashDistance + capsuleRadius,
+                                                       CollisionLayer::LAYER_ENVIRONMENT);
 
                 if (hit.hit) {
-                    actualDashDistance = glm::max(0.0f, hit.distance - 0.5f);
+                    actualDashDistance = glm::max(0.0f, hit.distance - capsuleRadius);
                 }
             }
 
