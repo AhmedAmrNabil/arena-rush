@@ -18,7 +18,7 @@ namespace gameplay {
                                        const glm::vec3& moveDir, float deltaTime, float slideStartSpeed);
         void handleGroundedMovement(PlayerMovementComponent* movement, const glm::vec3& moveDir, float deltaTime);
         void handleDashing(PlayerMovementComponent* movement, glm::vec3& playerPosition, our::Keyboard& keyboard,
-                           const glm::vec3& frontXZ);
+                           const glm::vec3& frontXZ, const glm::vec3& moveDir);
         void handleJumpingAndGravity(PlayerMovementComponent* movement, glm::vec3& playerPosition,
                                      our::Keyboard& keyboard, float deltaTime);
         void handleHeightInterpolation(PlayerMovementComponent* movement, glm::vec3& playerPosition, float deltaTime);

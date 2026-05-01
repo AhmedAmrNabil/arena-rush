@@ -97,6 +97,10 @@ namespace gameplay {
         HitInfo raycast(const Ray& ray, float maxDistance,
                         const short targetLayer = CollisionLayer::LAYER_ENVIRONMENT) const;
 
+        // On-demand sphere sweep (convex cast) that sweeps a sphere from 'from' to 'to'.
+        HitInfo sphereCast(const glm::vec3& from, const glm::vec3& to, float radius,
+                           short targetLayer = CollisionLayer::LAYER_ENVIRONMENT) const;
+
         // On-demand overlap sphere function that can be used outside of the update loop
         std::vector<our::Entity*> overlapSphere(const glm::vec3& center, float radius, short targetLayer);
 
