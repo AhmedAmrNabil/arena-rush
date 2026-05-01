@@ -1,5 +1,6 @@
 #include "text-renderer.hpp"
 
+#include <array>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace our {
@@ -132,9 +133,16 @@ namespace our {
 
     void TextRenderer::drawTextWithOutline(Font* font, const std::string& text, UIRect rect, glm::vec2 windowSize,
                                            float scale, const glm::mat4& VP, glm::vec4 textColor,
-                                           glm::vec4 outlineColor, float outlineSpread,
-                                           const std::vector<glm::vec2> offsets) {
-        for (const auto& off : offsets) {
+                                           glm::vec4 outlineColor, float outlineSpread) {
+        // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough
+        // :) (draws the text blackened four times to create an outline)
+        static const std::array<glm::vec2, 4> defaultOffsets{
+            glm::vec2{-1.0f, -1.0f},
+            glm::vec2{-1.0f, 1.0f},
+            glm::vec2{1.0f, -1.0f},
+            glm::vec2{1.0f, 1.0f},
+        };
+        for (const auto& off : defaultOffsets) {
             UIRect o = rect;
             o.offset += off * outlineSpread;
             drawText(font, text, o, windowSize, scale, VP, outlineColor);

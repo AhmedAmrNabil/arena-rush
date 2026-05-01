@@ -177,25 +177,8 @@ namespace gameplay {
             float scaledSpread = outlineSpread * uiScale;
             float sTextScale = textScale * uiScale;
 
-            // PS2 ahh way to make outline, I can't find a solution to balance outline with scale, this is good enough
-            // :) (draws the text blackened four times to create an outline)
-            our::UIRect tr = scaledAmmoTextRect;
-            tr.offset += glm::vec2(scaledSpread, scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, tr, windowSize, sTextScale, orthoVP, outlineColor);
-
-            our::UIRect bl = scaledAmmoTextRect;
-            bl.offset += glm::vec2(-scaledSpread, -scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, bl, windowSize, sTextScale, orthoVP, outlineColor);
-
-            our::UIRect tl = scaledAmmoTextRect;
-            tl.offset += glm::vec2(-scaledSpread, scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, tl, windowSize, sTextScale, orthoVP, outlineColor);
-
-            our::UIRect br = scaledAmmoTextRect;
-            br.offset += glm::vec2(scaledSpread, -scaledSpread);
-            textRenderer->drawText(&testFont, ammoText, br, windowSize, sTextScale, orthoVP, outlineColor);
-
-            textRenderer->drawText(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP, ammoColor);
+            textRenderer->drawTextWithOutline(&testFont, ammoText, scaledAmmoTextRect, windowSize, sTextScale, orthoVP,
+                                              ammoColor, outlineColor, scaledSpread);
         }
 
         // wave HUD
@@ -216,25 +199,15 @@ namespace gameplay {
                 bigRect.offset = {0.0f, -100.0f * uiScale};
                 bigRect.size = {0.0f, 0.0f};
                 // outline
-                for (auto off : std::vector<glm::vec2>{
-                         {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
-                    our::UIRect o = bigRect;
-                    o.offset += off;
-                    textRenderer->drawText(&testFont, waveText, o, windowSize, bigScale, orthoVP, black);
-                }
-                textRenderer->drawText(&testFont, waveText, bigRect, windowSize, bigScale, orthoVP, waveColor);
+                textRenderer->drawTextWithOutline(&testFont, waveText, bigRect, windowSize, bigScale, orthoVP,
+                                                  waveColor, black, spread);
                 // countdown
                 int ct = std::max(1, (int)std::ceil(spawner.getCountdownTimer()));
                 std::string cdText = std::to_string(ct);
                 our::UIRect cdRect = bigRect;
                 cdRect.offset.y += 100.0f * uiScale;
-                for (auto off : std::vector<glm::vec2>{
-                         {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
-                    our::UIRect o = cdRect;
-                    o.offset += off;
-                    textRenderer->drawText(&testFont, cdText, o, windowSize, bigScale, orthoVP, black);
-                }
-                textRenderer->drawText(&testFont, cdText, cdRect, windowSize, bigScale, orthoVP, waveWhite);
+                textRenderer->drawTextWithOutline(&testFont, cdText, cdRect, windowSize, bigScale, orthoVP, waveWhite,
+                                                  black, spread);
             } else {
                 // small top-center "Wave X  |  Enemies: N"
                 std::string info = "Wave " + std::to_string(spawner.getWaveDisplayNumber()) +
@@ -246,11 +219,8 @@ namespace gameplay {
                 infoRect.offset = {0.0f, 20.0f * uiScale};
                 infoRect.size = {0.0f, 0.0f};
 
-                // clang-format off
-                std::vector<glm::vec2> offsets = {{spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}};
-
-                textRenderer->drawTextWithOutline(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor, black, spread, offsets);
-                // clang-format on
+                textRenderer->drawTextWithOutline(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor,
+                                                  black, spread);
             }
         }
     }

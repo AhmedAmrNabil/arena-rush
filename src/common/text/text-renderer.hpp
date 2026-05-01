@@ -50,8 +50,7 @@ namespace our {
                       const glm::mat4& orthoVP, glm::vec4 color = glm::vec4(1.0f));
 
         void drawTextWithOutline(Font* font, const std::string& text, UIRect rect, glm::vec2 windowSize, float scale,
-                                 const glm::mat4& VP, glm::vec4 textColor, glm::vec4 outlineColor, float outlineSpread,
-                                 const std::vector<glm::vec2> offsets);
+                                 const glm::mat4& VP, glm::vec4 textColor, glm::vec4 outlineColor, float outlineSpread);
 
         void destroy();
     };
