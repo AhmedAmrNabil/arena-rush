@@ -291,7 +291,7 @@
                         "name": "Charger",
                         "model": "charger",
                         "rotation": [0.0, 0.0, 0.0],
-                        "scale": [0.015, 0.015, 0.015],
+                        "scale": [0.02, 0.02, 0.02],
                         "components": [
                             {
                                 "type": "Enemy",
@@ -299,9 +299,9 @@
                                 "moveSpeed": 7.0,
                                 "turnSpeed": 4.0,
                                 "aggroRange": 120.0,
-                                "attackRange": 1.8,
+                                "attackRange": 2.5,
                                 "attackDamage": 5.0,
-                                "attackCooldown": 0.15,
+                                "attackCooldown": 0.4,
                                 "scoreValue": 75
                             },
                             {
@@ -311,8 +311,11 @@
                             {
                                 "type": "Collider",
                                 "layer": "enemy",
-                                "shape": "Model",
-                                "model": "charger"
+                                "shape": "Capsule",
+                                "worldSpace": true,
+                                "radius": 0.8,
+                                "height": 3.0,
+                                "centerOffset": [0.0, 1.5, 0.0]
                             },
                             {
                                 "type": "Animation",
