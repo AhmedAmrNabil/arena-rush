@@ -14,7 +14,7 @@
             "postprocess": {
                 "fs": "assets/shaders/postprocess/dash-distortion.frag",
                 "uniforms": {
-                    "exposure": 1.0
+                    "exposure": 2.0
                 }
             },
             "bloom": {
@@ -618,17 +618,244 @@
                             }
                         }
                     }
-                ]
-            },
-            {
-                "position": [0, 0, 0],
-                "rotation": [-70, 0, 0],
-                "scale": [100, 100, 100],
-                "components": [
+                ],
+                "children": [
                     {
-                        "type": "light",
-                        "lightType": "directional",
-                        "color": [0.8, 0.8, 0.75]
+                        "position": [16.544, 4, 7.8],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [16.544, 4.1, -4.1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [16.544, 4.1, -16.17],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [29.645, 4.1, -16.17],
+                        "rotation": [0, 0, 0],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [29.645, 4.1, -4.1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [29.645, 4.1, 7.8],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-1.6, 46, 0],
+                        "rotation": [-90, 0, 0],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "spot",
+                                "color": [1, 8, 2],
+                                "attenuation": [1.0, 0.045, 0.0075],
+                                "spotAngles": [15, 25]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [7.02, 4.1, -21.625],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-33.123, 4.1, 22.255],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-35.035, 6.55, -5.565],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-45.035, 6.55, -5.565],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-55.285, 6.55, -5.565],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-35.035, 6.55, -14.575],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-45.035, 6.55, -14.575],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-55.275, 6.55, -14.575],
+                        "scale": [0.5, 0.5, 0.5],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [-3.225, 4.1, -21.625],
+                        "scale": [1, 1, 1],
+                        "rotation": [-90, 0, 0],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [7.02, 4.1, -30.606],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [2.977, 4.1, -30.606],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [45.159, 8.1, -0.987],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
+                    },
+                    {
+                        "position": [45.159, 8.1, -9.237],
+                        "scale": [1, 1, 1],
+                        "components": [
+                            {
+                                "type": "light",
+                                "lightType": "point",
+                                "color": [0.7, 0.6, 0.3],
+                                "attenuation": [1.0, 0.09, 0.032]
+                            }
+                        ]
                     }
                 ]
             }
