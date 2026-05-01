@@ -103,7 +103,6 @@ namespace our {
 
         auto clipIt = clips.find(clipName);
         if (clipIt == clips.end()) {
-            std::cerr << "\033[31mClip not found: " << clipName << "\033[0m" << std::endl;
             return false;
         }
         AnimationClip& clip = clipIt->second;
@@ -130,7 +129,6 @@ namespace our {
 
         auto clipIt = clips.find(clipName);
         if (clipIt == clips.end()) {
-            std::cerr << "\033[31mClip not found: " << clipName << "\033[0m" << std::endl;
             return false;
         }
         AnimationClip& clip = clipIt->second;
@@ -158,7 +156,6 @@ namespace our {
 
         auto attackAnimationClipName = clips.find("attack");
         if (attackAnimationClipName == clips.end()) {
-            std::cerr << "\033[31mClip not found: attack\033[0m" << std::endl;
             return false;
         }
 
