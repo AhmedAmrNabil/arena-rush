@@ -13,10 +13,12 @@
 
 #include "../components/collider.hpp"
 #include "../components/health.hpp"
+#include "../components/projectile-trail.hpp"
 #include "../components/projectile.hpp"
 #include "../components/weapon.hpp"
 #include "collision-system.hpp"
 #include "components/player.hpp"
+#include "trail-system.hpp"
 
 namespace gameplay {
 
@@ -24,9 +26,9 @@ namespace gameplay {
         static our::Entity* spawnBullet(our::World* world, const WeaponComponent& weapon, const glm::vec3& origin,
                                         const glm::vec3& direction, CollisionLayer shooterLayer) {
             our::Mesh* mesh = our::AssetLoader<our::Mesh>::get("sphere");
-            our::Material* material = shooterLayer == CollisionLayer::LAYER_PLAYER
-                                          ? our::AssetLoader<our::Material>::get("projectile-player")
-                                          : our::AssetLoader<our::Material>::get("projectile-enemy");
+            const char* materialName =
+                shooterLayer == CollisionLayer::LAYER_PLAYER ? "projectile-player" : "projectile-enemy";
+            our::Material* material = our::AssetLoader<our::Material>::get(materialName);
             if (!mesh || !material) return nullptr;
 
             our::Entity* bullet = world->add();
@@ -51,6 +53,16 @@ namespace gameplay {
             proj->lifetime = weapon.bulletLifetime;
             proj->shooterLayer = shooterLayer;
 
+            if (weapon.trailEnabled && weapon.trailMaxSegments > 0) {
+                ProjectileTrailComponent* trail = bullet->addComponent<ProjectileTrailComponent>();
+                trail->material = materialName;
+                trail->maxSegments = weapon.trailMaxSegments;
+                trail->segmentLifetime = weapon.trailSegmentLifetime;
+                trail->headScale = weapon.trailHeadScale;
+                trail->tailScale = weapon.trailTailScale;
+                trail->spawnTimer = 0.0f;
+            }
+
             return bullet;
         }
 
@@ -64,12 +76,11 @@ namespace gameplay {
         }
 
         static bool fire(our::World* world, our::Application* app, our::Entity* shooter, const glm::vec3& aim,
-                         CollisionLayer shooterLayer) {
+                         CollisionLayer shooterLayer, WeaponComponent* weaponOverride = nullptr) {
             if (!world || !app || !shooter) return false;
 
-            WeaponComponent* weapon = shooter->getComponent<WeaponComponent>();
-            if (!weapon || weapon->timer > 0.0f) return false;
-            if (glm::dot(aim, aim) <= 0.000001f) return false;
+            WeaponComponent* weapon = weaponOverride ? weaponOverride : shooter->getComponent<WeaponComponent>();
+            if (!weapon || weapon->timer > 0.0f || glm::dot(aim, aim) <= 0.000001f) return false;
 
             glm::vec3 direction = glm::normalize(aim);
             glm::vec3 origin = glm::vec3(shooter->getLocalToWorldMatrix() * glm::vec4(weapon->muzzleOffset, 1.0f));
@@ -92,19 +103,18 @@ namespace gameplay {
         static bool handlePlayerReload(our::Application* app, our::Entity* playerEntity) {
             if (!app || !playerEntity) return false;
 
-            WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            WeaponComponent* weapon = playerComp->currentWeapon;
             if (!weapon || !playerComp) return false;
             if (weapon->timer > 0.0f) return false;  // still in cooldown / already reloading
 
-            bool wantsReload =
-                app->getKeyboard().justPressed(GLFW_KEY_R) && playerComp->currentAmmo < playerComp->magSize;
-            bool needsAutoReload = playerComp->currentAmmo <= 0;
+            bool wantsReload = app->getKeyboard().justPressed(GLFW_KEY_R) && weapon->currentAmmo < weapon->magSize;
+            bool needsAutoReload = weapon->currentAmmo <= 0;
 
-            if ((wantsReload || needsAutoReload) && playerComp->maxAmmo > 0) {
-                int reloadAmt = std::min(playerComp->magSize - playerComp->currentAmmo, playerComp->maxAmmo);
-                playerComp->currentAmmo += reloadAmt;
-                playerComp->maxAmmo -= reloadAmt;
+            if ((wantsReload || needsAutoReload) && weapon->maxAmmo > 0) {
+                int reloadAmt = std::min(weapon->magSize - weapon->currentAmmo, weapon->maxAmmo);
+                weapon->currentAmmo += reloadAmt;
+                weapon->maxAmmo -= reloadAmt;
                 weapon->timer = weapon->reloadTime;
 
                 if (!weapon->reloadSound.empty())
@@ -118,7 +128,18 @@ namespace gameplay {
         static bool handlePlayerFire(our::World* world, our::Application* app, const CollisionSystem& collisions,
                                      our::Entity* playerEntity) {
             if (!world || !app || !playerEntity) return false;
-            if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+
+            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
+            if (!playerComp) return false;
+
+            WeaponComponent* weapon = playerComp->currentWeapon;
+            if (!weapon || weapon->currentAmmo <= 0) return false;
+
+            if (weapon->automatic) {
+                if (!app->getMouse().isPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+            } else {
+                if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+            }
 
             glm::mat4 playerM = playerEntity->getLocalToWorldMatrix();
             glm::vec3 cameraPos = glm::vec3(playerM[3]);
@@ -129,19 +150,13 @@ namespace gameplay {
                                                 CollisionLayer::LAYER_ENVIRONMENT | CollisionLayer::LAYER_ENEMY);
             glm::vec3 aimPoint = aimHit.hit ? aimHit.point : (cameraPos + forward * aimDistance);
 
-            WeaponComponent* weapon = playerEntity->getComponent<WeaponComponent>();
             glm::vec3 muzzleOrigin =
                 glm::vec3(playerM * glm::vec4(weapon ? weapon->muzzleOffset : glm::vec3(0.0f), 1.0f));
             glm::vec3 aimVector = aimPoint - muzzleOrigin;
             if (glm::dot(aimVector, aimVector) <= 0.000001f) aimVector = forward;
 
-            PlayerComponent* playerComp = playerEntity->getComponent<PlayerComponent>();
-            if (playerComp && playerComp->currentAmmo <= 0) return false;
-
-            bool fired = fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER);
-            if (fired && playerComp) {
-                playerComp->currentAmmo--;
-            }
+            bool fired = fire(world, app, playerEntity, aimVector, CollisionLayer::LAYER_PLAYER, weapon);
+            if (fired) weapon->currentAmmo = std::max(0, weapon->currentAmmo - 1);
             return fired;
         }
 
@@ -175,6 +190,11 @@ namespace gameplay {
                     if (hit.hit && hit.entity) {
                         HealthComponent* health = hit.entity->getComponent<HealthComponent>();
                         if (health && !health->isDead) health->takeDamage(proj->damage);
+
+                        const char* sparkMaterial = proj->shooterLayer == CollisionLayer::LAYER_PLAYER
+                                                        ? "projectile-player"
+                                                        : "projectile-enemy";
+                        TrailSystem::spawnImpactSpark(world, hit.point, hit.normal, sparkMaterial);
 
                         entity->localTransform.position = hit.point;
                         proj->lifetime = 0.0f;

@@ -8,7 +8,9 @@
 #include "components/player-movement.hpp"
 #include "components/player.hpp"
 #include "components/post-process-effects.hpp"
+#include "components/projectile-trail.hpp"
 #include "components/projectile.hpp"
+#include "components/trail-segment.hpp"
 #include "components/weapon.hpp"
 namespace gameplay {
 
@@ -23,6 +25,8 @@ namespace gameplay {
         our::ComponentRegistry::registerType<PlayerMovementComponent>();
         our::ComponentRegistry::registerType<our::PostProcessEffectsComponent>();
         our::ComponentRegistry::registerType<ProjectileComponent>();
+        our::ComponentRegistry::registerType<ProjectileTrailComponent>();
+        our::ComponentRegistry::registerType<TrailSegmentComponent>();
         our::ComponentRegistry::registerType<WeaponComponent>();
 
         initialized = true;

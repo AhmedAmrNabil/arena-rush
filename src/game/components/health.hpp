@@ -8,7 +8,8 @@ namespace gameplay {
     public:
         float maxHealth = 100.0f;
         float currentHealth = 100.0f;
-        float damageRevealTimer = 0.0f;
+        float damageRevealTimer = 2.5f;
+        float currentDamageRevealTimer = 0.0f;
         bool isDead = false;
 
         float takeDamage(float amount);

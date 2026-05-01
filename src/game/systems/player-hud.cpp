@@ -122,7 +122,9 @@ namespace gameplay {
             glm::translate(glm::mat4(1.0f), glm::vec3(weaponPos.x, weaponPos.y, 0.0f)) *
             glm::scale(glm::mat4(1.0f), glm::vec3(scaledWeaponRect.size.x, scaledWeaponRect.size.y, 1.0f));
 
-        if ((float)playerComp->currentAmmo / playerComp->magSize <= 0.2f) {
+        WeaponComponent* weapon = playerComp->currentWeapon;
+
+        if (weapon && (float)weapon->currentAmmo / weapon->magSize <= 0.2f) {
             weaponMaterial->tint = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
         } else {
             weaponMaterial->tint = glm::vec4(1.0f);
@@ -160,8 +162,12 @@ namespace gameplay {
 
         // Ammo Counter
         if (textRenderer) {
-            std::string ammoText =
-                std::to_string(playerComp->currentAmmo) + " / " + std::to_string(playerComp->maxAmmo);
+            std::string ammoText;
+            if (weapon) {
+                ammoText = std::to_string(weapon->currentAmmo) + " / " + std::to_string(weapon->maxAmmo);
+            } else {
+                ammoText = "0 / 0";
+            }
 
             glm::vec4 outlineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             our::UIRect scaledAmmoTextRect = ammoTextRect;

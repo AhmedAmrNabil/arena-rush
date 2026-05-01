@@ -12,10 +12,22 @@ namespace gameplay {
         bulletLifetime = data.value("bulletLifetime", bulletLifetime);
         bulletScale = data.value("bulletScale", bulletScale);
         bulletColliderRadius = data.value("bulletColliderRadius", bulletColliderRadius);
+        trailEnabled = data.value("trailEnabled", trailEnabled);
+        trailMaxSegments = data.value("trailMaxSegments", trailMaxSegments);
+        trailSegmentLifetime = data.value("trailSegmentLifetime", trailSegmentLifetime);
+        trailHeadScale = data.value("trailHeadScale", trailHeadScale);
+        trailTailScale = data.value("trailTailScale", trailTailScale);
         muzzleOffset = data.value("muzzleOffset", muzzleOffset);
         fireSound = data.value("fireSound", fireSound);
         reloadSound = data.value("reloadSound", reloadSound);
         reloadTime = data.value("reloadTime", reloadTime);
+        automatic = data.value("automatic", automatic);
+        magSize = data.value("magSize", magSize);
+        maxAmmo = data.value("maxAmmo", maxAmmo);
+        currentAmmo = data.value("currentAmmo", currentAmmo);
+        isActive = data.value("isActive", isActive);
+        order = data.value("order", order);
+        if (currentAmmo > magSize) currentAmmo = magSize;  // ensure current ammo does not exceed mag size
     }
 
 }  // namespace gameplay

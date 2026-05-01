@@ -20,7 +20,9 @@
 #include <systems/player-movement-system.hpp>
 #include <systems/post-process-effects-system.hpp>
 #include <systems/projectile-system.hpp>
+#include <systems/trail-system.hpp>
 #include <systems/ui-renderer.hpp>
+#include <systems/weapon-switcher-system.hpp>
 #include <systems/weapon-visual-system.hpp>
 #include <ui/play-overlay.hpp>
 
@@ -50,6 +52,7 @@ class Playstate : public our::State {
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
     gameplay::PlayerHUDSystem playerHud;
+    gameplay::WeaponSwitcherSystem weaponSwitcher;
 
     void displayFPS() const {
         ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
@@ -104,6 +107,8 @@ public:
             if (activeCamera && playerEntity) break;
         }
 
+        weaponVisuals.initlize(playerEntity, activeCamera ? activeCamera->getOwner() : nullptr);
+
         cameraController.enter(getApp());
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
@@ -119,6 +124,7 @@ public:
         enemyHealthBars.deserialize(config);
         crosshair.deserialize(config);
         overlayStats = {};
+        weaponSwitcher.initialize(&world, playerEntity);
     }
 
     void onDraw(double deltaTime) override {
@@ -169,12 +175,17 @@ public:
         // Keep collision queries in sync with all movement before shooting/projectiles.
         collisionSystem.update(&world);
 
+        // handle weapon swtiching
+        weaponSwitcher.update(getApp());
+
         bool reloadStarted = gameplay::ProjectileSystem::handlePlayerReload(getApp(), playerEntity);
         if (reloadStarted) {
             float reloadDuration = 1.0f;
             if (playerEntity) {
-                if (gameplay::WeaponComponent* weapon = playerEntity->getComponent<gameplay::WeaponComponent>())
-                    reloadDuration = weapon->reloadTime;
+                gameplay::PlayerComponent* player = playerEntity->getComponent<gameplay::PlayerComponent>();
+                if (player && player->currentWeapon) {
+                    reloadDuration = player->currentWeapon->reloadTime;
+                }
             }
             weaponVisuals.onReloadStart(reloadDuration);
         }
@@ -183,6 +194,7 @@ public:
         if (fired) weaponVisuals.onFire();
 
         gameplay::ProjectileSystem::update(&world, collisionSystem, dt);
+        gameplay::TrailSystem::update(&world, dt);
 
         // Death / effects / audio
         gameplay::HealthUpdateResult healthResult = healthSystem.update(&world, dt);
@@ -242,6 +254,7 @@ public:
         textRenderer.destroy();
         playerHud.destroy();
         weaponVisuals.destroy();
+        weaponSwitcher.destroy();
         // On exit, we call exit for the camera controller system to make sure that the mouse is unlocked
         cameraController.exit();
         getApp()->getAudioSystem().stopAll();

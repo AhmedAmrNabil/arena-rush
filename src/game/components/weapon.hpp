@@ -16,6 +16,19 @@ namespace gameplay {
         float bulletScale = 0.15f;
         float bulletColliderRadius = 0.15f;
         float reloadTime = 1.0f;
+        bool automatic = false;
+        int currentAmmo = 30;
+        int magSize = 30;
+        int maxAmmo = 120;
+        bool isActive = false;  // Whether this weapon is currently active (held by the player)
+        int order = 0;  // The order of this weapon in the player's inventory (0 for primary, 1 for secondary, etc.)
+
+        // Trail effect
+        bool trailEnabled = true;
+        int trailMaxSegments = 8;
+        float trailSegmentLifetime = 0.12f;
+        float trailHeadScale = 0.12f;
+        float trailTailScale = 0.015f;
 
         glm::vec3 muzzleOffset = glm::vec3(0.0f, 0.0f, 0.0f);
         std::string fireSound;
