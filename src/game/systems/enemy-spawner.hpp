@@ -79,8 +79,8 @@ namespace gameplay {
         // utility to build the wave table
         void buildWaveTable() {
             int B = 0;
-            int F = std::min(1, (int)config.enemies.size() - 1);
-            int C = std::min(2, (int)config.enemies.size() - 1);
+            int C = std::min(1, (int)config.enemies.size() - 1);
+            int F = std::min(2, (int)config.enemies.size() - 1);
 
             waves.clear();
 
@@ -152,6 +152,7 @@ namespace gameplay {
                     WeaponComponent* weapon = enemyEntity->addComponent<WeaponComponent>();
 
                     weapon->deserialize(componentConfig);
+                    weapon->bulletDamage *= wave.damageMul;
                 }
             }
         }

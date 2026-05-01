@@ -195,7 +195,6 @@ namespace gameplay {
         // wave HUD
         glm::vec4 waveColor = glm::vec4(1.0f, 0.86f, 0.39f, 1.0f);
         if (textRenderer) {
-            float uiScale = windowSize.y / 720.0f;
             glm::mat4 orthoVP = glm::ortho(0.0f, (float)windowSize.x, (float)windowSize.y, 0.0f, 1.0f, -1.0f);
 
             glm::vec4 black(glm::vec3(0.0f), 1.0f);
@@ -208,7 +207,7 @@ namespace gameplay {
                 our::UIRect bigRect;
                 bigRect.anchor = {0.5f, 0.5f};
                 bigRect.pivot = {0.5f, 0.5f};
-                bigRect.offset = {0.0f, -40.0f * uiScale};
+                bigRect.offset = {0.0f, -100.0f * uiScale};
                 bigRect.size = {0.0f, 0.0f};
                 // outline
                 for (auto off : std::vector<glm::vec2>{
@@ -222,7 +221,7 @@ namespace gameplay {
                 int ct = std::max(1, (int)std::ceil(spawner.getCountdownTimer()));
                 std::string cdText = std::to_string(ct);
                 our::UIRect cdRect = bigRect;
-                cdRect.offset.y += 50.0f * uiScale;
+                cdRect.offset.y += 100.0f * uiScale;
                 for (auto off : std::vector<glm::vec2>{
                          {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
                     our::UIRect o = cdRect;
@@ -240,13 +239,12 @@ namespace gameplay {
                 infoRect.pivot = {0.5f, 0.0f};
                 infoRect.offset = {0.0f, 20.0f * uiScale};
                 infoRect.size = {0.0f, 0.0f};
-                for (auto off : std::vector<glm::vec2>{
-                         {spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}}) {
-                    our::UIRect o = infoRect;
-                    o.offset += off;
-                    textRenderer->drawText(&testFont, info, o, windowSize, smallScale, orthoVP, black);
-                }
-                textRenderer->drawText(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor);
+
+                // clang-format off
+                std::vector<glm::vec2> offsets = {{spread, spread}, {-spread, -spread}, {-spread, spread}, {spread, -spread}};
+
+                textRenderer->drawTextWithOutline(&testFont, info, infoRect, windowSize, smallScale, orthoVP, waveColor, black, spread, offsets);
+                // clang-format on
             }
         }
     }

@@ -130,6 +130,19 @@ namespace our {
         drawText(font, text, pos.x, pos.y, scale, VP, color);
     }
 
+    void TextRenderer::drawTextWithOutline(Font* font, const std::string& text, UIRect rect, glm::vec2 windowSize,
+                                           float scale, const glm::mat4& VP, glm::vec4 textColor,
+                                           glm::vec4 outlineColor, float outlineSpread,
+                                           const std::vector<glm::vec2> offsets) {
+        for (const auto& off : offsets) {
+            UIRect o = rect;
+            o.offset += off * outlineSpread;
+            drawText(font, text, o, windowSize, scale, VP, outlineColor);
+        }
+
+        drawText(font, text, rect, windowSize, scale, VP, textColor);
+    }
+
     void TextRenderer::destroy() {
         if (VAO) {
             glDeleteVertexArrays(1, &VAO);
