@@ -80,9 +80,7 @@
                 "grass": "assets/textures/grass_ground_d.jpg",
                 "wood": "assets/textures/wood.jpg",
                 "glass": "assets/textures/glass-panels.png",
-                "monkey": "assets/textures/monkey.png",
-                "hit-marker": "assets/UI/hit_marker.png",
-                "blood-splatter": "assets/UI/blood_splatter.png"
+                "monkey": "assets/textures/monkey.png"
             },
             "meshes": {
                 "cube": "assets/models/cube.obj",
