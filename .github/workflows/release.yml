@@ -1,162 +1,238 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+    push:
+        tags:
+            - "v*.*.*"
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  validate-tag:
-    name: Validate Tag
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.parse.outputs.version }}
-    steps:
-      - name: Parse version from tag
-        id: parse
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          # Validate semver format: vMAJOR.MINOR.PATCH with optional pre-release
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-            echo "Error: Tag '$TAG' does not follow semantic versioning (vX.Y.Z)"
-            exit 1
-          fi
-          VERSION="${TAG#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Valid semver tag: $TAG (version: $VERSION)"
+    validate-tag:
+        name: Validate Tag
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.parse.outputs.version }}
+        steps:
+            - name: Parse version from tag
+              id: parse
+              run: |
+                  TAG="${GITHUB_REF#refs/tags/}"
+                  # Validate semver format: vMAJOR.MINOR.PATCH with optional pre-release
+                  if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+                    echo "Error: Tag '$TAG' does not follow semantic versioning (vX.Y.Z)"
+                    exit 1
+                  fi
+                  VERSION="${TAG#v}"
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "Valid semver tag: $TAG (version: $VERSION)"
 
-  build-release:
-    name: Build (${{ matrix.name }})
-    needs: validate-tag
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        include:
-          - name: Linux
-            os: ubuntu-latest
-            artifact-name: game-linux
-            generator: Ninja
-          - name: Windows
-            os: windows-latest
-            artifact-name: game-windows
-            generator: "Visual Studio 17 2022"
+    build-release:
+        name: Build (${{ matrix.name }})
+        needs: validate-tag
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest]
+                include:
+                    - name: Linux
+                      os: ubuntu-latest
+                      artifact-name: game-linux
+                      generator: Ninja
+                    - name: Windows
+                      os: windows-latest
+                      artifact-name: game-windows
+                      generator: "Visual Studio 17 2022"
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          fetch-depth: 1
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+                  fetch-depth: 1
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            cmake ninja-build \
-            libgl1-mesa-dev \
-            libx11-dev libxrandr-dev libxi-dev \
-            libxinerama-dev libxcursor-dev \
-            libpipewire-0.3-dev pkg-config
+            - name: Install dependencies (Linux)
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y \
+                    cmake ninja-build \
+                    libgl1-mesa-dev \
+                    libx11-dev libxrandr-dev libxi-dev \
+                    libxinerama-dev libxcursor-dev \
+                    libpipewire-0.3-dev pkg-config
 
-      - name: Configure (Release)
-        run: >
-          cmake -S . -B build
-          -G "${{ matrix.generator }}"
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-          -DCMAKE_INSTALL_PREFIX=install
-        shell: bash
+            - name: ccache
+              uses: hendrikmuhs/ccache-action@v1.2
 
-      - name: Build
-        run: cmake --build build --config Release -j 4
-        shell: bash
+            - name: Cache build directory
+              uses: actions/cache@v5
+              with:
+                  path: build
+                  key: build-${{ matrix.os }}-${{ hashFiles('CMakeLists.txt', 'src/**') }}
+                  restore-keys: |
+                      build-${{ matrix.os }}-
 
-      - name: Install
-        run: cmake --install build --config Release
-        shell: bash
+            - name: Configure (Release)
+              run: >
+                  cmake -S . -B build
+                  -G "${{ matrix.generator }}"
+                  -DCMAKE_BUILD_TYPE=Release
+                  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+                  -DCMAKE_INSTALL_PREFIX=install
+              shell: bash
 
-      - name: Package artifact
-        run: |
-          cd install
-          tar -czf ../${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz .
-        shell: bash
+            - name: Build
+              run: cmake --build build --config Release -j 4
+              shell: bash
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz
-          retention-days: 90
+            - name: Install
+              run: cmake --install build --config Release
+              shell: bash
 
-  create-release:
-    name: Create GitHub Release
-    needs: [validate-tag, build-release]
-    runs-on: ubuntu-latest
+            - name: Package artifact
+              run: |
+                  cd install
+                  mv bin/ArenaRush ../
+                  tar -czf ../${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz .
+              shell: bash
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+            - name: Upload artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: ${{ matrix.artifact-name }}
+                  path: ${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz
+                  retention-days: 90
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: release-assets
-          merge-multiple: true
+    build-rpm:
+        name: Build RPM (Fedora)
+        needs: validate-tag
+        runs-on: ubuntu-latest
 
-      - name: Generate changelog from commits
-        id: changelog
-        run: |
-          VERSION="v${{ needs.validate-tag.outputs.version }}"
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+                  fetch-depth: 1
 
-          # Find previous tag
-          PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | sed -n '2p')
+            - name: Build RPM in Docker
+              run: |
+                  docker build -f docker/Dockerfile.fedora -t arena-rush-rpm .
 
-          if [ -n "$PREV_TAG" ]; then
-            RANGE="${PREV_TAG}..${VERSION}"
-            echo "Generating changelog for $RANGE"
-          else
-            RANGE="${VERSION}"
-            echo "No previous tag found, listing all commits up to ${VERSION}"
-          fi
+            - name: Extract RPM from container
+              run: |
+                  CONTAINER_ID=$(docker create arena-rush-rpm)
+                  docker cp "$CONTAINER_ID:/app/rpm-out" ./rpm-out
+                  docker rm "$CONTAINER_ID"
+                  for f in rpm-out/*.rpm; do
+                    echo "Found package: $f"
+                  done
 
-          {
-            echo "changelog<<EOF"
-            echo "## What's Changed"
-            echo ""
+            - name: Upload RPM artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: game-rpm
+                  path: rpm-out/*.rpm
+                  retention-days: 90
 
-            # Group commits by type
-            for type_label in "feat:Features" "fix:Bug Fixes" "refactor:Refactors" "perf:Performance" "docs:Documentation" "chore:Chores"; do
-              type="${type_label%%:*}"
-              label="${type_label#*:}"
+    build-pacman:
+        name: Build Pacman Package (Arch)
+        needs: validate-tag
+        runs-on: ubuntu-latest
 
-              COMMITS=$(git log "$RANGE" --oneline --grep="^${type}" 2>/dev/null || true)
-              if [ -n "$COMMITS" ]; then
-                echo "### $label"
-                echo "$COMMITS" | while read -r line; do
-                  echo "- $line"
-                done
-                echo ""
-              fi
-            done
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+                  fetch-depth: 1
 
-            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG:-main}...${VERSION}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+            - name: Build Pacman package in Docker
+              run: |
+                  docker build -f docker/Dockerfile.arch -t arena-rush-pacman .
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.validate-tag.outputs.version }}
-          name: Release v${{ needs.validate-tag.outputs.version }}
-          body: ${{ steps.changelog.outputs.changelog }}
-          draft: false
-          prerelease: ${{ contains(needs.validate-tag.outputs.version, '-') }}
-          files: release-assets/*
+            - name: Extract package from container
+              run: |
+                  CONTAINER_ID=$(docker create arena-rush-pacman)
+                  docker cp "$CONTAINER_ID:/app/pkg-out" ./pacman-out
+                  docker rm "$CONTAINER_ID"
+                  for f in pacman-out/*.pkg.tar.zst; do
+                    echo "Found package: $f"
+                  done
+
+            - name: Upload Pacman artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: game-pacman
+                  path: pacman-out/*.pkg.tar.zst
+                  retention-days: 90
+
+    create-release:
+        name: Create GitHub Release
+        needs: [validate-tag, build-release, build-rpm, build-pacman]
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - name: Download all artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  path: release-assets
+                  merge-multiple: true
+
+            - name: Generate changelog from commits
+              id: changelog
+              run: |
+                  VERSION="v${{ needs.validate-tag.outputs.version }}"
+
+                  # Find previous tag
+                  PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | sed -n '2p')
+
+                  if [ -n "$PREV_TAG" ]; then
+                    RANGE="${PREV_TAG}..${VERSION}"
+                    echo "Generating changelog for $RANGE"
+                  else
+                    RANGE="${VERSION}"
+                    echo "No previous tag found, listing all commits up to ${VERSION}"
+                  fi
+
+                  {
+                    echo "changelog<<EOF"
+                    echo "## What's Changed"
+                    echo ""
+
+                    # Group commits by type
+                    for type_label in "feat:Features" "fix:Bug Fixes" "refactor:Refactors" "perf:Performance" "docs:Documentation" "chore:Chores"; do
+                      type="${type_label%%:*}"
+                      label="${type_label#*:}"
+
+                      COMMITS=$(git log "$RANGE" --oneline --grep="^${type}" 2>/dev/null || true)
+                      if [ -n "$COMMITS" ]; then
+                        echo "### $label"
+                        echo "$COMMITS" | while read -r line; do
+                          echo "- $line"
+                        done
+                        echo ""
+                      fi
+                    done
+
+                    echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG:-main}...${VERSION}"
+                    echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: v${{ needs.validate-tag.outputs.version }}
+                  name: Release v${{ needs.validate-tag.outputs.version }}
+                  body: ${{ steps.changelog.outputs.changelog }}
+                  draft: false
+                  prerelease: ${{ contains(needs.validate-tag.outputs.version, '-') }}
+                  files: release-assets/*

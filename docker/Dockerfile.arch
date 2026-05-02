@@ -28,4 +28,6 @@ RUN sed -i 's|source=.*|source=()|' PKGBUILD && \
 RUN makepkg --noconfirm  # no -s, deps already installed
 
 USER root
-RUN pacman -U --noconfirm *.pkg.tar.zst
+WORKDIR /app
+RUN mkdir pkg-out
+RUN cp /home/builder/*.pkg.tar.zst /app/pkg-out
