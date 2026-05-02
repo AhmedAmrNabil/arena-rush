@@ -40,19 +40,12 @@ namespace gameplay {
         if (!modelName.empty()) {
             our::Model* model = our::AssetLoader<our::Model>::get(modelName);
             if (model) {
-                std::cout << "Loaded model for collider: " << modelName << std::endl;
                 mesh = model->getCombinedMesh();
-            }
-            if (!mesh) {
-                std::cerr << "\033[31mFailed to load model for collider: " << modelName << "\033[0m" << std::endl;
             }
         } else if (!meshName.empty()) {
             our::Mesh* assetMesh = our::AssetLoader<our::Mesh>::get(meshName);
             if (assetMesh) {
                 mesh = assetMesh;
-            }
-            if (!mesh) {
-                std::cerr << "\033[31mFailed to load mesh for collider: " << meshName << "\033[0m" << std::endl;
             }
         }
     }
