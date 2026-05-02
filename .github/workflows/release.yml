@@ -39,11 +39,11 @@ jobs:
         include:
           - name: Linux
             os: ubuntu-latest
-            artifact-name: game-linux
+            artifact-name: ArenaRush-${{ needs.validate-tag.outputs.version }}-Linux
             generator: Ninja
           - name: Windows
             os: windows-latest
-            artifact-name: game-windows
+            artifact-name: ArenaRush-${{ needs.validate-tag.outputs.version }}-Windows
             generator: "Visual Studio 17 2022"
 
     steps:
@@ -98,14 +98,14 @@ jobs:
           if [ "${{ runner.os}}" = "Linux" ]; then
           mv bin/ArenaRush ./ArenaRush || true
           fi
-          tar -czf ../${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz .
+          tar -czf ../${{ matrix.artifact-name }}.tar.gz .
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz
+          path: ${{ matrix.artifact-name }}.tar.gz
           retention-days: 90
 
   build-rpm:
