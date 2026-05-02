@@ -30,5 +30,5 @@ RUN sed -i 's|source=.*|source=()|' PKGBUILD && \
     sed -i 's|git submodule.*||' PKGBUILD
 RUN makepkg --noconfirm  # no -s, deps already installed
 
-FROM scratch
+FROM busybox
 COPY --from=builder /home/builder/*.pkg.tar.zst /pkg-out/
