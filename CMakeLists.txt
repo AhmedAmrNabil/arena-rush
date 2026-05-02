@@ -100,7 +100,7 @@ if (USE_SYSTEM_BULLET)
     find_package(Bullet QUIET)
     if(Bullet_FOUND)
         message(STATUS "Using system-installed Bullet: ${Bullet_VERSION}")
-        set(USE_BUILD_BULLET OFF CACHE BOOL "" FORCE)
+        set(USE_VENDOR_BULLET OFF CACHE BOOL "" FORCE)
     else()
         message(STATUS "Using bundled Bullet3")
     endif()
@@ -327,9 +327,17 @@ if(USE_SYSTEM_ASSIMP AND assimp_FOUND)
     )
 endif()
 
+if(USE_SYSTEM_BULLET AND Bullet_FOUND)
+    target_include_directories(${PROJECT_NAME}
+        PRIVATE
+            ${BULLET_INCLUDE_DIRS}
+    )
+endif()
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:COLLISION_DEBUG_DRAW>
+        $<$<CONFIG:Release>:WAYLAND_APPID=\"${PROJECT_NAME}\">
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -341,11 +349,26 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 install(DIRECTORY assets/
-    DESTINATION assets/
+    DESTINATION assets
 )
 
 install(FILES config/app.jsonc
     DESTINATION config/
+)
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/ArenaRush.desktop.in
+    ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+    @ONLY
+)
+
+install(FILES ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+    DESTINATION share/applications
+)
+
+install(FILES assets/textures/logo.png
+    DESTINATION share/icons/hicolor/256x256/apps
+    RENAME ${PROJECT_NAME}.png
 )
 
 if(UNIX AND NOT APPLE)
@@ -360,3 +383,30 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 endif()
+
+if(WIN32)
+    target_sources(${PROJECT_NAME} PRIVATE ArenaRush.rc)
+    target_link_libraries(${PROJECT_NAME} PRIVATE dwmapi)
+endif()
+
+# ---- CPack packaging ----
+set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Arena Rush - A simple OpenGL game built with C++ and CMake")
+set(CPACK_PACKAGE_VENDOR "Arena Rush")
+set(CPACK_PACKAGE_CONTACT "Arena Rush Maintainers")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+set(CPACK_GENERATOR "DEB;RPM")
+
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Arena Rush Maintainers")
+set(CPACK_DEBIAN_PACKAGE_SECTION "games")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+set(CPACK_RPM_PACKAGE_GROUP "Amusements/Games")
+set(CPACK_RPM_PACKAGE_LICENSE "Unknown")
+set(CPACK_RPM_PACKAGE_AUTOREQPROV ON)
+
+include(CPack)

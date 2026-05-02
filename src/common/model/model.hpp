@@ -8,6 +8,7 @@
 #include <shader/shader.hpp>
 #include <texture/sampler.hpp>
 #include <texture/texture2d.hpp>
+#include <unordered_map>
 #include <vector>
 
 #include "animation/animation.hpp"
