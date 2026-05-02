@@ -13,8 +13,10 @@ namespace our {
     class FreeCameraControllerComponent : public Component {
     public:
         // The senstivity paramter defined sensitive the camera rotation & fov is to the mouse moves and wheel scrolling
-        float baseRotationSensitivity = 0.01f;  // The angle change per pixel of mouse movement
+        float baseRotationSensitivity = 0.01f;    // The angle change per pixel of mouse movement
+        float controllerBaseSensitivity = 0.01f;  // The angle change per pixel of controller stick movement
         float rotationSensitivity = 0.01f;
+        float controllerSensitivity = 0.01f;
         float aimSensitivityMultiplier = 0.5f;
 
         // Aim-down-sight

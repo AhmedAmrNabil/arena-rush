@@ -62,9 +62,9 @@ namespace our {
             }
 
             delta = app->getJoystick().getRightStick();
-            if (glm::length(delta) > 0.1f) {                              // deadzone
-                rotation.x -= delta.y * controller->rotationSensitivity;  // The y-axis controls the pitch
-                rotation.y -= delta.x * controller->rotationSensitivity;  // The x-axis controls the yaw
+            if (glm::length(delta) > 0.1f) {                                // deadzone
+                rotation.x -= delta.y * controller->controllerSensitivity;  // The y-axis controls the pitch
+                rotation.y -= delta.x * controller->controllerSensitivity;  // The x-axis controls the yaw
             }
 
             // We prevent the pitch from exceeding a certain angle from the XZ plane to prevent gimbal locks
@@ -86,9 +86,12 @@ namespace our {
                 targetFov = controller->aimFovY;
                 controller->rotationSensitivity =
                     controller->baseRotationSensitivity * controller->aimSensitivityMultiplier;
+                controller->controllerSensitivity =
+                    controller->controllerBaseSensitivity * controller->aimSensitivityMultiplier;
             } else {
                 targetFov = baseFov;
                 controller->rotationSensitivity = controller->baseRotationSensitivity;
+                controller->controllerSensitivity = controller->controllerBaseSensitivity;
             }
             camera->fovY = glm::mix(camera->fovY, targetFov, glm::clamp(controller->aimSpeed * deltaTime, 0.0f, 1.0f));
         }

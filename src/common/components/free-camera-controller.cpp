@@ -10,5 +10,6 @@ namespace our {
         aimSensitivityMultiplier = data.value("aimSensitivityMultiplier", aimSensitivityMultiplier);
         aimFovY = data.value("aimFovY", 30.0f) * (glm::pi<float>() / 180.0f);
         aimSpeed = data.value("aimSpeed", aimSpeed);
+        controllerBaseSensitivity = data.value("controllerBaseSensitivity", controllerBaseSensitivity);
     }
 }  // namespace our
