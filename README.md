@@ -2,6 +2,12 @@
 
 Arena Rush is a first-person 3D arena shooter built from scratch using C++ and OpenGL, following an Entity-Component-System (ECS) architecture. The player is dropped into a closed urban arena and must survive increasingly difficult waves of enemies while managing limited health and ammunition.
 
+## Gampeplay (Video)
+<a href="https://youtu.be/pHh3wsaQ_2A">
+<img width="1280" height="720" alt="main-menu" src="https://github.com/user-attachments/assets/7b7beb9d-98c4-4612-9901-6162aef50164"/>
+</a>
+
+
 ## Features
 
 ### Enemies
