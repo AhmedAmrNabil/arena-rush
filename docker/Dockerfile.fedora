@@ -11,3 +11,5 @@ COPY . .
 RUN  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_LIBS=ON
 RUN cmake --build build -j$(nproc)
 RUN cpack --config build/CPackConfig.cmake -G RPM
+RUN mkdir rpm-out
+RUN cp /app/ArenaRush-*.rpm /app/rpm-out/
