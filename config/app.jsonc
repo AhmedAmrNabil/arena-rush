@@ -75,18 +75,12 @@
                 }
             },
             "textures": {
-                "moon": "assets/textures/moon.jpg",
-                "grass": "assets/textures/grass_ground_d.jpg",
-                "wood": "assets/textures/wood.jpg",
-                "glass": "assets/textures/glass-panels.png",
-                "monkey": "assets/textures/monkey.png",
                 "rifle_icon": "assets/UI/rifle_icon.png",
                 "deagle_icon": "assets/UI/deagle_icon.png",
                 "hunter_icon": "assets/UI/hunter_icon.png"
             },
             "meshes": {
                 "cube": "assets/models/cube.obj",
-                "monkey": "assets/models/monkey.obj",
                 "plane": "assets/models/plane.obj",
                 "sphere": "assets/models/sphere.obj"
             },
