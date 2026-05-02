@@ -395,7 +395,8 @@ namespace our {
         // albedo texture as it's the only case where it matters
         if (material->textureAlbedo) {
             aiString alphaMode;
-            if (mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaMode) == AI_SUCCESS) {
+            if (mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alphaMode) == AI_SUCCESS &&
+                alphaMode.C_Str() == std::string("MASK")) {
                 float alphaCutoff = 0.0f;
                 if (AI_SUCCESS == mat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alphaCutoff)) {
                     material->alphaThreshold = alphaCutoff;
