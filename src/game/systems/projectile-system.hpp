@@ -109,7 +109,9 @@ namespace gameplay {
             if (!weapon || !playerComp) return false;
             if (weapon->timer > 0.0f) return false;  // still in cooldown / already reloading
 
-            bool wantsReload = app->getKeyboard().justPressed(GLFW_KEY_R) && weapon->currentAmmo < weapon->magSize;
+            bool wantsReload =
+                (app->getKeyboard().justPressed(GLFW_KEY_R) || app->getJoystick().justPressed(GLFW_GAMEPAD_BUTTON_Y)) &&
+                weapon->currentAmmo < weapon->magSize;
             bool needsAutoReload = weapon->currentAmmo <= 0;
 
             if ((wantsReload || needsAutoReload) && weapon->maxAmmo > 0) {
