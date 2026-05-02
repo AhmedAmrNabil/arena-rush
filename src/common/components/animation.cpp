@@ -83,8 +83,6 @@ namespace our {
                 if (clipData.contains("loop")) clip.loop = clipData["loop"].get<bool>();
                 if (clipData.contains("speed")) clip.speed = clipData["speed"].get<float>();
                 clips[name] = clip;
-                std::cout << "Loaded animation clip: " << name << " -> " << clip.clip << " (loop: " << clip.loop
-                          << ", speed: " << clip.speed << ")" << std::endl;
             }
         }
         // default clip is the clip that will be played when the animation component is first initialized
