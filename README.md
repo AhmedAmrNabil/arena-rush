@@ -30,6 +30,7 @@ The player has access to three switchable weapons:
 - **Audio**: Spatial audio via OpenAL (ambient, weapon fire, enemy attacks, reload).
 - **User Interface**: Menu system (Main, Pause, GameOver) with HUD elements including health bar, ammo counter, weapon icon, wave countdown, crosshair, and enemy health bars.
 - **Movement Mechanics**: Sprinting, crouching, sliding, dashing, and jumping with full collision response.
+- **Controller Support**: Full gamepad support.
 
 ## Screenshots
 
