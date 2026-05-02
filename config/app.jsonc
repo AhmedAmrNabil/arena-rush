@@ -575,6 +575,7 @@
                     {
                         "type": "Free Camera Controller",
                         "baseRotationSensitivity": 0.003,
+                        "controllerBaseSensitivity":0.007,
                         "aimSensitivityMultiplier": 0.5,
                         "aimFovY": 30,
                         "aimSpeed": 8.0

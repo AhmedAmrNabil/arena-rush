@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "input/joystick.hpp"
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
 #include "systems/audio-system.hpp"
@@ -49,6 +50,7 @@ namespace our {
         virtual void onCursorEnterEvent(int entered) {}
         virtual void onMouseButtonEvent(int button, int action, int mods) {}
         virtual void onScrollEvent(double x_offset, double y_offset) {}
+        virtual void onJoystickEvent(int jid, int event) {}
 
         // Returns a pointer
         Application* getApp() {
@@ -64,9 +66,9 @@ namespace our {
     protected:
         GLFWwindow* window = nullptr;  // Pointer to the window created by GLFW using "glfwCreateWindow()".
 
-        Keyboard keyboard;  // Instance of "our" keyboard class that handles keyboard functionalities.
-        Mouse mouse;        // Instance of "our" mouse class that handles mouse functionalities.
-
+        Keyboard keyboard;          // Instance of "our" keyboard class that handles keyboard functionalities.
+        Mouse mouse;                // Instance of "our" mouse class that handles mouse functionalities.
+        Joystick joystick;          // Instance of "our" joystick class that handles joystick functionalities.
         nlohmann::json app_config;  // A Json file that contains all application configuration
 
         std::unordered_map<std::string, State*> states;  // This will store all the states that the application can run
@@ -143,7 +145,12 @@ namespace our {
         [[nodiscard]] const Mouse& getMouse() const {
             return mouse;
         }
-
+        Joystick& getJoystick() {
+            return joystick;
+        }
+        [[nodiscard]] const Joystick& getJoystick() const {
+            return joystick;
+        }
         [[nodiscard]] const nlohmann::json& getConfig() const {
             return app_config;
         }

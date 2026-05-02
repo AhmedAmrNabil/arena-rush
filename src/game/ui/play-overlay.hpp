@@ -300,9 +300,16 @@ namespace gameplay {
             if (!app) return false;
 
             our::Keyboard& keyboard = app->getKeyboard();
+            our::Joystick& joystick = app->getJoystick();
             if (screen == Screen::Pause) {
-                if (keyboard.justPressed(GLFW_KEY_ESCAPE)) {
+                if (keyboard.justPressed(GLFW_KEY_ESCAPE) || joystick.justPressed(GLFW_GAMEPAD_BUTTON_START) ||
+                    joystick.justPressed(GLFW_GAMEPAD_BUTTON_A)) {
                     closePause();
+                    return true;
+                }
+
+                if (joystick.justPressed(GLFW_GAMEPAD_BUTTON_B)) {
+                    app->changeState("menu");
                     return true;
                 }
 
@@ -317,7 +324,15 @@ namespace gameplay {
             }
 
             if (screen == Screen::GameOver) {
-                if (keyboard.justPressed(GLFW_KEY_ESCAPE)) app->changeState("menu");
+                if (keyboard.justPressed(GLFW_KEY_ESCAPE) || joystick.justPressed(GLFW_GAMEPAD_BUTTON_B)) {
+                    app->changeState("menu");
+                    return true;
+                }
+
+                if (joystick.justPressed(GLFW_GAMEPAD_BUTTON_A)) {
+                    app->changeState("loading-play");
+                    return true;
+                }
 
                 glm::ivec2 size = app->getFrameBufferSize();
                 menu_ui::PixelRect menuRect = menu_ui::getMenuRect(size);

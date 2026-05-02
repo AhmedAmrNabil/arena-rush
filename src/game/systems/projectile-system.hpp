@@ -109,7 +109,9 @@ namespace gameplay {
             if (!weapon || !playerComp) return false;
             if (weapon->timer > 0.0f) return false;  // still in cooldown / already reloading
 
-            bool wantsReload = app->getKeyboard().justPressed(GLFW_KEY_R) && weapon->currentAmmo < weapon->magSize;
+            bool wantsReload =
+                (app->getKeyboard().justPressed(GLFW_KEY_R) || app->getJoystick().justPressed(GLFW_GAMEPAD_BUTTON_Y)) &&
+                weapon->currentAmmo < weapon->magSize;
             bool needsAutoReload = weapon->currentAmmo <= 0;
 
             if ((wantsReload || needsAutoReload) && weapon->maxAmmo > 0) {
@@ -134,12 +136,14 @@ namespace gameplay {
             if (!playerComp) return false;
 
             WeaponComponent* weapon = playerComp->currentWeapon;
-            if (!weapon || weapon->currentAmmo <= 0) return false;
+            if (!weapon) return false;
 
             if (weapon->automatic) {
-                if (!app->getMouse().isPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+                if (!app->getMouse().isPressed(GLFW_MOUSE_BUTTON_LEFT) && !app->getJoystick().isTriggerPressed(1))
+                    return false;
             } else {
-                if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT)) return false;
+                if (!app->getMouse().justPressed(GLFW_MOUSE_BUTTON_LEFT) && !app->getJoystick().justPressedTrigger(1))
+                    return false;
             }
 
             glm::mat4 playerM = playerEntity->getLocalToWorldMatrix();

@@ -265,6 +265,7 @@ int our::Application::run(int run_for_frames) {
     setupCallbacks();
     keyboard.enable(window);
     mouse.enable(window);
+    joystick.enable();
 
     // Start the ImGui context and set dark style (just my preference :D)
     IMGUI_CHECKVERSION();
@@ -323,6 +324,9 @@ int our::Application::run(int run_for_frames) {
         // record this event.
         keyboard.setEnabled(!io.WantCaptureKeyboard, window);
         mouse.setEnabled(!io.WantCaptureMouse, window);
+        joystick.setEnabled(
+            !io.WantCaptureKeyboard);  // Joystick events are treated as keyboard events, so we check
+                                       // io.WantCaptureKeyboard to decide whether to capture them or not.
 
         // Render the ImGui commands we called (this doesn't actually draw to the screen yet.
         ImGui::Render();
@@ -383,6 +387,7 @@ int our::Application::run(int run_for_frames) {
         // Update the keyboard and mouse data
         keyboard.update();
         mouse.update();
+        joystick.update();
 
         // If a scene change was requested, apply it
         while (nextState) {
@@ -425,6 +430,7 @@ void our::Application::setupCallbacks() {
     // We use GLFW to store a pointer to "this" window instance.
     glfwSetWindowUserPointer(window, this);
     // The pointer is then retrieved in the callback function.
+    if (glfwJoystickPresent(GLFW_JOYSTICK_1)) glfwSetJoystickUserPointer(GLFW_JOYSTICK_1, this);
 
     // The second parameter to "glfwSet---Callback" is a function pointer.
     // It is replaced by an inline function -lambda expression- as it is not needed to create
@@ -472,6 +478,15 @@ void our::Application::setupCallbacks() {
         if (app) {
             app->getMouse().ScrollEvent(x_offset, y_offset);
             if (app->currentState) app->currentState->onScrollEvent(x_offset, y_offset);
+        }
+    });
+
+    // joystick connection callbacks
+    glfwSetJoystickCallback([](int jid, int event) {
+        auto* app = static_cast<Application*>(glfwGetJoystickUserPointer(GLFW_JOYSTICK_1));
+        if (app) {
+            app->getJoystick().joystickEvent(jid, event);
+            if (app->currentState) app->currentState->onJoystickEvent(jid, event);
         }
     });
 }

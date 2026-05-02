@@ -7,9 +7,10 @@
 namespace gameplay {
 
     void PlayerMovementSystem::handleSlidingAndCrouching(PlayerMovementComponent* movement, our::Keyboard& keyboard,
-                                                         const glm::vec3& moveDir, float deltaTime,
-                                                         float slideStartSpeed) {
+                                                         our::Joystick& joystick, const glm::vec3& moveDir,
+                                                         float deltaTime, float slideStartSpeed) {
         bool crouchPressed = keyboard.justPressed(GLFW_KEY_LEFT_CONTROL);
+        crouchPressed |= joystick.justPressed(GLFW_GAMEPAD_BUTTON_B);  // also check joystick input for crouching
 
         if (movement->isSliding) {
             movement->slideTimer -= deltaTime;
@@ -61,8 +62,10 @@ namespace gameplay {
 
     void PlayerMovementSystem::handleDashing(PlayerMovementComponent* movement, glm::vec3& playerPosition,
                                              our::Keyboard& keyboard, const glm::vec3& frontXZ,
-                                             const glm::vec3& moveDir) {
-        if (keyboard.justPressed(GLFW_KEY_Q) && movement->dashCooldownTimer <= 0) {
+                                             const glm::vec3& moveDir, our::Joystick& joystick) {
+        bool dashPressed = keyboard.justPressed(GLFW_KEY_Q);
+        dashPressed |= joystick.justPressed(GLFW_GAMEPAD_BUTTON_X);
+        if (dashPressed && movement->dashCooldownTimer <= 0) {
             glm::vec3 dashDirection = glm::normalize(frontXZ);
             if (glm::length(moveDir) > 0.001f) {
                 // Dash along active WASD input direction (not velocity, which may still be decaying)
@@ -102,8 +105,11 @@ namespace gameplay {
     }
 
     void PlayerMovementSystem::handleJumpingAndGravity(PlayerMovementComponent* movement, glm::vec3& playerPosition,
-                                                       our::Keyboard& keyboard, float deltaTime) {
-        if (keyboard.justPressed(GLFW_KEY_SPACE) && movement->isGrounded) {
+                                                       our::Keyboard& keyboard, our::Joystick& joystick,
+                                                       float deltaTime) {
+        bool jumpPressed = keyboard.justPressed(GLFW_KEY_SPACE);
+        jumpPressed |= joystick.justPressed(GLFW_GAMEPAD_BUTTON_A);  // also check joystick input
+        if (jumpPressed && movement->isGrounded) {
             if (movement->isSliding) {
                 movement->slideCooldownTimer = movement->slideCooldown;
             }
@@ -178,6 +184,7 @@ namespace gameplay {
         movement->groundLevel = groundHeight;
 
         our::Keyboard& keyboard = app->getKeyboard();
+        our::Joystick& joystick = app->getJoystick();
         movement->dashTriggeredThisFrame = false;
 
         if (movement->slideCooldownTimer > 0) movement->slideCooldownTimer -= deltaTime;
@@ -196,18 +203,27 @@ namespace gameplay {
         if (keyboard.isPressed(GLFW_KEY_A)) moveDir -= rightXZ;
         if (glm::length(moveDir) > 0.001f) moveDir = glm::normalize(moveDir);
 
-        movement->isSprinting = keyboard.isPressed(GLFW_KEY_LEFT_SHIFT) && !movement->isSliding;
+        // handle joystick percent input for movement
+        glm::vec2 leftStick = joystick.getLeftStick();
+        if (glm::length(leftStick) > 0.1f) {  // deadzone
+            glm::vec3 joystickMoveDir = frontXZ * leftStick.y - rightXZ * leftStick.x;
+            moveDir -= joystickMoveDir;
+        }
+
+        bool sprintPressed =
+            keyboard.isPressed(GLFW_KEY_LEFT_SHIFT) || joystick.isPressed(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER);
+        movement->isSprinting = sprintPressed && !movement->isSliding;
 
         float sprintSpeed = movement->walkSpeed * movement->sprintMultiplier;
         float slideStartSpeed = sprintSpeed * movement->slideSpeedMultiplier;
 
-        handleSlidingAndCrouching(movement, keyboard, moveDir, deltaTime, slideStartSpeed);
+        handleSlidingAndCrouching(movement, keyboard, joystick, moveDir, deltaTime, slideStartSpeed);
         handleGroundedMovement(movement, moveDir, deltaTime);
 
         playerPosition += movement->velocity * deltaTime;
 
-        handleDashing(movement, playerPosition, keyboard, frontXZ, moveDir);
-        handleJumpingAndGravity(movement, playerPosition, keyboard, deltaTime);
+        handleDashing(movement, playerPosition, keyboard, frontXZ, moveDir, joystick);
+        handleJumpingAndGravity(movement, playerPosition, keyboard, joystick, deltaTime);
         handleHeightInterpolation(movement, playerPosition, deltaTime);
     }
 
