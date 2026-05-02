@@ -85,9 +85,6 @@ CMakeSettings.json
 .vscode/*
 !.vscode/c_cpp_properties.json
 
-# Screenshots
-screenshots/
-
 # errors folder form comparing
 errors/
 
