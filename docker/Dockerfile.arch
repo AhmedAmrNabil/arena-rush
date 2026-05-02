@@ -22,6 +22,9 @@ COPY --chown=builder PKGBUILD /home/builder/PKGBUILD
 USER builder
 WORKDIR /home/builder
 
+ARG PKGVER
+ENV PKGVER=$PKGVER
+
 RUN sed -i 's|source=.*|source=()|' PKGBUILD && \
     sed -i 's|sha256sums=.*|sha256sums=()|' PKGBUILD && \
     sed -i 's|git submodule.*||' PKGBUILD
