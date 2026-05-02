@@ -1,4 +1,4 @@
-FROM archlinux:latest
+FROM archlinux:latest AS builder
 
 RUN pacman -Syu --noconfirm && pacman -S --noconfirm \
     cmake gcc ninja \
@@ -30,7 +30,5 @@ RUN sed -i 's|source=.*|source=()|' PKGBUILD && \
     sed -i 's|git submodule.*||' PKGBUILD
 RUN makepkg --noconfirm  # no -s, deps already installed
 
-USER root
-WORKDIR /app
-RUN mkdir pkg-out
-RUN cp /home/builder/*.pkg.tar.zst /app/pkg-out
+FROM scratch
+COPY --from=builder /home/builder/*.pkg.tar.zst /pkg-out/

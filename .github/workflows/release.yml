@@ -110,7 +110,7 @@ jobs:
 
   build-rpm:
     name: Build RPM (Fedora)
-    # needs: validate-tag
+    needs: validate-tag
     runs-on: ubuntu-latest
 
     steps:
@@ -127,7 +127,6 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: true
           file: docker/Dockerfile.fedora
           tags: arena-rush-rpm
           load: true
@@ -137,7 +136,7 @@ jobs:
       - name: Extract RPM from container
         run: |
           CONTAINER_ID=$(docker create arena-rush-rpm)
-          docker cp "$CONTAINER_ID:/app/rpm-out" ./rpm-out
+          docker cp "$CONTAINER_ID:/rpm-out" ./rpm-out
           docker rm "$CONTAINER_ID"
           for f in rpm-out/*.rpm; do
           echo "Found package: $f"
@@ -179,7 +178,7 @@ jobs:
       - name: Extract package from container
         run: |
           CONTAINER_ID=$(docker create arena-rush-pacman)
-          docker cp "$CONTAINER_ID:/app/pkg-out" ./pacman-out
+          docker cp "$CONTAINER_ID:/pkg-out" ./pacman-out
           docker rm "$CONTAINER_ID"
           for f in pacman-out/*.pkg.tar.zst; do
           echo "Found package: $f"

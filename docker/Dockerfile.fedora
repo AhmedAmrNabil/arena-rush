@@ -1,4 +1,4 @@
-FROM fedora:43
+FROM fedora:43 AS builder
 
 RUN dnf install -y cmake gcc-c++ libGL-devel glfw-devel \
     bullet-devel openal-soft-devel assimp-devel \
@@ -13,3 +13,6 @@ RUN cmake --build build -j$(nproc)
 RUN cpack --config build/CPackConfig.cmake -G RPM
 RUN mkdir rpm-out
 RUN cp /app/ArenaRush-*.rpm /app/rpm-out/
+
+FROM scratch
+COPY --from=builder /app/rpm-out/*.rpm /rpm-out/
