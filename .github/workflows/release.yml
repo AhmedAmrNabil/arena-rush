@@ -61,7 +61,8 @@ jobs:
             cmake ninja-build \
             libgl1-mesa-dev \
             libx11-dev libxrandr-dev libxi-dev \
-            libxinerama-dev libxcursor-dev
+            libxinerama-dev libxcursor-dev \
+            libpipewire-0.3-dev pkg-config
 
       - name: Configure (Release)
         run: >
