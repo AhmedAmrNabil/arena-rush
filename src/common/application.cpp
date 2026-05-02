@@ -430,7 +430,18 @@ void our::Application::setupCallbacks() {
     // We use GLFW to store a pointer to "this" window instance.
     glfwSetWindowUserPointer(window, this);
     // The pointer is then retrieved in the callback function.
-    if (glfwJoystickPresent(GLFW_JOYSTICK_1)) glfwSetJoystickUserPointer(GLFW_JOYSTICK_1, this);
+    // get the first available controller
+    int joystick = -1;
+    for (int i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST; i++) {
+        if (glfwJoystickPresent(i) && glfwJoystickIsGamepad(i)) {
+            joystick = i;
+            break;
+        }
+    }
+
+    if (joystick != -1) {
+        glfwSetJoystickUserPointer(joystick, this);
+    }
 
     // The second parameter to "glfwSet---Callback" is a function pointer.
     // It is replaced by an inline function -lambda expression- as it is not needed to create
@@ -483,7 +494,7 @@ void our::Application::setupCallbacks() {
 
     // joystick connection callbacks
     glfwSetJoystickCallback([](int jid, int event) {
-        auto* app = static_cast<Application*>(glfwGetJoystickUserPointer(GLFW_JOYSTICK_1));
+        auto* app = static_cast<Application*>(glfwGetJoystickUserPointer(jid));
         if (app) {
             app->getJoystick().joystickEvent(jid, event);
             if (app->currentState) app->currentState->onJoystickEvent(jid, event);

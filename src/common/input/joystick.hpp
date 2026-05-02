@@ -36,8 +36,9 @@ namespace our {
             std::memset(currentAxes, 0, sizeof(currentAxes));
             std::memset(previousAxes, 0, sizeof(previousAxes));
             currentJoystickId = getFirstGamepad();
+            if (currentJoystickId == -1) return;
             GLFWgamepadstate state;
-            if (glfwJoystickIsGamepad(currentJoystickId) && glfwGetGamepadState(currentJoystickId, &state)) {
+            if (glfwGetGamepadState(currentJoystickId, &state)) {
                 for (int i = 0; i <= GLFW_GAMEPAD_BUTTON_LAST; i++)
                     currentButtons[i] = previousButtons[i] = state.buttons[i] == GLFW_PRESS;
                 for (int i = 0; i <= GLFW_GAMEPAD_AXIS_LAST; i++) currentAxes[i] = previousAxes[i] = state.axes[i];
@@ -63,7 +64,17 @@ namespace our {
             std::memcpy(previousAxes, currentAxes, sizeof(previousAxes));
             std::memcpy(previousTriggersPressed, currentTriggersPressed, sizeof(previousTriggersPressed));
             GLFWgamepadstate state;
-            if (glfwJoystickIsGamepad(currentJoystickId) && glfwGetGamepadState(currentJoystickId, &state)) {
+            if (currentJoystickId == -1) {
+                currentJoystickId = getFirstGamepad();
+                if (currentJoystickId == -1) {
+                    std::memset(currentButtons, 0, sizeof(currentButtons));
+                    std::memset(currentAxes, 0, sizeof(currentAxes));
+                    std::memset(currentTriggersPressed, 0, sizeof(currentTriggersPressed));
+                    return;
+                }
+            }
+
+            if (glfwGetGamepadState(currentJoystickId, &state)) {
                 for (int i = 0; i <= GLFW_GAMEPAD_BUTTON_LAST; i++) currentButtons[i] = state.buttons[i] == GLFW_PRESS;
                 for (int i = 0; i <= GLFW_GAMEPAD_AXIS_LAST; i++) currentAxes[i] = state.axes[i];
                 currentTriggersPressed[0] = state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] > 0.01f - 1;

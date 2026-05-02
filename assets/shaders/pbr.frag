@@ -116,7 +116,7 @@ vec3 sampleNormal(vec2 uv) {
 // PBR - Cook-Torrance BRDF
 
 // Normal Distribution Function — Trowbridge-Reitz GGX
-//   D(h) = alpha^2 / (PI * ((N·H)^2 * (alpha^2 - 1) + 1)^2)
+//   D(h) = alpha^2 / (PI * ((N dot H)^2 * (alpha^2 - 1) + 1)^2)
 float distributionGGX(float NdotH, float roughness) {
     float a = roughness * roughness;   // remap roughness
     float a2 = a * a;
@@ -212,7 +212,6 @@ vec3 calcLight(
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
-// ── Main ──────────────────────────────────────────────────────────────
 void main() {
     vec2 uv = fs_in.tex_coord;
     vec3 albedo = sampleAlbedo(uv) * fs_in.color.rgb * tint.rgb;

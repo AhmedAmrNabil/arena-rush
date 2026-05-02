@@ -156,7 +156,7 @@ vec3 calcLight(
     vec3 diffuse = diff * albedo * light.color;
 
     // specular (Blinn-Phong)
-    // roughness → shininess: rough=1 → shininess=2, rough=0 → shininess=256
+    // roughness -> shininess: rough=1 -> shininess=2, rough=0 -> shininess=256
     float shininess = mix(512.0, 2.0, roughness);
     vec3 H = normalize(L + V);
     float spec = pow(max(dot(N, H), 0.0), shininess);
@@ -167,7 +167,6 @@ vec3 calcLight(
     return (diffuse + specular) * attenuation;
 }
 
-// ── Main ──────────────────────────────────────────────────────────────
 void main() {
     vec2 uv = fs_in.tex_coord;
     vec3 albedo = sampleAlbedo(uv) * fs_in.color.rgb * tint.rgb;
