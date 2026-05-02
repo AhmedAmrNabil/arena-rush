@@ -1,6 +1,6 @@
 pkgname=arenarush
 _pkgname=ArenaRush
-pkgver=0.1.0
+pkgver=${PKGVER:-1.0.0}
 pkgrel=1
 pkgdesc="Arena Rush - A simple OpenGL game built with C++ and CMake"
 arch=('x86_64')

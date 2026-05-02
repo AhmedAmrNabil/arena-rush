@@ -3,3 +3,4 @@ build/
 .cache/
 bin/
 node_modules/
+.github/
