@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)   # Selects the minimum version of CMake required to run this file
 project(ArenaRush
-    VERSION 0.1.0
+    VERSION 1.0.1
     LANGUAGES C CXX
 )
 
@@ -352,6 +352,21 @@ else()
     install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
     )
+
+    install(FILES ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+        DESTINATION share/applications
+    )
+
+    install(FILES assets/textures/logo.png
+        DESTINATION share/icons/hicolor/256x256/apps
+        RENAME ${PROJECT_NAME}.png
+    )
+
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/ArenaRush.desktop.in
+        ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+        @ONLY
+    )
 endif()
 
 install(DIRECTORY assets/
@@ -360,21 +375,6 @@ install(DIRECTORY assets/
 
 install(FILES config/app.jsonc
     DESTINATION config/
-)
-
-configure_file(
-    ${CMAKE_SOURCE_DIR}/ArenaRush.desktop.in
-    ${CMAKE_BINARY_DIR}/ArenaRush.desktop
-    @ONLY
-)
-
-install(FILES ${CMAKE_BINARY_DIR}/ArenaRush.desktop
-    DESTINATION share/applications
-)
-
-install(FILES assets/textures/logo.png
-    DESTINATION share/icons/hicolor/256x256/apps
-    RENAME ${PROJECT_NAME}.png
 )
 
 if(UNIX AND NOT APPLE)
