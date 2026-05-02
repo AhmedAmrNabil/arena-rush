@@ -31,6 +31,21 @@ The player has access to three switchable weapons:
 - **User Interface**: Menu system (Main, Pause, GameOver) with HUD elements including health bar, ammo counter, weapon icon, wave countdown, crosshair, and enemy health bars.
 - **Movement Mechanics**: Sprinting, crouching, sliding, dashing, and jumping with full collision response.
 
+## Screenshots
+
+<table>
+	<tr>
+		<td align="center"><img src="screenshots/image1.png" alt="Screenshot 1" width="320"><br><sub>Main Menu</sub></td>
+		<td align="center"><img src="screenshots/image2.png" alt="Screenshot 2" width="320"><br><sub>Gameplay</sub></td>
+		<td align="center"><img src="screenshots/image3.png" alt="Screenshot 3" width="320"><br><sub>Enemy Encounter</sub></td>
+	</tr>
+	<tr>
+		<td align="center"><img src="screenshots/image4.png" alt="Screenshot 4" width="320"><br><sub>Game Over</sub></td>
+		<td align="center"><img src="screenshots/image5.png" alt="Screenshot 5" width="320"><br><sub>Different weapon</sub></td>
+		<td align="center"><img src="screenshots/image6.png" alt="Screenshot 6" width="320"><br><sub>Different enemy</sub></td>
+	</tr>
+</table>
+
 ## Getting Started
 
 This project uses `CMake` and `just` (a command runner) for its build system, with optional support for `Nix`.
