@@ -344,9 +344,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin
 )
 
-install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION bin
-)
+if(WIN32)
+    install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION .
+    )
+else()
+    install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION bin
+    )
+endif()
 
 install(DIRECTORY assets/
     DESTINATION assets
