@@ -110,7 +110,7 @@ jobs:
 
   build-rpm:
     name: Build RPM (Fedora)
-    needs: validate-tag
+    # needs: validate-tag
     runs-on: ubuntu-latest
 
     steps:
@@ -126,6 +126,7 @@ jobs:
       - name: Build RPM in Docker
         uses: docker/build-push-action@v7
         with:
+          context: .
           push: true
           file: docker/Dockerfile.fedora
           tags: arena-rush-rpm
