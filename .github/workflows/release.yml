@@ -95,7 +95,9 @@ jobs:
             - name: Package artifact
               run: |
                   cd install
-                  mv bin/ArenaRush ../
+                  if [ "${{ runner.os}}" = "Linux" ]; then
+                    mv bin/ArenaRush ./ArenaRush || true
+                  fi
                   tar -czf ../${{ matrix.artifact-name }}-${{ needs.validate-tag.outputs.version }}.tar.gz .
               shell: bash
 
