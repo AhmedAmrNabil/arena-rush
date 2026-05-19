@@ -70,7 +70,7 @@ web-serve: web-build
         printf '%s\n' "Emscripten not found. Run 'nix develop' with the updated flake, or install/activate emsdk so emrun is on PATH."
         exit 127
     fi
-    "$EMRUN" --no_browser --port 8080 web-dist/ArenaRush.html
+    "$EMRUN" --no_browser --port 8080 web-dist/index.html
 
 # Remove build artifacts
 clean:

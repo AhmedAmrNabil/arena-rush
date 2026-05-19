@@ -435,6 +435,7 @@ if(EMSCRIPTEN)
 
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/web-dist
+        OUTPUT_NAME "index"
         SUFFIX ".html"
     )
 else()

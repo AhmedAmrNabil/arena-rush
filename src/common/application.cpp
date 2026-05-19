@@ -27,6 +27,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 #include "asset-loader.hpp"
@@ -215,6 +216,17 @@ our::WindowConfiguration our::Application::getWindowConfiguration() {
 
     bool isFullScreen = window_config["fullscreen"].get<bool>();
 
+#ifdef __EMSCRIPTEN__
+    int canvasWidth = 0;
+    int canvasHeight = 0;
+    emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+    if (canvasWidth > 0 && canvasHeight > 0) {
+        width = canvasWidth;
+        height = canvasHeight;
+    }
+    isFullScreen = false;
+#endif
+
     return {title, {width, height}, isFullScreen};
 }
 
@@ -373,6 +385,14 @@ int our::Application::run(int run_for_frames) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     ImGui::StyleColorsDark();
+
+#ifdef __EMSCRIPTEN__
+    // Emscripten's glfwGetInputMode reports GLFW_CURSOR_NORMAL whenever the browser
+    // hasn't (yet) granted Pointer Lock, even right after we set it to DISABLED. ImGui's
+    // GLFW backend then "restores" the cursor by calling glfwSetInputMode(NORMAL), which
+    // emscripten implements as document.exitPointerLock() — yanking the lock we just got.
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+#endif
 
     // Initialize ImGui for GLFW and OpenGL
     ImGui_ImplGlfw_InitForOpenGL(window, true);
