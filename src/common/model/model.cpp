@@ -310,7 +310,11 @@ namespace our {
                 case aiTextureMapMode_Mirror:
                     return GL_MIRRORED_REPEAT;
                 case aiTextureMapMode_Decal:
+#ifdef __EMSCRIPTEN__
+                    return GL_CLAMP_TO_EDGE;
+#else
                     return GL_CLAMP_TO_BORDER;
+#endif
                 default:
                     return fallback;
             }

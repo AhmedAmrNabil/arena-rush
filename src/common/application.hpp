@@ -21,6 +21,8 @@
 
 namespace our {
 
+    struct ApplicationLoopContext;
+
     // This struct handles window attributes: (title, size, isFullscreen).
     struct WindowConfiguration {
         std::string title;
@@ -85,6 +87,8 @@ namespace our {
         getWindowConfiguration();  // Returns the WindowConfiguration current struct instance.
         virtual void
         setupCallbacks();  // Sets-up the window callback functions from GLFW to our (Mouse/Keyboard) classes.
+        bool drawFrame(ApplicationLoopContext& loopContext);
+        void shutdown(ApplicationLoopContext& loopContext);
 
     public:
         // Create an application with following configuration
