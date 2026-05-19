@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)   # Selects the minimum version of CMake required to run this file
 project(ArenaRush
-    VERSION 1.0.1
+    VERSION 0.1.0
     LANGUAGES C CXX
 )
 
@@ -22,7 +22,7 @@ else()
 endif()
 
 # ---- Linux Dependencies ----
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
     find_package(OpenGL REQUIRED)
 endif()
 
@@ -42,55 +42,59 @@ endif()
 
 # ---- Vendor Libraries ----
 # ---- GLFW ----
-set(USE_VENDOR_GLFW ON CACHE BOOL "" FORCE)
+if(EMSCRIPTEN)
+    add_library(glfw INTERFACE)
+else()
+    set(USE_VENDOR_GLFW ON CACHE BOOL "" FORCE)
 
-if (USE_SYSTEM_GLFW)
-    find_package(glfw3 QUIET)
-    if(glfw3_FOUND)
-        message(STATUS "Using system-installed GLFW: ${glfw3_VERSION}")
-        set(USE_VENDOR_GLFW OFF CACHE BOOL "" FORCE)
-    else()
-        message(STATUS "Using bundled GLFW")
-    endif()
-endif()
-
-if(USE_VENDOR_GLFW)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-    set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
-
-    if(UNIX AND NOT APPLE AND NOT DEFINED GLFW_BUILD_WAYLAND)
-        find_program(GLFW_WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
-        find_package(PkgConfig QUIET)
-
-        if(PkgConfig_FOUND)
-            pkg_check_modules(GLFW_WAYLAND_DEPS QUIET
-                wayland-client
-                wayland-cursor
-                wayland-egl
-                xkbcommon
-            )
-        endif()
-
-        if(GLFW_WAYLAND_SCANNER_EXECUTABLE AND GLFW_WAYLAND_DEPS_FOUND)
-            set(GLFW_BUILD_WAYLAND ON CACHE BOOL "Build support for Wayland")
+    if (USE_SYSTEM_GLFW)
+        find_package(glfw3 QUIET)
+        if(glfw3_FOUND)
+            message(STATUS "Using system-installed GLFW: ${glfw3_VERSION}")
+            set(USE_VENDOR_GLFW OFF CACHE BOOL "" FORCE)
         else()
-            set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Build support for Wayland")
+            message(STATUS "Using bundled GLFW")
+        endif()
+    endif()
 
-            if(NOT GLFW_WAYLAND_SCANNER_EXECUTABLE)
-                set(_glfw_wayland_reason "missing wayland-scanner")
-            elseif(NOT PkgConfig_FOUND)
-                set(_glfw_wayland_reason "pkg-config is unavailable")
-            else()
-                set(_glfw_wayland_reason "missing Wayland development packages")
+    if(USE_VENDOR_GLFW)
+        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+        set(GLFW_USE_HYBRID_HPG ON CACHE BOOL "" FORCE)
+
+        if(UNIX AND NOT APPLE AND NOT DEFINED GLFW_BUILD_WAYLAND)
+            find_program(GLFW_WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
+            find_package(PkgConfig QUIET)
+
+            if(PkgConfig_FOUND)
+                pkg_check_modules(GLFW_WAYLAND_DEPS QUIET
+                    wayland-client
+                    wayland-cursor
+                    wayland-egl
+                    xkbcommon
+                )
             endif()
 
-            message(STATUS "Disabling GLFW Wayland (${_glfw_wayland_reason})")
+            if(GLFW_WAYLAND_SCANNER_EXECUTABLE AND GLFW_WAYLAND_DEPS_FOUND)
+                set(GLFW_BUILD_WAYLAND ON CACHE BOOL "Build support for Wayland")
+            else()
+                set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "Build support for Wayland")
+
+                if(NOT GLFW_WAYLAND_SCANNER_EXECUTABLE)
+                    set(_glfw_wayland_reason "missing wayland-scanner")
+                elseif(NOT PkgConfig_FOUND)
+                    set(_glfw_wayland_reason "pkg-config is unavailable")
+                else()
+                    set(_glfw_wayland_reason "missing Wayland development packages")
+                endif()
+
+                message(STATUS "Disabling GLFW Wayland (${_glfw_wayland_reason})")
+            endif()
         endif()
+        add_subdirectory(vendor/glfw)
     endif()
-    add_subdirectory(vendor/glfw)
 endif()
 
 
@@ -117,49 +121,53 @@ if(USE_VENDOR_BULLET)
 endif()
 
 # --- OpenAL-Soft ----
-set(USE_VENDOR_OPENAL ON CACHE BOOL "" FORCE)
+if(EMSCRIPTEN)
+    add_library(OpenAL INTERFACE)
+else()
+    set(USE_VENDOR_OPENAL ON CACHE BOOL "" FORCE)
 
-if(USE_SYSTEM_OPENAL)
-    find_package(OpenAL QUIET)
-    if (OpenAL_FOUND)
-        message(STATUS "Using system-installed OpenAL: ${OpenAL_VERSION}")
-        set(USE_VENDOR_OPENAL OFF CACHE BOOL "" FORCE)
-    else()
-        message(STATUS "Using bundled OpenAL-Soft")
-    endif()
-endif()
-
-if(USE_VENDOR_OPENAL)
-    set(ALSOFT_ENABLE_MODULES OFF CACHE BOOL "" FORCE)
-    set(LIBTYPE STATIC CACHE STRING "" FORCE)
-    set(ALSOFT_EMBED_HRTF_DATA ON CACHE BOOL "" FORCE)
-    set(ALSOFT_EAX ON CACHE BOOL "" FORCE)
-    set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
-    set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
-    set(ALSOFT_INSTALL_CONFIG OFF CACHE BOOL "" FORCE)
-    set(ALSOFT_INSTALL OFF CACHE BOOL "" FORCE)
-    if(WIN32)
-        set(ALSOFT_BACKEND_WASAPI ON CACHE BOOL "" FORCE)
-        set(ALSOFT_BACKEND_DSOUND OFF CACHE BOOL "" FORCE)
-    endif()
-    if (UNIX AND NOT APPLE)
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(PIPEWIRE libpipewire-0.3>=0.3.23 QUIET)
-        pkg_check_modules(PULSEAUDIO libpulse QUIET)
-        pkg_check_modules(ALSA alsa QUIET)
-        if(PIPEWIRE_FOUND)
-            set(ALSOFT_BACKEND_PIPEWIRE ON CACHE BOOL "" FORCE)
-        elseif(PULSEAUDIO_FOUND)
-            set(ALSOFT_BACKEND_PULSEAUDIO ON CACHE BOOL "" FORCE)
-        elseif(ALSA_FOUND)
-            set(ALSOFT_BACKEND_ALSA ON CACHE BOOL "" FORCE)
+    if(USE_SYSTEM_OPENAL)
+        find_package(OpenAL QUIET)
+        if (OpenAL_FOUND)
+            message(STATUS "Using system-installed OpenAL: ${OpenAL_VERSION}")
+            set(USE_VENDOR_OPENAL OFF CACHE BOOL "" FORCE)
         else()
-            message(FATAL_ERROR "No suitable audio backend found for OpenAL-Soft. Please install PipeWire, PulseAudio, or ALSA development packages.")
+            message(STATUS "Using bundled OpenAL-Soft")
         endif()
     endif()
 
-    add_subdirectory(vendor/openal-soft)
+    if(USE_VENDOR_OPENAL)
+        set(ALSOFT_ENABLE_MODULES OFF CACHE BOOL "" FORCE)
+        set(LIBTYPE STATIC CACHE STRING "" FORCE)
+        set(ALSOFT_EMBED_HRTF_DATA ON CACHE BOOL "" FORCE)
+        set(ALSOFT_EAX ON CACHE BOOL "" FORCE)
+        set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
+        set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
+        set(ALSOFT_INSTALL_CONFIG OFF CACHE BOOL "" FORCE)
+        set(ALSOFT_INSTALL OFF CACHE BOOL "" FORCE)
+        if(WIN32)
+            set(ALSOFT_BACKEND_WASAPI ON CACHE BOOL "" FORCE)
+            set(ALSOFT_BACKEND_DSOUND OFF CACHE BOOL "" FORCE)
+        endif()
+        if (UNIX AND NOT APPLE)
+            find_package(PkgConfig REQUIRED)
+            pkg_check_modules(PIPEWIRE libpipewire-0.3>=0.3.23 QUIET)
+            pkg_check_modules(PULSEAUDIO libpulse QUIET)
+            pkg_check_modules(ALSA alsa QUIET)
+            if(PIPEWIRE_FOUND)
+                set(ALSOFT_BACKEND_PIPEWIRE ON CACHE BOOL "" FORCE)
+            elseif(PULSEAUDIO_FOUND)
+                set(ALSOFT_BACKEND_PULSEAUDIO ON CACHE BOOL "" FORCE)
+            elseif(ALSA_FOUND)
+                set(ALSOFT_BACKEND_ALSA ON CACHE BOOL "" FORCE)
+            else()
+                message(FATAL_ERROR "No suitable audio backend found for OpenAL-Soft. Please install PipeWire, PulseAudio, or ALSA development packages.")
+            endif()
+        endif()
+
+        add_subdirectory(vendor/openal-soft)
+    endif()
 endif()
 
 # ---- Assimp ----
@@ -182,16 +190,33 @@ if(USE_VENDOR_ASSIMP)
     set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
     set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
     set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+    if(EMSCRIPTEN)
+        set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+        set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
+        set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+        set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+    endif()
     add_subdirectory(vendor/assimp)
+    if(EMSCRIPTEN AND TARGET assimp)
+        target_compile_definitions(assimp PRIVATE ASSIMP_BUILD_NO_GLTF1_IMPORTER)
+        target_compile_options(assimp PRIVATE "-fexceptions")
+    endif()
 endif()
 
 # ---- GLAD ----
-add_library(glad STATIC
-    vendor/glad/src/gl.c
-)
-target_include_directories(glad
-    PUBLIC vendor/glad/include
-)
+if(EMSCRIPTEN)
+    add_library(glad INTERFACE)
+    target_include_directories(glad
+        INTERFACE ${PROJECT_SOURCE_DIR}/web/include
+    )
+else()
+    add_library(glad STATIC
+        vendor/glad/src/gl.c
+    )
+    target_include_directories(glad
+        PUBLIC vendor/glad/include
+    )
+endif()
 
 # ---- GLM (Header-only) ----
 add_library(glm INTERFACE)
@@ -220,6 +245,17 @@ target_include_directories(imgui
         vendor/imgui
         vendor/imgui/imgui_impl
 )
+
+target_compile_definitions(imgui
+    PUBLIC
+        GLFW_INCLUDE_NONE
+)
+
+if(EMSCRIPTEN)
+    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_ES3)
+else()
+    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD2)
+endif()
 
 target_link_libraries(imgui
     PUBLIC
@@ -338,11 +374,46 @@ target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:COLLISION_DEBUG_DRAW>
         $<$<CONFIG:Release>:WAYLAND_APPID=\"${PROJECT_NAME}\">
+        GLFW_INCLUDE_NONE
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin
-)
+if(EMSCRIPTEN)
+    set(ARENA_WEB_ASSETS "${PROJECT_SOURCE_DIR}/assets@assets")
+    set(ARENA_WEB_CONFIG "${PROJECT_SOURCE_DIR}/config@config")
+
+    target_compile_options(${PROJECT_NAME}
+        PRIVATE
+            "-fexceptions"
+    )
+
+    target_link_options(${PROJECT_NAME}
+        PRIVATE
+            "SHELL:-fexceptions"
+            "SHELL:-sNO_DISABLE_EXCEPTION_CATCHING=1"
+            "SHELL:-sUSE_GLFW=3"
+            "SHELL:-sMIN_WEBGL_VERSION=2"
+            "SHELL:-sMAX_WEBGL_VERSION=2"
+            "SHELL:-sFULL_ES3=1"
+            "SHELL:-sALLOW_MEMORY_GROWTH=1"
+            "SHELL:-sINITIAL_MEMORY=268435456"
+            "SHELL:-sSTACK_SIZE=5242880"
+            "SHELL:-sEXIT_RUNTIME=0"
+            "SHELL:-sASSERTIONS=1"
+            "SHELL:-sENVIRONMENT=web"
+            "SHELL:--preload-file ${ARENA_WEB_ASSETS}"
+            "SHELL:--preload-file ${ARENA_WEB_CONFIG}"
+            "SHELL:--shell-file ${PROJECT_SOURCE_DIR}/web/shell.html"
+    )
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/web-dist
+        SUFFIX ".html"
+    )
+else()
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin
+    )
+endif()
 
 if(WIN32)
     install(TARGETS ${PROJECT_NAME}
@@ -351,21 +422,6 @@ if(WIN32)
 else()
     install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
-    )
-
-    install(FILES ${CMAKE_BINARY_DIR}/ArenaRush.desktop
-        DESTINATION share/applications
-    )
-
-    install(FILES assets/textures/logo.png
-        DESTINATION share/icons/hicolor/256x256/apps
-        RENAME ${PROJECT_NAME}.png
-    )
-
-    configure_file(
-        ${CMAKE_SOURCE_DIR}/ArenaRush.desktop.in
-        ${CMAKE_BINARY_DIR}/ArenaRush.desktop
-        @ONLY
     )
 endif()
 
@@ -377,7 +433,22 @@ install(FILES config/app.jsonc
     DESTINATION config/
 )
 
-if(UNIX AND NOT APPLE)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/ArenaRush.desktop.in
+    ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+    @ONLY
+)
+
+install(FILES ${CMAKE_BINARY_DIR}/ArenaRush.desktop
+    DESTINATION share/applications
+)
+
+install(FILES assets/textures/logo.png
+    DESTINATION share/icons/hicolor/256x256/apps
+    RENAME ${PROJECT_NAME}.png
+)
+
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
             OpenGL::GL
