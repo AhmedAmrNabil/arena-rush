@@ -7,11 +7,13 @@
 #include <material/material.hpp>
 #include <mesh/mesh-utils.hpp>
 #include <mesh/mesh.hpp>
-#include <model/model.hpp>
 #include <shader/shader.hpp>
 #include <texture/texture-utils.hpp>
 #include <texture/texture2d.hpp>
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+#include <audio/audio-buffer.hpp>
+#include <model/model.hpp>
+#else
 #include <thread>
 #endif
 
@@ -28,6 +30,54 @@ class LoadingPlayState : public our::State {
 #endif
     std::atomic<bool> assetsLoaded = false;
     int lastLoadingCount = 0;
+
+#ifdef __EMSCRIPTEN__
+    // WebGL contexts cannot be shared with std::thread on the default Emscripten build, so the
+    // web path mirrors deserializeAllAssets one category per frame to keep the canvas responsive.
+    nlohmann::json webAssets;
+    int webLoadStep = 0;
+    bool webLoadStarted = false;
+
+    void stepWebAssetLoading() {
+        if (!webLoadStarted) return;
+
+        switch (webLoadStep++) {
+            case 0:
+                if (webAssets.contains("shaders"))
+                    our::AssetLoader<our::ShaderProgram>::deserialize(webAssets["shaders"]);
+                break;
+            case 1:
+                if (webAssets.contains("textures"))
+                    our::AssetLoader<our::Texture2D>::deserialize(webAssets["textures"]);
+                break;
+            case 2:
+                if (webAssets.contains("samplers"))
+                    our::AssetLoader<our::Sampler>::deserialize(webAssets["samplers"]);
+                break;
+            case 3:
+                if (webAssets.contains("meshes")) our::AssetLoader<our::Mesh>::deserialize(webAssets["meshes"]);
+                break;
+            case 4:
+                if (webAssets.contains("materials"))
+                    our::AssetLoader<our::Material>::deserialize(webAssets["materials"]);
+                break;
+            case 5:
+                if (webAssets.contains("sounds")) our::AssetLoader<our::AudioBuffer>::deserialize(webAssets["sounds"]);
+                break;
+            case 6:
+                if (webAssets.contains("models")) our::AssetLoader<our::Model>::deserialize(webAssets["models"]);
+                break;
+            default:
+                our::loadDefaultAssetsIfMissing();
+                if (our::AssetLoaderStats::loadingCount != our::AssetLoaderStats::totalCount)
+                    our::AssetLoaderStats::loadingCount.store(our::AssetLoaderStats::totalCount.load());
+                assetsLoaded = true;
+                assetsFinalized = true;
+                webLoadStarted = false;
+                break;
+        }
+    }
+#endif
 
 public:
     void onInitialize(GLFWwindow* loaderWindow) override {
@@ -51,12 +101,14 @@ public:
         assetsLoaded = false;  // Reset the assets loaded flag in case we return to this state again
         auto config = getApp()->getConfig()["scene"];
 #ifdef __EMSCRIPTEN__
-        // WebGL contexts cannot be shared with std::thread on the default Emscripten build,
-        // so load synchronously on the main thread. The progress bar will jump straight to full.
         if (config.contains("assets")) {
-            our::deserializeAllAssets(config["assets"]);
+            webAssets = config["assets"];
+            webLoadStep = 0;
+            webLoadStarted = true;
+            our::prepareAssetLoadingStats(webAssets);
+        } else {
+            assetsLoaded = true;
         }
-        assetsLoaded = true;
 #else
         // Load assets in a separate thread to avoid blocking the main thread
         assetLoadingThread = std::thread([this, loaderWindow, config]() {
@@ -76,6 +128,12 @@ public:
             getApp()->changeState("menu");
             return;
         }
+
+#ifdef __EMSCRIPTEN__
+        if (!assetsLoaded && webLoadStarted) {
+            stepWebAssetLoading();
+        }
+#endif
 
         glm::ivec2 size = getApp()->getFrameBufferSize();
         menu_ui::PixelRect menuRect = menu_ui::getMenuRect(size);
