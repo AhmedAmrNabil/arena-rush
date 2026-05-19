@@ -45,8 +45,15 @@ web-configure:
     if [[ -f build-web/build.ninja && ! CMakeLists.txt -nt build-web/build.ninja ]]; then
         exit 0
     fi
-    command -v emcmake >/dev/null 2>&1 || { printf '%s\n' "Emscripten not found. Run 'nix develop' with the updated flake, or install/activate emsdk so emcmake is on PATH."; exit 127; }
-    emcmake cmake -S . -B build-web -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_COLOR_DIAGNOSTICS=ON "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+    if command -v emcmake >/dev/null 2>&1; then
+        EMCMAKE=emcmake
+    elif command -v emcmake.bat >/dev/null 2>&1; then
+        EMCMAKE=emcmake.bat
+    else
+        printf '%s\n' "Emscripten not found. Run 'nix develop' with the updated flake, or install/activate emsdk so emcmake is on PATH."
+        exit 127
+    fi
+    "$EMCMAKE" cmake -S . -B build-web -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_COLOR_DIAGNOSTICS=ON "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 
 # Build the browser version into web-dist/
 web-build: web-configure
@@ -54,7 +61,16 @@ web-build: web-configure
 
 # Serve the browser build locally
 web-serve: web-build
-    emrun --no_browser --port 8080 web-dist/ArenaRush.html
+    #!/usr/bin/env bash
+    if command -v emrun >/dev/null 2>&1; then
+        EMRUN=emrun
+    elif command -v emrun.bat >/dev/null 2>&1; then
+        EMRUN=emrun.bat
+    else
+        printf '%s\n' "Emscripten not found. Run 'nix develop' with the updated flake, or install/activate emsdk so emrun is on PATH."
+        exit 127
+    fi
+    "$EMRUN" --no_browser --port 8080 web-dist/ArenaRush.html
 
 # Remove build artifacts
 clean:
