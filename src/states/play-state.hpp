@@ -51,7 +51,6 @@ class Playstate : public our::State {
     gameplay::CrosshairRenderer crosshair;
     gameplay::WeaponVisualSystem weaponVisuals;
     gameplay::BillboardSystem billboardSystem;
-    gameplay::HitMarkerSystem hitMarkerSystem;
     float aimBlend = 0.0f;
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;

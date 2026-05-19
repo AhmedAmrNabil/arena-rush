@@ -22,14 +22,12 @@
 class LoadingPlayState : public our::State {
     our::TexturedMaterial* loadingMaterial = nullptr;
     our::Mesh* rectangle = nullptr;
-    bool queuedTransition = false;
     our::TintedMaterial* loadingBarMaterial = nullptr;
     bool assetsFinalized = false;
 #ifndef __EMSCRIPTEN__
     std::thread assetLoadingThread;
 #endif
     std::atomic<bool> assetsLoaded = false;
-    int lastLoadingCount = 0;
 
 #ifdef __EMSCRIPTEN__
     // WebGL contexts cannot be shared with std::thread on the default Emscripten build, so the

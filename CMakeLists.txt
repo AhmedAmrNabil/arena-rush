@@ -122,6 +122,23 @@ if(USE_VENDOR_BULLET)
     set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
     set(BUILD_BULLET3 ON CACHE BOOL "" FORCE)
     add_subdirectory(vendor/bullet3)
+
+    # Silence noisy warnings from vendored bullet sources.
+    if(NOT MSVC)
+        foreach(_bt
+            LinearMath
+            BulletCollision BulletDynamics BulletSoftBody BulletInverseDynamics
+            Bullet3Common Bullet3Collision Bullet3Dynamics Bullet3Geometry Bullet3OpenCL_clew)
+            if(TARGET ${_bt})
+                target_compile_options(${_bt} PRIVATE
+                    -Wno-nontrivial-memcall
+                    -Wno-mismatched-tags
+                    -Wno-implicit-const-int-float-conversion
+                    -Wno-single-bit-bitfield-constant-conversion
+                )
+            endif()
+        endforeach()
+    endif()
 endif()
 
 # --- OpenAL-Soft ----
@@ -230,7 +247,7 @@ target_include_directories(glm
 
 # ---- Utils (Header-only) ----
 add_library(utils INTERFACE)
-target_include_directories(utils
+target_include_directories(utils SYSTEM
     INTERFACE vendor/utils
 )
 
@@ -244,7 +261,7 @@ add_library(imgui STATIC
     vendor/imgui/imgui_impl/imgui_impl_opengl3.cpp
 )
 
-target_include_directories(imgui
+target_include_directories(imgui SYSTEM
     PUBLIC
         vendor/imgui
         vendor/imgui/imgui_impl
@@ -254,6 +271,10 @@ target_compile_definitions(imgui
     PUBLIC
         GLFW_INCLUDE_NONE
 )
+
+if(NOT MSVC)
+    target_compile_options(imgui PRIVATE -Wno-nontrivial-memcall)
+endif()
 
 if(EMSCRIPTEN)
     target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_ES3)
@@ -331,6 +352,9 @@ target_include_directories(${PROJECT_NAME}
         src/common
         src/game
         src/states
+)
+target_include_directories(${PROJECT_NAME} SYSTEM
+    PRIVATE
         vendor/bullet3/src
 )
 
