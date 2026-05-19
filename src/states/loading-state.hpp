@@ -11,7 +11,9 @@
 #include <shader/shader.hpp>
 #include <texture/texture-utils.hpp>
 #include <texture/texture2d.hpp>
+#ifndef __EMSCRIPTEN__
 #include <thread>
+#endif
 
 #include "menu-layout.hpp"
 
@@ -21,7 +23,9 @@ class LoadingPlayState : public our::State {
     bool queuedTransition = false;
     our::TintedMaterial* loadingBarMaterial = nullptr;
     bool assetsFinalized = false;
+#ifndef __EMSCRIPTEN__
     std::thread assetLoadingThread;
+#endif
     std::atomic<bool> assetsLoaded = false;
     int lastLoadingCount = 0;
 
@@ -46,6 +50,14 @@ public:
 
         assetsLoaded = false;  // Reset the assets loaded flag in case we return to this state again
         auto config = getApp()->getConfig()["scene"];
+#ifdef __EMSCRIPTEN__
+        // WebGL contexts cannot be shared with std::thread on the default Emscripten build,
+        // so load synchronously on the main thread. The progress bar will jump straight to full.
+        if (config.contains("assets")) {
+            our::deserializeAllAssets(config["assets"]);
+        }
+        assetsLoaded = true;
+#else
         // Load assets in a separate thread to avoid blocking the main thread
         assetLoadingThread = std::thread([this, loaderWindow, config]() {
             glfwMakeContextCurrent(loaderWindow);  // Make the loader window's context current in this thread
@@ -55,6 +67,7 @@ public:
             glfwMakeContextCurrent(nullptr);  // Detach the context from this thread
             assetsLoaded = true;              // Signal that assets have finished loading
         });
+#endif
     }
 
     void onDraw(double deltaTime) override {
@@ -92,13 +105,17 @@ public:
         rectangle->draw();
 
         if (assetsLoaded) {
+#ifndef __EMSCRIPTEN__
             if (assetLoadingThread.joinable()) assetLoadingThread.join();
+#endif
             getApp()->changeState("play");
         }
     }
 
     void onDestroy() override {
+#ifndef __EMSCRIPTEN__
         if (assetLoadingThread.joinable()) assetLoadingThread.join();
+#endif
         delete rectangle;
         delete loadingMaterial->texture;
         delete loadingMaterial->shader;
