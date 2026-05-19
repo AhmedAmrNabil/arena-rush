@@ -11,14 +11,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---- Optional ccache ----
-find_program(CCACHE_PROGRAM ccache)
-
-if(CCACHE_PROGRAM)
-    message(STATUS "ccache found: ${CCACHE_PROGRAM}")
-    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
-    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+if(EMSCRIPTEN AND CMAKE_HOST_WIN32)
+    message(STATUS "ccache disabled for Emscripten on Windows")
+    set(ASSIMP_BUILD_USE_CCACHE OFF CACHE BOOL "" FORCE)
 else()
-    message(STATUS "ccache not found")
+    find_program(CCACHE_PROGRAM ccache)
+    if(CCACHE_PROGRAM)
+        message(STATUS "ccache found: ${CCACHE_PROGRAM}")
+        set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+        set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+    else()
+        message(STATUS "ccache not found")
+    endif()
 endif()
 
 # ---- Linux Dependencies ----
@@ -373,7 +377,7 @@ endif()
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:COLLISION_DEBUG_DRAW>
-        $<$<CONFIG:Release>:WAYLAND_APPID=\"${PROJECT_NAME}\">
+        $<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${EMSCRIPTEN}>>>:WAYLAND_APPID=\"${PROJECT_NAME}\">
         GLFW_INCLUDE_NONE
 )
 
