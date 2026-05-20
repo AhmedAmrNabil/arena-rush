@@ -116,7 +116,7 @@ namespace our {
             for (auto& [name, desc] : data.items()) {
                 if (AssetLoader<AudioBuffer>::get(name)) continue;
                 std::string path = desc.get<std::string>();
-                AudioBuffer* buffer = audio_utils::loadWAV(path);
+                AudioBuffer* buffer = audio_utils::loadAudio(path);
                 if (buffer) AssetLoader<AudioBuffer>::add(name, buffer);
             }
         }

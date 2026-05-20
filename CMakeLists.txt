@@ -251,6 +251,14 @@ target_include_directories(utils SYSTEM
     INTERFACE vendor/utils
 )
 
+# ---- stb_vorbis ----
+add_library(stb_vorbis STATIC vendor/utils/stb/stb_vorbis.c)
+target_include_directories(stb_vorbis SYSTEM PUBLIC vendor/utils/stb)
+target_compile_options(stb_vorbis PRIVATE
+    $<$<C_COMPILER_ID:GNU,Clang,AppleClang>:-w>
+    $<$<C_COMPILER_ID:MSVC>:/w>
+)
+
 # ---- ImGui ----
 add_library(imgui STATIC
     vendor/imgui/imgui.cpp
@@ -365,6 +373,7 @@ target_link_libraries(${PROJECT_NAME}
         glm
         imgui
         utils
+        stb_vorbis
         BulletDynamics
         BulletCollision
         BulletSoftBody

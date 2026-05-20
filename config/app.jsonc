@@ -83,14 +83,14 @@
                 "sphere": "assets/models/sphere.obj"
             },
             "sounds": {
-                "gunshot-player": "assets/sounds/gun_shot.wav",
-                "gunshot-enemy": "assets/sounds/drone_gun_shot.wav",
-                "reload": "assets/sounds/gun_reload.wav",
-                "deagle-shot": "assets/sounds/deagle.wav",
-                "heartsteel": "assets/sounds/heartsteel.wav",
-                "shaco-attack": "assets/sounds/shaco_attack.wav",
-                "ssg": "assets/sounds/ssg.wav",
-                "ambient": "assets/sounds/ambient.wav"
+                "gunshot-player": "assets/sounds/gun_shot.ogg",
+                "gunshot-enemy": "assets/sounds/drone_gun_shot.ogg",
+                "reload": "assets/sounds/gun_reload.ogg",
+                "deagle-shot": "assets/sounds/deagle.ogg",
+                "heartsteel": "assets/sounds/heartsteel.ogg",
+                "shaco-attack": "assets/sounds/shaco_attack.ogg",
+                "ssg": "assets/sounds/ssg.ogg",
+                "ambient": "assets/sounds/ambient.ogg"
             },
             "samplers": {
                 "default": {},

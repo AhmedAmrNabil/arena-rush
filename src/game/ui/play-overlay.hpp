@@ -212,8 +212,8 @@ namespace gameplay {
 
             pauseTexture = our::texture_utils::loadImage("assets/textures/menus/pause.png");
             gameOverTexture = our::texture_utils::loadImage("assets/textures/menus/game-over.png");
-            openSound = our::audio_utils::loadWAV("assets/sounds/menu-open.wav");
-            selectSound = our::audio_utils::loadWAV("assets/sounds/menu-select.wav");
+            openSound = our::audio_utils::loadAudio("assets/sounds/menu-open.ogg");
+            selectSound = our::audio_utils::loadAudio("assets/sounds/menu-select.ogg");
 
             setupButtons();
             reset();

@@ -60,8 +60,8 @@ public:
         buttons[1].normalizedSize = {0.31328125f, 0.10078125f};
         buttons[1].action = [this]() { getApp()->close(); };
 
-        menuMusic = our::audio_utils::loadWAV("assets/sounds/menu-music.wav");
-        menuSelectSound = our::audio_utils::loadWAV("assets/sounds/menu-select.wav");
+        menuMusic = our::audio_utils::loadAudio("assets/sounds/menu-music.ogg");
+        menuSelectSound = our::audio_utils::loadAudio("assets/sounds/menu-select.ogg");
         getApp()->getAudioSystem().playSound2D(menuMusic, 0.5f, 1.0f, true);
     }
 
