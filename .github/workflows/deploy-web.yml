@@ -1,0 +1,159 @@
+name: Deploy Web (Vercel)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/**"
+      - "web/**"
+      - "vendor/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment target"
+        type: choice
+        options: [production, preview]
+        default: production
+
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    name: Build & Deploy to Vercel
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (github.event_name == 'workflow_dispatch' && inputs.environment) || 'production' }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config
+
+      - name: Setup Emscripten SDK
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+          actions-cache-folder: emsdk-cache
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: emscripten-web
+
+      - name: Cache build-web directory
+        uses: actions/cache@v5
+        with:
+          path: build-web
+          key: build-web-${{ hashFiles('CMakeLists.txt', 'src/**') }}
+          restore-keys: |
+            build-web-
+
+      - name: Configure (Emscripten)
+        run: >
+          emcmake cmake -S . -B build-web
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_COLOR_DIAGNOSTICS=ON
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+      - name: Build web bundle
+        run: cmake --build build-web --parallel
+
+      - name: Verify build output
+        run: |
+          test -f web-dist/index.html
+          test -f web-dist/index.js
+          test -f web-dist/index.wasm
+          ls -lh web-dist/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.environment }}" = "preview" ]; then
+            echo "target=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=${{ steps.env.outputs.target }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Assemble Vercel prebuilt output
+        run: |
+          rm -rf .vercel/output
+          mkdir -p .vercel/output/static
+          cp -r web-dist/. .vercel/output/static/
+          cat > .vercel/output/config.json <<'EOF'
+          {
+            "version": 3,
+            "routes": [
+              {
+                "src": "/(.*\\.wasm)",
+                "headers": { "content-type": "application/wasm" },
+                "continue": true
+              },
+              {
+                "src": "/(.*\\.data)",
+                "headers": { "content-type": "application/octet-stream" },
+                "continue": true
+              },
+              {
+                "src": "/",
+                "headers": {
+                  "cross-origin-opener-policy": "same-origin",
+                  "cross-origin-embedder-policy": "require-corp"
+                },
+                "continue": true
+              }
+            ],
+            "overrides": {
+              "index.html": { "path": "" }
+            }
+          }
+          EOF
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed to: $URL"
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Vercel deployment"
+            echo ""
+            echo "- **Environment:** ${{ steps.env.outputs.target }}"
+            echo "- **URL:** ${{ steps.deploy.outputs.url }}"
+          } >> "$GITHUB_STEP_SUMMARY"
