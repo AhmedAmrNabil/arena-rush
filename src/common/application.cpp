@@ -447,7 +447,8 @@ int our::Application::run(int run_for_frames) {
         },
         webLoopContext, 0, true);
 #else
-    while (drawFrame(loopContext)) {}
+    while (drawFrame(loopContext)) {
+    }
     shutdown(loopContext);
 #endif
 

@@ -49,8 +49,7 @@ class LoadingPlayState : public our::State {
                     our::AssetLoader<our::Texture2D>::deserialize(webAssets["textures"]);
                 break;
             case 2:
-                if (webAssets.contains("samplers"))
-                    our::AssetLoader<our::Sampler>::deserialize(webAssets["samplers"]);
+                if (webAssets.contains("samplers")) our::AssetLoader<our::Sampler>::deserialize(webAssets["samplers"]);
                 break;
             case 3:
                 if (webAssets.contains("meshes")) our::AssetLoader<our::Mesh>::deserialize(webAssets["meshes"]);

@@ -42,7 +42,8 @@ namespace {
 
         while (std::getline(input, line)) {
             std::string stripped = trim(line);
-            const bool isVaryingOutput = startsWith(stripped, "out Varyings") && stripped.find('{') != std::string::npos;
+            const bool isVaryingOutput =
+                startsWith(stripped, "out Varyings") && stripped.find('{') != std::string::npos;
             const bool isVaryingInput = startsWith(stripped, "in Varyings") && stripped.find('{') != std::string::npos;
 
             if (!isVaryingOutput && !isVaryingInput) {
