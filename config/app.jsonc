@@ -80,8 +80,6 @@
                 "hunter_icon": "assets/UI/hunter_icon.png"
             },
             "meshes": {
-                "cube": "assets/models/cube.obj",
-                "plane": "assets/models/plane.obj",
                 "sphere": "assets/models/sphere.obj"
             },
             "sounds": {
