@@ -139,6 +139,11 @@
 
             let totalDependencies = 0;
             let runtimeReady = false;
+            let downloadActive = false;
+
+            function formatMB(bytes) {
+                return (bytes / (1024 * 1024)).toFixed(1);
+            }
             window.__arenaWantsPointerLock = false;
             window.__arenaOverlayActive = false;
             window.__arenaPauseRequested = false;
@@ -253,23 +258,40 @@
                 },
                 setStatus: function (text) {
                     if (text) {
-                        statusEl.textContent = text;
+                        const match = text.match(/\((\d+)\s*\/\s*(\d+)\)/);
+                        if (match) {
+                            const loaded = parseInt(match[1], 10);
+                            const total = parseInt(match[2], 10);
+                            downloadActive = true;
+                            progressEl.value = total > 0
+                                ? (loaded * 100) / total
+                                : 0;
+                            statusEl.textContent =
+                                "Downloading " +
+                                formatMB(loaded) +
+                                " / " +
+                                formatMB(total) +
+                                " MB";
+                        } else {
+                            statusEl.textContent = text;
+                        }
                     } else if (!runtimeReady) {
                         runtimeReady = true;
                         dismissLoading();
                     }
                 },
                 monitorRunDependencies: function (left) {
+                    if (downloadActive) return;
                     totalDependencies = Math.max(totalDependencies, left);
                     if (left) {
                         const completed = totalDependencies - left;
                         progressEl.value = totalDependencies
                             ? (completed * 100) / totalDependencies
                             : 0;
-                        statusEl.textContent =
-                            "Loading " + completed + " / " + totalDependencies;
+                        statusEl.textContent = "Initializing...";
                     } else {
                         progressEl.value = 100;
+                        statusEl.textContent = "Starting...";
                     }
                 },
                 onRuntimeInitialized: function () {
