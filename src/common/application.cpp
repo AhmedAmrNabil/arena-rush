@@ -14,13 +14,20 @@
 #include <tuple>
 
 // Include the Dear ImGui implementation headers
+#if !defined(__EMSCRIPTEN__) && !defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD2
+#endif
 #include <imgui_impl/imgui_impl_glfw.h>
 #include <imgui_impl/imgui_impl_opengl3.h>
 
-#if !defined(NDEBUG)
+#if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
 // If NDEBUG (no debug) is not defined, enable OpenGL debug messages
 #define ENABLE_OPENGL_DEBUG_MESSAGES
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 #include "asset-loader.hpp"
@@ -35,6 +42,21 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #endif
+
+namespace our {
+    struct ApplicationLoopContext {
+        using ScreenshotRequest = std::pair<int, std::string>;
+
+        Application* application = nullptr;
+        GLFWwindow* sharedContextWindow = nullptr;
+        ImGuiIO* io = nullptr;
+        std::priority_queue<ScreenshotRequest, std::vector<ScreenshotRequest>, std::greater<ScreenshotRequest>>
+            requestedScreenshots;
+        double lastFrameTime = 0.0;
+        int currentFrame = 0;
+        int runForFrames = 0;
+    };
+}  // namespace our
 
 std::string default_screenshot_filepath() {
     std::stringstream stream;
@@ -57,6 +79,7 @@ void glfw_error_callback(int error, const char* description) {
     std::cerr << "GLFW Error: " << error << ": " << description << std::endl;
 }
 
+#if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
 // This function will be used to log OpenGL debug messages
 void GLAPIENTRY opengl_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                 const GLchar* message, const void* userParam) {
@@ -137,8 +160,14 @@ void GLAPIENTRY opengl_callback(GLenum source, GLenum type, GLuint id, GLenum se
     std::cout << "OpenGL Debug Message " << id << " (type: " << _type << ") of " << _severity << " raised from "
               << _source << ": " << message << std::endl;
 }
+#endif
 
 void our::Application::configureOpenGL() {
+#ifdef __EMSCRIPTEN__
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#else
     // Request that OpenGL is 3.3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -147,6 +176,7 @@ void our::Application::configureOpenGL() {
     // Enable forward compatibility with newer OpenGL versions by removing deprecated functionalities
     // This is necessary for some platforms
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
@@ -171,8 +201,10 @@ void our::Application::configureOpenGL() {
     // Set the refresh rate of the window (GLFW_DONT_CARE = Run as fast as possible)
     glfwWindowHint(GLFW_REFRESH_RATE, GLFW_DONT_CARE);
 
+#ifndef __EMSCRIPTEN__
     // Set the application name for wayland
     glfwWindowHintString(GLFW_WAYLAND_APP_ID, WAYLAND_APPID);
+#endif
 }
 
 our::WindowConfiguration our::Application::getWindowConfiguration() {
@@ -183,6 +215,17 @@ our::WindowConfiguration our::Application::getWindowConfiguration() {
     int height = window_config["size"]["height"].get<int>();
 
     bool isFullScreen = window_config["fullscreen"].get<bool>();
+
+#ifdef __EMSCRIPTEN__
+    int canvasWidth = 0;
+    int canvasHeight = 0;
+    emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+    if (canvasWidth > 0 && canvasHeight > 0) {
+        width = canvasWidth;
+        height = canvasHeight;
+    }
+    isFullScreen = false;
+#endif
 
     return {title, {width, height}, isFullScreen};
 }
@@ -232,8 +275,10 @@ int our::Application::run(int run_for_frames) {
         return -1;
     }
 
+    GLFWwindow* sharedContextWindow = window;
+#ifndef __EMSCRIPTEN__
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    GLFWwindow* sharedContextWindow = glfwCreateWindow(1, 1, "shared-context", nullptr, window);
+    sharedContextWindow = glfwCreateWindow(1, 1, "shared-context", nullptr, window);
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
     if (!sharedContextWindow) {
         std::cerr << "Failed to Create Shared OpenGL Context" << std::endl;
@@ -241,6 +286,7 @@ int our::Application::run(int run_for_frames) {
         glfwTerminate();
         return -1;
     }
+#endif
 
     if (win_config.isFullscreen && primaryMonitor) {
         glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
@@ -258,9 +304,13 @@ int our::Application::run(int run_for_frames) {
     glfwMakeContextCurrent(
         window);  // Tell GLFW to make the context of our window the main context on the current thread.
 
+#ifndef __EMSCRIPTEN__
     gladLoadGL(glfwGetProcAddress);  // Load the OpenGL functions from the driver
+#endif
 
+#ifndef __EMSCRIPTEN__
     glfwSwapInterval(0);  // Disable V-Sync
+#endif
 
     // Print information about the OpenGL context
     std::cout << "VENDOR          : " << glGetString(GL_VENDOR) << std::endl;
@@ -268,6 +318,9 @@ int our::Application::run(int run_for_frames) {
     std::cout << "VERSION         : " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GLSL VERSION    : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
+#ifdef __EMSCRIPTEN__
+    std::cout << "PLATFORM        : Web/Emscripten" << std::endl;
+#else
     int platform = glfwGetPlatform();
     std::cout << "PLATFORM        : ";
     switch (platform) {
@@ -284,7 +337,9 @@ int our::Application::run(int run_for_frames) {
             std::cout << "X11" << std::endl;
             break;
     }
+#endif
 
+#ifndef __EMSCRIPTEN__
     if (platform != GLFW_PLATFORM_WAYLAND) {
         int width, height, channels;
         unsigned char* pixels = stbi_load("assets/textures/logo.png", &width, &height, &channels, 4);
@@ -304,6 +359,7 @@ int our::Application::run(int run_for_frames) {
             std::cerr << "Failed to load window icon" << std::endl;
         }
     }
+#endif
 
 #if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
     // if we have OpenGL debug messages enabled, set the message callback
@@ -330,23 +386,38 @@ int our::Application::run(int run_for_frames) {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::StyleColorsDark();
 
+#ifdef __EMSCRIPTEN__
+    // Emscripten's glfwGetInputMode reports GLFW_CURSOR_NORMAL whenever the browser
+    // hasn't (yet) granted Pointer Lock, even right after we set it to DISABLED. ImGui's
+    // GLFW backend then "restores" the cursor by calling glfwSetInputMode(NORMAL), which
+    // emscripten implements as document.exitPointerLock() — yanking the lock we just got.
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+#endif
+
     // Initialize ImGui for GLFW and OpenGL
     ImGui_ImplGlfw_InitForOpenGL(window, true);
+#ifdef __EMSCRIPTEN__
+    ImGui_ImplOpenGL3_Init("#version 300 es");
+#else
     ImGui_ImplOpenGL3_Init("#version 330 core");
+#endif
 
     audioSystem.initialize();
 
+    our::ApplicationLoopContext loopContext;
+    loopContext.application = this;
+    loopContext.sharedContextWindow = sharedContextWindow;
+    loopContext.io = &io;
+    loopContext.runForFrames = run_for_frames;
+
     // This part of the code extracts the list of requested screenshots and puts them into a priority queue
-    using ScreenshotRequest = std::pair<int, std::string>;
-    std::priority_queue<ScreenshotRequest, std::vector<ScreenshotRequest>, std::greater<ScreenshotRequest>>
-        requested_screenshots;
     if (auto& screenshots = app_config["screenshots"]; screenshots.is_object()) {
         auto base_path = std::filesystem::path(screenshots.value("directory", "screenshots"));
         if (auto& requests = screenshots["requests"]; requests.is_array()) {
             for (auto& item : requests) {
                 auto path = base_path / item.value("file", "");
                 int frame = item.value("frame", 0);
-                requested_screenshots.push({frame, path.string()});
+                loopContext.requestedScreenshots.push({frame, path.string()});
             }
         }
     }
@@ -361,107 +432,128 @@ int our::Application::run(int run_for_frames) {
     if (currentState) currentState->onInitialize(sharedContextWindow);
 
     // The time at which the last frame started. But there was no frames yet, so we'll just pick the current time.
-    double last_frame_time = glfwGetTime();
-    int current_frame = 0;
+    loopContext.lastFrameTime = glfwGetTime();
 
-    // Game loop
-    while (!glfwWindowShouldClose(window)) {
-        if (run_for_frames != 0 && current_frame >= run_for_frames) break;
-        glfwPollEvents();  // Read all the user events and call relevant callbacks.
-
-        // Start a new ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        if (currentState) currentState->onImmediateGui();  // Call to run any required Immediate GUI.
-
-        // If ImGui is using the mouse or keyboard, then we don't want the captured events to affect our keyboard and
-        // mouse objects. For example, if you're focusing on an input and writing "W", the keyboard object shouldn't
-        // record this event.
-        keyboard.setEnabled(!io.WantCaptureKeyboard, window);
-        mouse.setEnabled(!io.WantCaptureMouse, window);
-        joystick.setEnabled(
-            !io.WantCaptureKeyboard);  // Joystick events are treated as keyboard events, so we check
-                                       // io.WantCaptureKeyboard to decide whether to capture them or not.
-
-        // Render the ImGui commands we called (this doesn't actually draw to the screen yet.
-        ImGui::Render();
-
-        // Just in case ImGui changed the OpenGL viewport (the portion of the window to which we render the geometry),
-        // we set it back to cover the whole window
-        auto frame_buffer_size = getFrameBufferSize();
-        glViewport(0, 0, frame_buffer_size.x, frame_buffer_size.y);
-
-        // Get the current time (the time at which we are starting the current frame).
-        double current_frame_time = glfwGetTime();
-
-        // Call onDraw, in which we will draw the current frame, and send to it the time difference between the last and
-        // current frame
-        if (currentState) currentState->onDraw(current_frame_time - last_frame_time);
-        last_frame_time =
-            current_frame_time;  // Then update the last frame start time (this frame is now the last frame)
-
-#if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
-        // Since ImGui causes many messages to be thrown, we are temporarily disabling the debug messages till we render
-        // the ImGui
-        glDisable(GL_DEBUG_OUTPUT);
-        glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#endif
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());  // Render the ImGui to the framebuffer
-#if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
-        // Re-enable the debug messages
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#endif
-
-        // If F12 is pressed, take a screenshot
-        if (keyboard.justPressed(GLFW_KEY_F12)) {
-            glViewport(0, 0, frame_buffer_size.x, frame_buffer_size.y);
-            std::string path = default_screenshot_filepath();
-            if (our::screenshot_png(path)) {
-                std::cout << "Screenshot saved to: " << path << std::endl;
-            } else {
-                std::cerr << "Failed to save a Screenshot" << std::endl;
+#ifdef __EMSCRIPTEN__
+    auto* webLoopContext = new our::ApplicationLoopContext(loopContext);
+    emscripten_set_main_loop_arg(
+        [](void* arg) {
+            auto* loopContext = static_cast<our::ApplicationLoopContext*>(arg);
+            if (!loopContext->application->drawFrame(*loopContext)) {
+                loopContext->application->shutdown(*loopContext);
+                emscripten_cancel_main_loop();
+                delete loopContext;
             }
+        },
+        webLoopContext, 0, true);
+#else
+    while (drawFrame(loopContext)) {
+    }
+    shutdown(loopContext);
+#endif
+
+    return 0;  // Good bye
+}
+
+bool our::Application::drawFrame(ApplicationLoopContext& loopContext) {
+    if (glfwWindowShouldClose(window)) return false;
+    if (loopContext.runForFrames != 0 && loopContext.currentFrame >= loopContext.runForFrames) return false;
+
+    glfwPollEvents();  // Read all the user events and call relevant callbacks.
+
+    // Start a new ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    if (currentState) currentState->onImmediateGui();  // Call to run any required Immediate GUI.
+
+    // If ImGui is using the mouse or keyboard, then we don't want the captured events to affect our keyboard and
+    // mouse objects. For example, if you're focusing on an input and writing "W", the keyboard object shouldn't
+    // record this event.
+    keyboard.setEnabled(!loopContext.io->WantCaptureKeyboard, window);
+    mouse.setEnabled(!loopContext.io->WantCaptureMouse, window);
+    joystick.setEnabled(!loopContext.io->WantCaptureKeyboard);  // Joystick events are treated as keyboard events.
+
+    // Render the ImGui commands we called (this doesn't actually draw to the screen yet.
+    ImGui::Render();
+
+    // Just in case ImGui changed the OpenGL viewport (the portion of the window to which we render the geometry),
+    // we set it back to cover the whole window
+    auto frame_buffer_size = getFrameBufferSize();
+    glViewport(0, 0, frame_buffer_size.x, frame_buffer_size.y);
+
+    // Get the current time (the time at which we are starting the current frame).
+    double current_frame_time = glfwGetTime();
+
+    // Call onDraw, in which we will draw the current frame, and send to it the time difference between the last and
+    // current frame
+    if (currentState) currentState->onDraw(current_frame_time - loopContext.lastFrameTime);
+    loopContext.lastFrameTime = current_frame_time;
+
+#if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
+    // Since ImGui causes many messages to be thrown, we are temporarily disabling the debug messages till we render
+    // the ImGui
+    glDisable(GL_DEBUG_OUTPUT);
+    glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());  // Render the ImGui to the framebuffer
+#if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
+    // Re-enable the debug messages
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
+
+    // If F12 is pressed, take a screenshot
+    if (keyboard.justPressed(GLFW_KEY_F12)) {
+        glViewport(0, 0, frame_buffer_size.x, frame_buffer_size.y);
+        std::string path = default_screenshot_filepath();
+        if (our::screenshot_png(path)) {
+            std::cout << "Screenshot saved to: " << path << std::endl;
+        } else {
+            std::cerr << "Failed to save a Screenshot" << std::endl;
         }
-        // There are any requested screenshots, take them
-        while (requested_screenshots.size()) {
-            if (const auto& request = requested_screenshots.top(); request.first == current_frame) {
-                if (our::screenshot_png(request.second)) {
-                    std::cout << "Screenshot saved to: " << request.second << std::endl;
-                } else {
-                    std::cerr << "Failed to save a screenshot to: " << request.second << std::endl;
-                }
-                requested_screenshots.pop();
-            } else
-                break;
-        }
-
-        // Swap the frame buffers
-        glfwSwapBuffers(window);
-
-        // Update the keyboard and mouse data
-        keyboard.update();
-        mouse.update();
-        joystick.update();
-
-        // If a scene change was requested, apply it
-        while (nextState) {
-            // If a scene was already running, destroy it (not delete since we can go back to it later)
-            if (currentState) currentState->onDestroy();
-            // Switch scenes
-            currentState = nextState;
-            nextState = nullptr;
-            // Initialize the new scene
-            currentState->onInitialize(sharedContextWindow);
-
-            last_frame_time = glfwGetTime();
-        }
-
-        ++current_frame;
     }
 
+    // There are any requested screenshots, take them
+    while (loopContext.requestedScreenshots.size()) {
+        if (const auto& request = loopContext.requestedScreenshots.top(); request.first == loopContext.currentFrame) {
+            if (our::screenshot_png(request.second)) {
+                std::cout << "Screenshot saved to: " << request.second << std::endl;
+            } else {
+                std::cerr << "Failed to save a screenshot to: " << request.second << std::endl;
+            }
+            loopContext.requestedScreenshots.pop();
+        } else
+            break;
+    }
+
+    // Swap the frame buffers
+    glfwSwapBuffers(window);
+
+    // Update the keyboard and mouse data
+    keyboard.update();
+    mouse.update();
+    joystick.update();
+
+    // If a scene change was requested, apply it
+    while (nextState) {
+        // If a scene was already running, destroy it (not delete since we can go back to it later)
+        if (currentState) currentState->onDestroy();
+        // Switch scenes
+        currentState = nextState;
+        nextState = nullptr;
+        // Initialize the new scene
+        currentState->onInitialize(loopContext.sharedContextWindow);
+
+        loopContext.lastFrameTime = glfwGetTime();
+    }
+
+    ++loopContext.currentFrame;
+    return !glfwWindowShouldClose(window);
+}
+
+void our::Application::shutdown(ApplicationLoopContext& loopContext) {
     // Call for cleaning up
     if (currentState) currentState->onDestroy();
     our::clearAllAssets();
@@ -473,13 +565,15 @@ int our::Application::run(int run_for_frames) {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    // Destroy the window
-    glfwDestroyWindow(sharedContextWindow);
-    glfwDestroyWindow(window);
+    // Destroy the windows. The web build uses the visible window as the loading context.
+    if (loopContext.sharedContextWindow && loopContext.sharedContextWindow != window)
+        glfwDestroyWindow(loopContext.sharedContextWindow);
+    if (window) glfwDestroyWindow(window);
+    loopContext.sharedContextWindow = nullptr;
+    window = nullptr;
 
     // And finally terminate GLFW
     glfwTerminate();
-    return 0;  // Good bye
 }
 
 // Sets-up the window callback functions from GLFW to our (Mouse/Keyboard) classes.

@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <model/model.hpp>
 
-struct btTriangleMesh;
+class btTriangleMesh;
 namespace gameplay {
 
     enum class ColliderShape { Sphere, Capsule, Mesh };

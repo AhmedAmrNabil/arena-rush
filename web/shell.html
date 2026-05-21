@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Arena Rush</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background: #000;
+                color: #ecf8e9;
+                font-family: Bahnschrift, "Segoe UI", sans-serif;
+            }
+
+            canvas.emscripten {
+                display: block;
+                width: 100vw;
+                height: 100vh;
+                background: #000;
+                outline: none;
+            }
+
+            #loading,
+            #click-to-play {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #ecf8e9;
+                z-index: 10;
+                user-select: none;
+            }
+
+            #loading {
+                background:
+                    radial-gradient(
+                        circle at 20% 15%,
+                        rgba(55, 230, 161, 0.18),
+                        transparent 32rem
+                    ),
+                    radial-gradient(
+                        circle at 82% 20%,
+                        rgba(159, 255, 101, 0.14),
+                        transparent 30rem
+                    ),
+                    linear-gradient(
+                        135deg,
+                        #070807 0%,
+                        #101810 48%,
+                        #060706 100%
+                    );
+                transition: opacity 0.4s ease;
+            }
+
+            #click-to-play {
+                background: rgba(0, 0, 0, 0.55);
+                cursor: pointer;
+                z-index: 9;
+            }
+
+            #loading.hidden,
+            #click-to-play.hidden {
+                display: none;
+            }
+
+            .title {
+                font-size: clamp(2rem, 5vw, 4rem);
+                font-weight: 800;
+                letter-spacing: 0.22em;
+                text-shadow: 0 0 32px rgba(159, 255, 101, 0.45);
+                margin: 0 0 24px;
+            }
+
+            .hint {
+                font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: #c8d8c4;
+            }
+
+            progress {
+                width: min(360px, 70vw);
+                height: 6px;
+                margin-top: 18px;
+                appearance: none;
+                border: none;
+            }
+            progress::-webkit-progress-bar {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            progress::-webkit-progress-value {
+                background: linear-gradient(90deg, #9fff65, #37e6a1);
+            }
+            progress::-moz-progress-bar {
+                background: linear-gradient(90deg, #9fff65, #37e6a1);
+            }
+        </style>
+    </head>
+    <body>
+        <canvas
+            id="canvas"
+            class="emscripten"
+            tabindex="-1"
+            oncontextmenu="event.preventDefault()"
+        ></canvas>
+
+        <div id="click-to-play" class="hidden">
+            <h1 class="title">CLICK TO PLAY</h1>
+            <div
+                class="hint"
+                id="lock-error"
+                style="margin-top: 18px; color: #ff8a7a; display: none"
+            ></div>
+        </div>
+
+        <div id="loading">
+            <h1 class="title">ARENA RUSH</h1>
+            <div class="hint" id="status">Loading...</div>
+            <progress id="progress" max="100" value="0"></progress>
+        </div>
+
+        <script>
+            const canvas = document.getElementById("canvas");
+            const loadingEl = document.getElementById("loading");
+            const clickEl = document.getElementById("click-to-play");
+            const statusEl = document.getElementById("status");
+            const progressEl = document.getElementById("progress");
+
+            let totalDependencies = 0;
+            let runtimeReady = false;
+            window.__arenaWantsPointerLock = false;
+            window.__arenaOverlayActive = false;
+            window.__arenaPauseRequested = false;
+
+            function resizeCanvas() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const w = Math.max(1, Math.floor(window.innerWidth * dpr));
+                const h = Math.max(1, Math.floor(window.innerHeight * dpr));
+                if (canvas.width !== w || canvas.height !== h) {
+                    canvas.width = w;
+                    canvas.height = h;
+                }
+            }
+            resizeCanvas();
+            window.addEventListener("resize", resizeCanvas);
+
+            const lockErrorEl = document.getElementById("lock-error");
+
+            function isLocked() {
+                return document.pointerLockElement === canvas;
+            }
+
+            function showLockError(msg) {
+                if (!msg) {
+                    lockErrorEl.style.display = "none";
+                    lockErrorEl.textContent = "";
+                    return;
+                }
+                lockErrorEl.style.display = "block";
+                lockErrorEl.textContent = msg;
+            }
+
+            function requestLock() {
+                if (!canvas.requestPointerLock) {
+                    showLockError(
+                        "Pointer Lock API unavailable in this browser."
+                    );
+                    return;
+                }
+                try {
+                    const result = canvas.requestPointerLock();
+                    if (result && typeof result.then === "function") {
+                        result
+                            .then(() => showLockError(""))
+                            .catch((err) => {
+                                showLockError(
+                                    "Pointer lock failed: " +
+                                        (err && err.message ? err.message : err)
+                                );
+                            });
+                    }
+                } catch (err) {
+                    showLockError("Pointer lock threw: " + err);
+                }
+            }
+
+            function updateOverlay() {
+                if (
+                    window.__arenaOverlayActive ||
+                    window.__arenaPauseRequested
+                ) {
+                    clickEl.classList.add("hidden");
+                    showLockError("");
+                    return;
+                }
+                const wantLock = window.__arenaWantsPointerLock && runtimeReady;
+                if (wantLock && !isLocked()) {
+                    clickEl.classList.remove("hidden");
+                } else {
+                    clickEl.classList.add("hidden");
+                    showLockError("");
+                }
+            }
+
+            clickEl.addEventListener("click", requestLock);
+            canvas.addEventListener("click", () => {
+                if (window.__arenaWantsPointerLock && !isLocked())
+                    requestLock();
+            });
+
+            document.addEventListener("pointerlockchange", () => {
+                if (
+                    window.__arenaWantsPointerLock &&
+                    !isLocked() &&
+                    !window.__arenaOverlayActive
+                ) {
+                    window.__arenaPauseRequested = true;
+                }
+                updateOverlay();
+            });
+            document.addEventListener("pointerlockerror", () => {
+                showLockError("pointerlockerror fired (browser denied lock).");
+                updateOverlay();
+            });
+            setInterval(updateOverlay, 250);
+
+            function dismissLoading() {
+                if (!loadingEl.classList.contains("hidden")) {
+                    loadingEl.classList.add("hidden");
+                    setTimeout(() => {
+                        loadingEl.style.display = "none";
+                    }, 500);
+                }
+                updateOverlay();
+            }
+
+            var Module = {
+                canvas: canvas,
+                print: function () {},
+                printErr: function (text) {
+                    console.error(text);
+                },
+                setStatus: function (text) {
+                    if (text) {
+                        statusEl.textContent = text;
+                    } else if (!runtimeReady) {
+                        runtimeReady = true;
+                        dismissLoading();
+                    }
+                },
+                monitorRunDependencies: function (left) {
+                    totalDependencies = Math.max(totalDependencies, left);
+                    if (left) {
+                        const completed = totalDependencies - left;
+                        progressEl.value = totalDependencies
+                            ? (completed * 100) / totalDependencies
+                            : 0;
+                        statusEl.textContent =
+                            "Loading " + completed + " / " + totalDependencies;
+                    } else {
+                        progressEl.value = 100;
+                    }
+                },
+                onRuntimeInitialized: function () {
+                    runtimeReady = true;
+                    dismissLoading();
+                }
+            };
+
+            const blockedKeys = new Set([
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "Space",
+                "Tab",
+                "F1",
+                "F3",
+                "F7",
+                "'",
+                "/"
+            ]);
+            window.addEventListener(
+                "keydown",
+                function (event) {
+                    if (
+                        blockedKeys.has(event.code) ||
+                        blockedKeys.has(event.key)
+                    ) {
+                        event.preventDefault();
+                    }
+                },
+                { passive: false }
+            );
+        </script>
+        {{{ SCRIPT }}}
+    </body>
+</html>

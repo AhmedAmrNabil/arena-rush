@@ -116,7 +116,7 @@ namespace our {
             for (auto& [name, desc] : data.items()) {
                 if (AssetLoader<AudioBuffer>::get(name)) continue;
                 std::string path = desc.get<std::string>();
-                AudioBuffer* buffer = audio_utils::loadWAV(path);
+                AudioBuffer* buffer = audio_utils::loadAudio(path);
                 if (buffer) AssetLoader<AudioBuffer>::add(name, buffer);
             }
         }
@@ -149,9 +149,10 @@ namespace our {
         }
     };
 
-    void deserializeAllAssets(const nlohmann::json& assetData) {
+    void prepareAssetLoadingStats(const nlohmann::json& assetData) {
         AssetLoaderStats::loadingCount = 0;
         AssetLoaderStats::totalCount = 0;
+        if (!assetData.is_object()) return;
         for (auto key : {"shaders", "textures", "samplers", "meshes", "materials", "sounds"}) {
             if (assetData.contains(key)) {
                 AssetLoaderStats::totalCount += assetData[key].size();
@@ -167,15 +168,9 @@ namespace our {
                 }
             }
         }
-        if (!assetData.is_object()) return;
-        if (assetData.contains("shaders")) AssetLoader<ShaderProgram>::deserialize(assetData["shaders"]);
-        if (assetData.contains("textures")) AssetLoader<Texture2D>::deserialize(assetData["textures"]);
-        if (assetData.contains("samplers")) AssetLoader<Sampler>::deserialize(assetData["samplers"]);
-        if (assetData.contains("meshes")) AssetLoader<Mesh>::deserialize(assetData["meshes"]);
-        if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
-        if (assetData.contains("sounds")) AssetLoader<AudioBuffer>::deserialize(assetData["sounds"]);
-        if (assetData.contains("models")) AssetLoader<our::Model>::deserialize(assetData["models"]);
-        // setting some default assets if something is missing
+    }
+
+    void loadDefaultAssetsIfMissing() {
         if (!AssetLoader<Sampler>::get("default")) {
             Sampler* defaultSampler = new Sampler();
             defaultSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -203,10 +198,24 @@ namespace our {
             AssetLoaderStats::totalCount++;
             AssetLoader<ShaderProgram>::add("tinted", tintedShader);
         }
+    }
 
-        int total = AssetLoaderStats::totalCount;
+    void deserializeAllAssets(const nlohmann::json& assetData) {
+        prepareAssetLoadingStats(assetData);
+        if (!assetData.is_object()) return;
+        if (assetData.contains("shaders")) AssetLoader<ShaderProgram>::deserialize(assetData["shaders"]);
+        if (assetData.contains("textures")) AssetLoader<Texture2D>::deserialize(assetData["textures"]);
+        if (assetData.contains("samplers")) AssetLoader<Sampler>::deserialize(assetData["samplers"]);
+        if (assetData.contains("meshes")) AssetLoader<Mesh>::deserialize(assetData["meshes"]);
+        if (assetData.contains("materials")) AssetLoader<Material>::deserialize(assetData["materials"]);
+        if (assetData.contains("sounds")) AssetLoader<AudioBuffer>::deserialize(assetData["sounds"]);
+        if (assetData.contains("models")) AssetLoader<our::Model>::deserialize(assetData["models"]);
+
+        loadDefaultAssetsIfMissing();
+
         // if assets are already loaded, set the loading count to total to avoid progress bar from getting stuck
-        if (AssetLoaderStats::loadingCount != AssetLoaderStats::totalCount) AssetLoaderStats::loadingCount = total;
+        if (AssetLoaderStats::loadingCount != AssetLoaderStats::totalCount)
+            AssetLoaderStats::loadingCount = AssetLoaderStats::totalCount.load();
     }
 
     void clearAllAssets() {

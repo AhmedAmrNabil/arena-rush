@@ -54,6 +54,13 @@ namespace our {
         }
     };
 
+    // Resets the loader stats and pre-computes totalCount for the given asset bundle.
+    // Exposed so platforms that load assets progressively (e.g. web) can reuse the same
+    // accounting that deserializeAllAssets uses.
+    void prepareAssetLoadingStats(const nlohmann::json& assetData);
+    // Creates the "default" sampler and the "textured"/"tinted" shaders if they were not
+    // already loaded from JSON. totalCount is bumped accordingly.
+    void loadDefaultAssetsIfMissing();
     // Given a json holding the data for all the assets
     // This function will call "AssetLoader<T>::deserialize" for all the different asset types T
     // For example, a json in the form {"shaders": ... , "textures": ... } will call "deserialize" for:
