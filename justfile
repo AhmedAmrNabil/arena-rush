@@ -7,7 +7,7 @@ configure:
     cmake -S . -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=Debug \
         -DCMAKE_COLOR_DIAGNOSTICS=ON \
-        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 
 # Build the project using Ninja
 build:
@@ -39,9 +39,42 @@ run-int config="": build
 package:
     nix build .
 
+# Configure the WebAssembly/WebGL build with Emscripten
+web-configure:
+    #!/usr/bin/env bash
+    if [[ -f build-web/build.ninja && ! CMakeLists.txt -nt build-web/build.ninja ]]; then
+        exit 0
+    fi
+    if command -v emcmake >/dev/null 2>&1; then
+        EMCMAKE=emcmake
+    elif command -v emcmake.bat >/dev/null 2>&1; then
+        EMCMAKE=emcmake.bat
+    else
+        printf '%s\n' "Emscripten not found. Run 'nix develop' with the updated flake, or install/activate emsdk so emcmake is on PATH."
+        exit 127
+    fi
+    "$EMCMAKE" cmake -S . -B build-web -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_COLOR_DIAGNOSTICS=ON "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+
+# Build the browser version into web-dist/
+web-build: web-configure
+    cmake --build build-web --parallel
+
+# Serve the browser build locally
+web-serve: web-build
+    #!/usr/bin/env bash
+    if command -v emrun >/dev/null 2>&1; then
+        EMRUN=emrun
+    elif command -v emrun.bat >/dev/null 2>&1; then
+        EMRUN=emrun.bat
+    else
+        printf '%s\n' "Emscripten not found. Run 'nix develop' with the updated flake, or install/activate emsdk so emrun is on PATH."
+        exit 127
+    fi
+    "$EMRUN" --no_browser --port 8080 web-dist/index.html
+
 # Remove build artifacts
 clean:
-    rm -rf build bin
+    rm -rf build build-web bin web-dist
 
 # Create a desktop entry for the game
 desktop:

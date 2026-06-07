@@ -70,6 +70,7 @@
             just
             powershell
             glslang
+            emscripten
             just-lsp
             ccache
             clang-tools

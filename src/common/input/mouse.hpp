@@ -5,6 +5,10 @@
 #include <cstring>
 #include <glm/glm.hpp>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
 namespace our {
 
     // A convenience class to read mouse input
@@ -102,10 +106,22 @@ namespace our {
             glfwSetCursor(
                 window,
                 nullptr);  // This is needed to prevent a GLFW bug where the cursor is visible again after locking it.
+#ifdef __EMSCRIPTEN__
+            // Browsers only grant Pointer Lock from a user gesture. The initial request issued by
+            // glfwSetInputMode runs outside a click handler and is rejected silently, so we flag
+            // intent and let the shell re-request lock on the next canvas mousedown.
+            EM_ASM({ window.__arenaWantsPointerLock = true; });
+#endif
         }
         // If the mouse was locked, unlock it (make it visible and allow it to move)
         static void unlockMouse(GLFWwindow* window) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+#ifdef __EMSCRIPTEN__
+            EM_ASM({
+                window.__arenaWantsPointerLock = false;
+                if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
+            });
+#endif
         }
 
         [[nodiscard]] bool isEnabled() const {

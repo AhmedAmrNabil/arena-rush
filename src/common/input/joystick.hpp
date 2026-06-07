@@ -23,10 +23,14 @@ namespace our {
         }
 
         int getFirstGamepad() {
+#ifdef __EMSCRIPTEN__
+            return -1;
+#else
             for (int i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST; i++) {
                 if (glfwJoystickPresent(i) && glfwJoystickIsGamepad(i)) return i;
             }
             return -1;  // none connected
+#endif
         }
 
         void enable() {
@@ -37,6 +41,7 @@ namespace our {
             std::memset(previousAxes, 0, sizeof(previousAxes));
             currentJoystickId = getFirstGamepad();
             if (currentJoystickId == -1) return;
+#ifndef __EMSCRIPTEN__
             GLFWgamepadstate state;
             if (glfwGetGamepadState(currentJoystickId, &state)) {
                 for (int i = 0; i <= GLFW_GAMEPAD_BUTTON_LAST; i++)
@@ -47,6 +52,7 @@ namespace our {
                 currentTriggersPressed[1] = previousTriggersPressed[1] =
                     state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] > 0.01f - 1;
             }
+#endif
         }
 
         void disable() {
@@ -63,6 +69,12 @@ namespace our {
             std::memcpy(previousButtons, currentButtons, sizeof(previousButtons));
             std::memcpy(previousAxes, currentAxes, sizeof(previousAxes));
             std::memcpy(previousTriggersPressed, currentTriggersPressed, sizeof(previousTriggersPressed));
+#ifdef __EMSCRIPTEN__
+            std::memset(currentButtons, 0, sizeof(currentButtons));
+            std::memset(currentAxes, 0, sizeof(currentAxes));
+            std::memset(currentTriggersPressed, 0, sizeof(currentTriggersPressed));
+            return;
+#else
             GLFWgamepadstate state;
             if (currentJoystickId == -1) {
                 currentJoystickId = getFirstGamepad();
@@ -85,6 +97,7 @@ namespace our {
                 std::memset(currentAxes, 0, sizeof(currentAxes));
                 std::memset(currentTriggersPressed, 0, sizeof(currentTriggersPressed));
             }
+#endif
         }
 
         void joystickEvent(int jid, int event) {

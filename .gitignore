@@ -40,6 +40,9 @@
 # debug information files
 *.dwo
 
+# crash dumps (Cygwin/MSYS)
+*.stackdump
+
 # CMake generated files
 CMakeLists.txt.user
 CMakeCache.txt
@@ -65,8 +68,10 @@ result
 # build directories
 cmake-build-*/
 build/
+build-web/
 out/
 bin/
+web-dist/
 
 # imgui saved state
 imgui.ini

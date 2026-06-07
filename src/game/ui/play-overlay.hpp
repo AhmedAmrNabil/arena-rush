@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
 #include <algorithm>
 #include <application.hpp>
 #include <array>
@@ -103,7 +107,12 @@ namespace gameplay {
             hoveredButton = -1;
             overlayTime = 0.0f;
 
+#ifdef __EMSCRIPTEN__
+            if (cameraController && nextScreen != Screen::Pause) cameraController->exit();
+            EM_ASM({ window.__arenaOverlayActive = true; });
+#else
             if (cameraController) cameraController->exit();
+#endif
 
             if (nextScreen == Screen::Pause && !gameplayAudioPaused) {
                 app->getAudioSystem().pauseAll();
@@ -203,8 +212,8 @@ namespace gameplay {
 
             pauseTexture = our::texture_utils::loadImage("assets/textures/menus/pause.png");
             gameOverTexture = our::texture_utils::loadImage("assets/textures/menus/game-over.png");
-            openSound = our::audio_utils::loadWAV("assets/sounds/menu-open.wav");
-            selectSound = our::audio_utils::loadWAV("assets/sounds/menu-select.wav");
+            openSound = our::audio_utils::loadAudio("assets/sounds/menu-open.ogg");
+            selectSound = our::audio_utils::loadAudio("assets/sounds/menu-select.ogg");
 
             setupButtons();
             reset();
@@ -242,6 +251,12 @@ namespace gameplay {
             gameplayAudioPaused = false;
             hoveredButton = -1;
             overlayTime = 0.0f;
+#ifdef __EMSCRIPTEN__
+            EM_ASM({
+                window.__arenaOverlayActive = false;
+                window.__arenaPauseRequested = false;
+            });
+#endif
         }
 
         bool isActive() const {
@@ -265,6 +280,10 @@ namespace gameplay {
                 app->getAudioSystem().resumeAll();
                 gameplayAudioPaused = false;
             }
+
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ window.__arenaOverlayActive = false; });
+#endif
 
             if (app && cameraController) {
                 cameraController->enter(app);

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
 #include <application.hpp>
 #include <components/camera.hpp>
 #include <components/enemy.hpp>
@@ -51,13 +55,13 @@ class Playstate : public our::State {
     gameplay::CrosshairRenderer crosshair;
     gameplay::WeaponVisualSystem weaponVisuals;
     gameplay::BillboardSystem billboardSystem;
-    gameplay::HitMarkerSystem hitMarkerSystem;
     float aimBlend = 0.0f;
     gameplay::PlayOverlay overlay;
     gameplay::PlayOverlayStats overlayStats;
     gameplay::PlayerHUDSystem playerHud;
     gameplay::WeaponSwitcherSystem weaponSwitcher;
     bool waitFirstFrame = false;
+    bool showFpsOverlay = false;
 
     void renderFrame(float dt) {
         renderer.render(&world, getApp()->getFrameBufferSize());
@@ -90,7 +94,7 @@ class Playstate : public our::State {
 public:
     void onImmediateGui() override {
         if (!overlay.isActive()) {
-            displayFPS();
+            if (showFpsOverlay) displayFPS();
 
 #ifdef COLLISION_DEBUG_DRAW
             if (collisionSystem.isDebugDrawEnabled()) {
@@ -157,7 +161,25 @@ public:
             return;
         }
 
+#ifdef __EMSCRIPTEN__
+        if (!overlay.isActive() && EM_ASM_INT({
+                if (window.__arenaPauseRequested) {
+                    window.__arenaPauseRequested = false;
+                    return 1;
+                }
+                return 0;
+            })) {
+            overlay.openPause();
+            overlay.renderCurrent(deltaTime);
+            return;
+        }
+#endif
+
         if (overlay.handleActiveFrame(deltaTime)) return;
+
+        if (keyboard.justPressed(GLFW_KEY_F1)) {
+            showFpsOverlay = !showFpsOverlay;
+        }
 
         if (keyboard.justPressed(GLFW_KEY_ESCAPE) || joystick.justPressed(GLFW_GAMEPAD_BUTTON_START)) {
             overlay.openPause();

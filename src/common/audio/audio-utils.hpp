@@ -5,7 +5,7 @@
 #include "audio-buffer.hpp"
 namespace our::audio_utils {
     AudioBuffer* loadWAV(const std::string& filename);
-
-    // TODO: Add more functions for loading other audio formats (most likely OGG and maybe MP3)
+    AudioBuffer* loadOGG(const std::string& filename);
+    AudioBuffer* loadAudio(const std::string& filename);
 
 }  // namespace our::audio_utils
