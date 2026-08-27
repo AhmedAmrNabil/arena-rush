@@ -3,108 +3,42 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-    self.submodules = true;
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
   outputs =
-    {
-      self,
+    inputs@{
       nixpkgs,
-      flake-utils,
+      flake-parts,
+      ...
     }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        packageName = "ArenaRush";
-        pkgs = import nixpkgs { inherit system; };
-        buildInputs = with pkgs; [
-          # libraries
-          libGL
-          libffi
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = nixpkgs.lib.systems.flakeExposed;
+      perSystem =
+        {
+          pkgs,
+          lib,
+          self',
+          ...
+        }:
+        let
+          arena-rush = pkgs.callPackage ./package.nix { };
+        in
+        {
+          devShells.default = import ./shell.nix { inherit pkgs; };
 
-          # Audio
-          pipewire
+          packages = {
+            inherit arena-rush;
+            default = self'.packages.arena-rush;
+          };
 
-          # extra precompiled libs
-          openal-soft
-          bullet
-          glfw
-          assimp
-          zlib
-
-          # Wayland
-          wayland
-          wayland-protocols
-          libxkbcommon
-          egl-wayland
-          libdecor
-          wayland-scanner
-          extra-cmake-modules # for wayland
-
-          # X11
-          libx11
-          libxcursor
-          libxrandr
-          libxi
-          libxinerama
-        ];
-
-        nativeBuildInputs = with pkgs; [
-          cmake
-          ninja
-          pkg-config
-          makeWrapper
-        ];
-
-        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
-      in
-      {
-        devShells.default = pkgs.mkShell {
-
-          inherit buildInputs nativeBuildInputs LD_LIBRARY_PATH;
-          USE_SYSTEM_LIBS = "ON";
-
-          packages = with pkgs; [
-            # helper
-            just
-            powershell
-            glslang
-            emscripten
-            just-lsp
-            ccache
-            clang-tools
-            gdb
-            # provides update-desktop-database for testing application.desktop file
-            desktop-file-utils
-          ];
-        };
-
-        packages = {
-          default = self.packages.${system}.opengl_app;
-          opengl_app = pkgs.stdenv.mkDerivation {
-            pname = packageName;
-            version = "0.1.0";
-
-            src = self;
-
-            inherit buildInputs nativeBuildInputs;
-
-            cmakeFlags = [
-              "-DCMAKE_BUILD_TYPE=Release"
-              "-DGLFW_BUILD_WAYLAND=1"
-              "-DGLFW_BUILD_X11=1"
-              "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
-              "-DUSE_SYSTEM_LIBS=ON"
-            ];
-
-            installPhase = ''
-              cmake --install . --prefix $out
-              wrapProgram $out/bin/ArenaRush \
-                --suffix LD_LIBRARY_PATH : ${LD_LIBRARY_PATH}
-            '';
+          apps = {
+            arena-rush = {
+              program = lib.getExe arena-rush;
+              inherit (arena-rush) meta;
+            };
+            default = self'.apps.arena-rush;
           };
         };
-      }
-    );
+    };
 }
