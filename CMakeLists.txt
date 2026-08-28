@@ -220,7 +220,10 @@ if(USE_VENDOR_ASSIMP)
     add_subdirectory(vendor/assimp)
     if(EMSCRIPTEN AND TARGET assimp)
         target_compile_definitions(assimp PRIVATE ASSIMP_BUILD_NO_GLTF1_IMPORTER)
-        target_compile_options(assimp PRIVATE "-fexceptions")
+        target_compile_options(assimp PRIVATE 
+            "-fexceptions"
+            $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-Wno-error=unused-template>
+        )
     endif()
 endif()
 

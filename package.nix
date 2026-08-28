@@ -14,28 +14,9 @@
   glfw,
   assimp,
   zlib,
-  # Wayland
-  wayland,
-  wayland-protocols,
-  libxkbcommon,
-  egl-wayland,
-  libdecor,
   wayland-scanner,
   extra-cmake-modules,
-  # X11
-  libx11,
-  libxcursor,
-  libxrandr,
-  libxi,
-  libxinerama,
-  withWayland ? true,
-  withX11 ? true,
 }:
-
-assert lib.assertMsg (
-  withWayland || withX11
-) "arena-rush: need at least one of withWayland or withX11";
-
 stdenv.mkDerivation {
   pname = "arena-rush";
   version = "0.1.0";
@@ -53,8 +34,6 @@ stdenv.mkDerivation {
     pkg-config
     makeWrapper
     addDriverRunpath
-  ]
-  ++ lib.optionals withWayland [
     wayland-scanner
     extra-cmake-modules
   ];
@@ -67,20 +46,6 @@ stdenv.mkDerivation {
     glfw
     assimp
     zlib
-  ]
-  ++ lib.optionals withWayland [
-    wayland
-    wayland-protocols
-    libxkbcommon
-    egl-wayland
-    libdecor
-  ]
-  ++ lib.optionals withX11 [
-    libx11
-    libxcursor
-    libxrandr
-    libxi
-    libxinerama
   ];
 
   cmakeFlags = [
